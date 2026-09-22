@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sliding Puzzle Bright — Free Online 15-Puzzle Game</title>
+<meta name="description" content="Play Sliding Puzzle Bright, a free online 15-puzzle and 8-puzzle game. Slide numbered tiles back into order against the clock, with move counting and best times.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --tile-bg: #a86bff; --tile-dark: #8347e0; --tile-empty: #eceef7;
+    --accent: #a86bff; --accent-dark: #8347e0; --win: #22d38a;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --tile-empty: #262a4d; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --tile-empty: #262a4d; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 460px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { margin-bottom: 14px; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,34px); margin:0; }
+  h1 span { background: linear-gradient(90deg, var(--tile-bg), var(--win) 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 44ch; }
+
+  .mode-row { display:flex; gap:8px; margin: 16px 0 14px; background: var(--panel); padding:6px; border-radius:14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .mode-btn { flex:1; padding:9px; border:none; background:transparent; border-radius:10px; font-family:'Inter',sans-serif; font-weight:600; font-size:13px; color:var(--muted); cursor:pointer; }
+  .mode-btn.active { background: var(--accent); color:white; }
+
+  .stats { display:flex; gap:8px; margin-bottom:14px; }
+  .stat-box { flex:1; background: var(--panel); border-radius:12px; padding:8px; text-align:center; box-shadow: 0 2px 8px rgba(30,30,60,0.06); }
+  .stat-box .label { font-size:10.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .stat-box .value { font-family:'Baloo 2',sans-serif; font-size:19px; font-weight:700; }
+
+  .board-shell { background: var(--panel); border-radius: 16px; padding: 8px; box-shadow: 0 4px 16px rgba(30,30,60,0.1); position: relative; }
+  .board { display:grid; gap: 6px; aspect-ratio: 1/1; }
+  .tile {
+    border: none; border-radius: 10px; cursor: pointer;
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size: clamp(18px, 5.5vw, 28px);
+    background: var(--tile-bg); color: white; box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .tile:active { transform: scale(0.96); }
+  .tile.empty { background: var(--tile-empty); box-shadow:none; cursor:default; visibility: hidden; }
+
+  .btn-row { display:flex; gap:10px; justify-content:center; margin-top: 14px; }
+  button.new-game { background: var(--accent); color:white; border:none; padding:10px 20px; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer; font-family:'Inter',sans-serif; }
+  button.new-game:hover { background: var(--accent-dark); }
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(20,22,42,0.82); border-radius: 16px;
+    display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px; text-align:center; padding:16px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:24px; }
+  .overlay p { color:#e4e5f7; margin:0; font-size:13px; }
+  .overlay button { background:white; color:var(--accent-dark); border:none; padding:9px 20px; border-radius:10px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <h1><span>Sliding</span> Puzzle</h1>
+    <p class="tagline">Slide tiles into the empty space to put every number back in order.</p>
+  </header>
+
+  <div class="mode-row">
+    <button class="mode-btn" data-size="3">8-Puzzle (3x3)</button>
+    <button class="mode-btn active" data-size="4">15-Puzzle (4x4)</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-box"><div class="label">Moves</div><div class="value" id="movesVal">0</div></div>
+    <div class="stat-box"><div class="label">Time</div><div class="value" id="timeVal">0:00</div></div>
+    <div class="stat-box"><div class="label">Best Moves</div><div class="value" id="bestVal">–</div></div>
+  </div>
+
+  <div class="board-shell">
+    <div class="board" id="board"></div>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Solved! 🎉</h2>
+      <p id="overlaySub"></p>
+      <button id="overlayBtn">Play Again</button>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="new-game" id="shuffleBtn">🔀 Shuffle</button>
+  </div>
+
+  <section class="info">
+    <h2>How to play the Sliding Puzzle</h2>
+    <p>Tap any tile next to the empty space to slide it into that gap. Keep sliding tiles until every number sits in order, reading left to right, top to bottom, with the empty space in the bottom-right corner. Switch between the easier 3x3 (8-puzzle) and the classic 4x4 (15-puzzle) using the tabs above the board.</p>
+  </section>
+
+  <section class="info">
+    <h2>Tips for solving faster</h2>
+    <p>Work on one row at a time starting from the top — once the first row is correctly placed, avoid disturbing it while solving the rest. Solve the last two tiles of a row together with a small rotating maneuver rather than trying to place the second-to-last tile directly, since placing it directly often displaces the one before it. Save the bottom-right corner for last, since that's where the empty space needs to end up.</p>
+  </section>
+
+  <section class="info">
+    <h2>Frequently asked questions</h2>
+    <p><strong>Is every shuffle solvable?</strong> Yes — puzzles are shuffled by making random valid slides from the solved state, which guarantees a solution always exists.</p>
+    <p><strong>What's the difference between the two sizes?</strong> The 3x3 board (8 numbered tiles) is a faster warm-up; the 4x4 board (15 numbered tiles) is the classic, more challenging version.</p>
+    <p><strong>Does my best move count reset when I switch board size?</strong> No — each board size tracks its own separate best move count.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best moves saved only on this device</footer>
+</div>
+
+<div class="share-row">
+  <span class="share-label">Challenge a friend:</span>
+  <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+  <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+  <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+</div>
+<script>
+(function(){
+  var pageUrl = window.location.href;
+  var shareText = "Can you solve this sliding puzzle faster than me? Try it here:";
+  var wa=document.getElementById('shareWA'),fb=document.getElementById('shareFB'),rd=document.getElementById('shareRD'),ig=document.getElementById('shareIG'),cp=document.getElementById('shareCopy');
+  if(wa)wa.href="https://wa.me/?text="+encodeURIComponent(shareText+" "+pageUrl);
+  if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(pageUrl);
+  if(rd)rd.href="https://reddit.com/submit?url="+encodeURIComponent(pageUrl)+"&title="+encodeURIComponent(shareText);
+  function copyLink(btn){ try{ navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500);}); }catch(e){ window.prompt('Copy this link:', pageUrl);} }
+  if(ig)ig.addEventListener('click',function(){ if(navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+  if(cp)cp.addEventListener('click',function(){ copyLink(cp); });
+})();
+</script>
+
+<script>
+(function(){
+  const boardEl = document.getElementById('board');
+  const movesValEl = document.getElementById('movesVal');
+  const timeValEl = document.getElementById('timeVal');
+  const bestValEl = document.getElementById('bestVal');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+  const shuffleBtn = document.getElementById('shuffleBtn');
+  const modeBtns = document.querySelectorAll('.mode-btn');
+
+  let size = 4;
+  let tiles = [];
+  let moves = 0, seconds = 0, timerInt = null, solved = false, started = false;
+
+  function loadBest(sz){ try { const v = localStorage.getItem('slidingpuzzle_best_'+sz); return v?parseInt(v,10):null; } catch(e){ return null; } }
+  function saveBest(sz, v){ try { localStorage.setItem('slidingpuzzle_best_'+sz, String(v)); } catch(e){} }
+
+  function solvedState(){
+    const arr = [];
+    for (let i=1;i<size*size;i++) arr.push(i);
+    arr.push(0);
+    return arr;
+  }
+
+  function isSolved(){
+    const target = solvedState();
+    return tiles.every((v,i) => v===target[i]);
+  }
+
+  function blankIndex(){ return tiles.indexOf(0); }
+
+  function neighborsOf(idx){
+    const r = Math.floor(idx/size), c = idx%size;
+    const list = [];
+    if (r>0) list.push(idx-size);
+    if (r<size-1) list.push(idx+size);
+    if (c>0) list.push(idx-1);
+    if (c<size-1) list.push(idx+1);
+    return list;
+  }
+
+  function shuffle(){
+    tiles = solvedState();
+    let blank = blankIndex();
+    let lastIdx = -1;
+    const shuffleMoves = size===3 ? 80 : 180;
+    for (let i=0;i<shuffleMoves;i++){
+      const opts = neighborsOf(blank).filter(n => n!==lastIdx);
+      const pick = opts[Math.floor(Math.random()*opts.length)];
+      [tiles[blank], tiles[pick]] = [tiles[pick], tiles[blank]];
+      lastIdx = blank;
+      blank = pick;
+    }
+    if (isSolved()) shuffle();
+  }
+
+  function newGame(newSize){
+    size = newSize || size;
+    moves = 0; seconds = 0; solved = false; started = false;
+    movesValEl.textContent = 0;
+    timeValEl.textContent = '0:00';
+    bestValEl.textContent = loadBest(size) ?? '–';
+    clearInterval(timerInt);
+    shuffle();
+    boardEl.style.gridTemplateColumns = 'repeat('+size+', 1fr)';
+    overlay.classList.remove('show');
+    render();
+  }
+
+  function startTimerIfNeeded(){
+    if (started) return;
+    started = true;
+    timerInt = setInterval(() => {
+      seconds++;
+      const m = Math.floor(seconds/60), s = seconds%60;
+      timeValEl.textContent = m+':'+String(s).padStart(2,'0');
+    }, 1000);
+  }
+
+  function render(){
+    boardEl.innerHTML = '';
+    tiles.forEach((v, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'tile' + (v===0 ? ' empty' : '');
+      btn.textContent = v===0 ? '' : v;
+      btn.addEventListener('click', () => onTileClick(i));
+      boardEl.appendChild(btn);
+    });
+  }
+
+  function onTileClick(idx){
+    if (solved) return;
+    const blank = blankIndex();
+    if (neighborsOf(blank).includes(idx)){
+      startTimerIfNeeded();
+      [tiles[blank], tiles[idx]] = [tiles[idx], tiles[blank]];
+      moves++;
+      movesValEl.textContent = moves;
+      render();
+      if (isSolved()){
+        solved = true;
+        clearInterval(timerInt);
+        const best = loadBest(size);
+        let isBest = false;
+        if (best===null || moves<best){ saveBest(size, moves); isBest=true; }
+        overlayText.textContent = 'Solved! 🎉';
+        overlaySub.textContent = moves + ' moves in ' + timeValEl.textContent + (isBest ? ' — new best!' : '');
+        bestValEl.textContent = isBest ? moves : best;
+        overlay.classList.add('show');
+      }
+    }
+  }
+
+  shuffleBtn.addEventListener('click', () => newGame());
+  overlayBtn.addEventListener('click', () => newGame());
+  modeBtns.forEach(btn => btn.addEventListener('click', () => {
+    modeBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    newGame(parseInt(btn.dataset.size,10));
+  }));
+
+  newGame(4);
+})();
+</script>
+</body>
+</html>

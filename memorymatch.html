@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Memory Match Bright — Free Online Card Matching Game</title>
+<meta name="description" content="Play Memory Match Bright, a free online card-flip memory game. Find every pair in the fewest moves and the fastest time, with easy, medium and hard grids.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --ink: #1f2340;
+    --muted: #6b7094;
+    --card-back: linear-gradient(135deg, #a86bff, #00d1e0);
+    --card-face: #ffffff;
+    --accent: #a86bff;
+    --accent-dark: #8347e0;
+    --matched: #22d38a;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --card-face: #262a4d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --card-face: #262a4d;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 620px; margin: 0 auto; padding: 28px 18px 60px; }
+
+  h1 {
+    font-family: 'Baloo 2', sans-serif; font-weight: 800;
+    font-size: clamp(28px, 7vw, 42px); margin: 0;
+  }
+  h1 span {
+    background: linear-gradient(90deg, #a86bff, #00d1e0 70%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { color: var(--muted); margin: 6px 0 18px; font-size: 15px; max-width: 46ch; }
+
+  .mode-row {
+    display: flex; gap: 8px; margin-bottom: 14px;
+    background: var(--panel); padding: 6px; border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(30,30,60,0.06);
+  }
+  .mode-btn {
+    flex: 1; padding: 9px; border: none; background: transparent; border-radius: 10px;
+    font-family: 'Inter', sans-serif; font-weight: 600; font-size: 13px; color: var(--muted); cursor: pointer;
+  }
+  .mode-btn.active { background: var(--accent); color: white; }
+
+  .stats-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+  .stats { display: flex; gap: 10px; }
+  .stat-box { background: var(--panel); border-radius: 12px; padding: 8px 14px; text-align: center; box-shadow: 0 2px 8px rgba(30,30,60,0.06); }
+  .stat-box .label { font-size: 10px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  .stat-box .value { font-family: 'Baloo 2', sans-serif; font-size: 19px; font-weight: 700; }
+
+  button.new-game {
+    background: var(--accent); color: white; border: none; padding: 9px 16px;
+    border-radius: 12px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+  button.new-game:hover { background: var(--accent-dark); }
+
+  .board {
+    display: grid;
+    gap: 10px;
+    perspective: 800px;
+  }
+  .board.easy { grid-template-columns: repeat(3, 1fr); }
+  .board.medium { grid-template-columns: repeat(4, 1fr); }
+  .board.hard { grid-template-columns: repeat(4, 1fr); }
+
+  .card {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    cursor: pointer;
+  }
+  .card-inner {
+    position: absolute; inset: 0;
+    border-radius: 12px;
+    transform-style: preserve-3d;
+    transition: transform 0.35s ease;
+  }
+  .card.flipped .card-inner, .card.matched .card-inner { transform: rotateY(180deg); }
+
+  .face {
+    position: absolute; inset: 0;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    backface-visibility: hidden;
+    font-size: clamp(22px, 7vw, 38px);
+  }
+  .face.back { background: var(--card-back); }
+  .face.front {
+    background: var(--card-face);
+    transform: rotateY(180deg);
+    box-shadow: 0 2px 8px rgba(30,30,60,0.1);
+  }
+  .card.matched .face.front { background: #eafff3; box-shadow: inset 0 0 0 2px var(--matched); }
+
+  .overlay {
+    margin-top: 20px; background: var(--panel); border-radius: 16px; padding: 24px;
+    text-align: center; box-shadow: 0 2px 10px rgba(30,30,60,0.06);
+    display: none;
+  }
+  .overlay.show { display: block; }
+  .overlay h2 { font-family: 'Baloo 2', sans-serif; margin: 0 0 6px; font-size: 24px; }
+  .overlay p { color: var(--muted); margin: 0 0 14px; }
+  .overlay button {
+    background: var(--accent); color: white; border: none; padding: 10px 20px;
+    border-radius: 10px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+
+  .info { margin-top: 34px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family: 'Baloo 2', sans-serif; font-size: 20px; margin: 0 0 8px; }
+  .info p { color: var(--muted); line-height: 1.6; font-size: 15px; }
+  .info + .info { margin-top: 14px; }
+
+  footer.credit { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1><span>Memory</span> Match Bright</h1>
+    <p class="tagline">Flip the cards, remember what's underneath, and clear the board by finding every pair.</p>
+  </header>
+
+  <div class="mode-row">
+    <button class="mode-btn" data-level="easy">Easy 3x4</button>
+    <button class="mode-btn active" data-level="medium">Medium 4x4</button>
+    <button class="mode-btn" data-level="hard">Hard 4x6</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stats">
+      <div class="stat-box"><div class="label">Moves</div><div class="value" id="moves">0</div></div>
+      <div class="stat-box"><div class="label">Time</div><div class="value" id="timer">0:00</div></div>
+      <div class="stat-box"><div class="label">Best Moves</div><div class="value" id="best">–</div></div>
+    </div>
+    <button class="new-game" id="newGameBtn">New Game</button>
+  </div>
+
+  <div class="board medium" id="board"></div>
+
+  <div class="overlay" id="overlay">
+    <h2 id="overlayText">You Win! 🎉</h2>
+    <p id="overlaySub"></p>
+    <button id="overlayBtn">Play Again</button>
+  </div>
+
+  <section class="info">
+    <h2>How to play Memory Match</h2>
+    <p>Tap any two cards to flip them over. If the symbols match, they stay face-up. If they don't, they flip back and it's the next attempt. Clear the whole board by matching every pair — try to do it in as few moves as possible.</p>
+  </section>
+
+  <section class="info">
+    <h2>Difficulty levels</h2>
+    <p>Easy uses a smaller 3x4 grid for quick rounds, Medium is the standard 4x4 grid, and Hard steps up to a 4x6 grid for a real memory challenge. Your best move count is tracked separately for each difficulty.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best scores are saved only on this device</footer>
+</div>
+
+<script>
+(function(){
+  const EMOJIS = ['🍎','🍋','🍇','🍉','🍓','🍒','🥝','🍑','🍍','🥥','🍌','🥑'];
+  const LEVELS = {
+    easy:   { cols: 3, pairs: 6 },
+    medium: { cols: 4, pairs: 8 },
+    hard:   { cols: 4, pairs: 12 }
+  };
+
+  const boardEl = document.getElementById('board');
+  const movesEl = document.getElementById('moves');
+  const timerEl = document.getElementById('timer');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+  const newGameBtn = document.getElementById('newGameBtn');
+  const modeBtns = document.querySelectorAll('.mode-btn');
+
+  let level = 'medium';
+  let cards, flipped, matchedCount, moves, timerInterval, seconds, locked;
+
+  function loadBest(lvl){
+    try {
+      const b = localStorage.getItem('brightmemory_best_' + lvl);
+      return b ? parseInt(b,10) : null;
+    } catch(e){ return null; }
+  }
+  function saveBest(lvl, v){
+    try { localStorage.setItem('brightmemory_best_' + lvl, String(v)); } catch(e){}
+  }
+
+  function shuffle(arr){
+    for (let i = arr.length-1; i>0; i--){
+      const j = Math.floor(Math.random()*(i+1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function startTimer(){
+    seconds = 0;
+    timerEl.textContent = '0:00';
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      seconds++;
+      const m = Math.floor(seconds/60);
+      const s = seconds % 60;
+      timerEl.textContent = m + ':' + String(s).padStart(2,'0');
+    }, 1000);
+  }
+
+  function newGame(){
+    const { cols, pairs } = LEVELS[level];
+    boardEl.className = 'board ' + level;
+    boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
+
+    const symbols = shuffle(EMOJIS.slice(0, pairs).concat(EMOJIS.slice(0, pairs)));
+    cards = shuffle(symbols);
+    flipped = [];
+    matchedCount = 0;
+    moves = 0;
+    locked = false;
+    movesEl.textContent = 0;
+    overlay.classList.remove('show');
+    const best = loadBest(level);
+    bestEl.textContent = best ? best : '–';
+
+    boardEl.innerHTML = '';
+    cards.forEach((sym, i) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.i = i;
+      card.dataset.sym = sym;
+      card.innerHTML = `
+        <div class="card-inner">
+          <div class="face back">❔</div>
+          <div class="face front">${sym}</div>
+        </div>`;
+      card.addEventListener('click', () => onCardClick(card));
+      boardEl.appendChild(card);
+    });
+
+    startTimer();
+  }
+
+  function onCardClick(card){
+    if (locked) return;
+    if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
+    if (flipped.length === 2) return;
+
+    card.classList.add('flipped');
+    flipped.push(card);
+
+    if (flipped.length === 2){
+      moves++;
+      movesEl.textContent = moves;
+      const [a,b] = flipped;
+      if (a.dataset.sym === b.dataset.sym){
+        a.classList.add('matched');
+        b.classList.add('matched');
+        flipped = [];
+        matchedCount++;
+        if (matchedCount === LEVELS[level].pairs){
+          finishGame();
+        }
+      } else {
+        locked = true;
+        setTimeout(() => {
+          a.classList.remove('flipped');
+          b.classList.remove('flipped');
+          flipped = [];
+          locked = false;
+        }, 700);
+      }
+    }
+  }
+
+  function finishGame(){
+    clearInterval(timerInterval);
+    const best = loadBest(level);
+    let newBest = false;
+    if (best === null || moves < best){
+      saveBest(level, moves);
+      newBest = true;
+    }
+    bestEl.textContent = newBest ? moves : best;
+    overlayText.textContent = 'You Win! 🎉';
+    overlaySub.textContent = 'Finished in ' + moves + ' moves and ' + timerEl.textContent + (newBest ? ' — new best!' : '');
+    overlay.classList.add('show');
+  }
+
+  modeBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      modeBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      level = btn.dataset.level;
+      newGame();
+    });
+  });
+
+  overlayBtn.addEventListener('click', newGame);
+  newGameBtn.addEventListener('click', newGame);
+
+  newGame();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Chess Bright — Play Online with a Friend or Computer</title>
+<meta name="description" content="Play Chess Bright free online. Full standard rules including castling, en passant and promotion. Challenge a friend on a different device, play locally, or face the computer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --sq-light: #eceef7; --sq-dark: #8a90c8;
+    --accent: #a86bff; --accent-dark: #8347e0;
+    --highlight: rgba(34,211,138,0.5); --selected: rgba(255,204,41,0.55); --check: rgba(255,61,110,0.55);
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --sq-light: #2a2d55; --sq-dark: #1b1e3a; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --sq-light: #2a2d55; --sq-dark: #1b1e3a; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { margin-bottom: 14px; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,36px); margin:0; }
+  h1 span { background: linear-gradient(90deg, #1f2340, #a86bff 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 46ch; }
+
+  .mode-row { display:flex; gap:8px; margin: 16px 0 14px; background: var(--panel); padding:6px; border-radius:14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); flex-wrap: wrap; }
+  .mode-btn { flex:1; min-width: 90px; padding:10px; border:none; background:transparent; border-radius:10px; font-family:'Inter',sans-serif; font-weight:600; font-size:13px; color:var(--muted); cursor:pointer; }
+  .mode-btn.active { background: var(--accent); color:white; }
+
+  .online-panel { background: var(--panel); border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .online-status { font-size: 13.5px; color: var(--muted); margin-bottom: 12px; text-align: center; font-weight: 600; }
+  .online-actions { display: flex; flex-direction: column; gap: 10px; }
+  .join-row { display: flex; gap: 8px; }
+  .join-row input { flex: 1; border: 1px solid var(--bg); border-radius: 10px; padding: 10px 12px; font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg); color: var(--ink); text-transform: uppercase; }
+  .room-info { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px; }
+  .room-code { font-family: 'Baloo 2', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: 4px; background: var(--bg); padding: 8px 18px; border-radius: 12px; color: var(--accent-dark); }
+  button.util-btn { background: var(--accent); color:white; border:none; padding:10px 18px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; }
+  button.util-btn:hover { background: var(--accent-dark); }
+
+  .status-row { display:flex; justify-content:space-between; align-items:center; margin-bottom: 12px; gap: 10px; flex-wrap: wrap; }
+  .status { font-family:'Baloo 2',sans-serif; font-size:15px; font-weight:700; }
+  button.new-game { background: var(--accent); color:white; border:none; padding:9px 16px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; }
+  button.new-game:hover { background: var(--accent-dark); }
+
+  .captured-row { display:flex; justify-content:space-between; min-height: 22px; margin-bottom: 6px; font-size: 15px; color: var(--muted); }
+
+  .board-wrap { position: relative; background: var(--panel); border-radius: 16px; padding: 8px; box-shadow: 0 4px 16px rgba(30,30,60,0.12); }
+  .board { display:grid; grid-template-columns: repeat(8, 1fr); grid-template-rows: repeat(8, 1fr); aspect-ratio: 1/1; border-radius: 8px; overflow: hidden; }
+  .square { position: relative; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size: clamp(20px, 6.5vw, 34px); }
+  .square.light { background: var(--sq-light); }
+  .square.dark { background: var(--sq-dark); }
+  .square.movable::after { content:''; position:absolute; width:26%; height:26%; border-radius:50%; background: var(--highlight); }
+  .square.movable.capture::after { width:100%; height:100%; border-radius:0; background: transparent; box-shadow: inset 0 0 0 4px var(--highlight); }
+  .square.selected { box-shadow: inset 0 0 0 3px var(--selected); }
+  .square.in-check { box-shadow: inset 0 0 0 4px var(--check); }
+  .piece-glyph { user-select: none; }
+  .piece-glyph.white { color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.6), 0 0 1px #000; }
+  .piece-glyph.black { color: #14162a; text-shadow: 0 1px 1px rgba(255,255,255,0.25); }
+
+  .promo-overlay {
+    position: absolute; inset:0; background: rgba(15,10,35,0.85); border-radius: 10px;
+    display:none; align-items:center; justify-content:center; flex-direction:column; gap:12px; padding: 16px; z-index: 5;
+  }
+  .promo-overlay.show { display:flex; }
+  .promo-overlay p { color:white; font-family:'Baloo 2',sans-serif; font-size:16px; margin:0; }
+  .promo-choices { display:flex; gap:10px; }
+  .promo-choices button { width: 54px; height: 54px; font-size: 30px; border-radius: 10px; border:none; background: white; cursor:pointer; }
+
+  .end-overlay {
+    position: absolute; inset:0; background: rgba(15,10,35,0.85); border-radius: 10px;
+    display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px; text-align:center; padding:16px; z-index: 6;
+  }
+  .end-overlay.show { display:flex; }
+  .end-overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:22px; }
+  .end-overlay p { color:#e4e5f7; margin:0; font-size:13px; }
+  .end-overlay button { background:white; color:var(--accent-dark); border:none; padding:9px 20px; border-radius:10px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <h1><span>Chess</span> Bright</h1>
+    <p class="tagline">Full standard rules — castling, en passant, and promotion all included.</p>
+  </header>
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="modeCpu">vs Computer</button>
+    <button class="mode-btn" id="mode2p">2 Players</button>
+    <button class="mode-btn" id="modeOnline">🌐 Play with Friend</button>
+  </div>
+
+  <div class="online-panel" id="onlinePanel" style="display:none;">
+    <div class="online-status" id="onlineStatus">Create a room or enter a friend's code to connect.</div>
+    <div class="online-actions" id="onlineActions">
+      <button class="util-btn" id="createRoomBtn">Create Room</button>
+      <div class="join-row">
+        <input type="text" id="joinCodeInput" placeholder="Enter friend's code" maxlength="8">
+        <button class="util-btn" id="joinRoomBtn">Join</button>
+      </div>
+    </div>
+    <div class="room-info" id="roomInfo" style="display:none;">
+      <div class="room-code" id="roomCodeDisplay"></div>
+      <button class="util-btn" id="copyRoomLinkBtn">📋 Copy Invite Link</button>
+    </div>
+  </div>
+
+  <div class="status-row">
+    <div class="status" id="statusText">Your turn (White)</div>
+    <button class="new-game" id="newRoundBtn">Reset</button>
+  </div>
+
+  <div class="captured-row">
+    <div id="capturedByWhite"></div>
+    <div id="capturedByBlack"></div>
+  </div>
+
+  <div class="board-wrap">
+    <div class="board" id="board"></div>
+    <div class="promo-overlay" id="promoOverlay">
+      <p>Promote your pawn to:</p>
+      <div class="promo-choices" id="promoChoices"></div>
+    </div>
+    <div class="end-overlay" id="endOverlay">
+      <h2 id="endText">Checkmate</h2>
+      <p id="endSub"></p>
+      <button id="endBtn">New Game</button>
+    </div>
+  </div>
+
+  <section class="info">
+    <h2>How to play Chess</h2>
+    <p>Standard chess rules apply. Tap a piece to see its legal moves highlighted, then tap a destination square to move. Castling, en passant, and pawn promotion are all supported — when a pawn reaches the far row, you'll be asked which piece to promote it to.</p>
+  </section>
+
+  <section class="info">
+    <h2>Playing with a friend online</h2>
+    <p>Pick "Play with Friend", create a room, and share the code or invite link. Whoever creates the room plays White and moves first; whoever joins plays Black. Moves sync instantly over a direct connection between your two browsers.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · online play uses a direct peer-to-peer connection</footer>
+</div>
+
+<div class="share-row">
+  <span class="share-label">Challenge a friend:</span>
+  <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+  <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+  <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+</div>
+<script>
+(function(){
+  var pageUrl = window.location.href;
+  var shareText = "Play Chess with me! Try it here:";
+  var wa=document.getElementById('shareWA'),fb=document.getElementById('shareFB'),rd=document.getElementById('shareRD'),ig=document.getElementById('shareIG'),cp=document.getElementById('shareCopy');
+  if(wa)wa.href="https://wa.me/?text="+encodeURIComponent(shareText+" "+pageUrl);
+  if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(pageUrl);
+  if(rd)rd.href="https://reddit.com/submit?url="+encodeURIComponent(pageUrl)+"&title="+encodeURIComponent(shareText);
+  function copyLink(btn){ try{ navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500);}); }catch(e){ window.prompt('Copy this link:', pageUrl);} }
+  if(ig)ig.addEventListener('click',function(){ if(navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+  if(cp)cp.addEventListener('click',function(){ copyLink(cp); });
+})();
+</script>
+
+<script>
+(function(){
+  const PEER_CONFIG = {
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:openrelay.metered.ca:80' },
+        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+      ]
+    }
+  };
+
+  const boardEl = document.getElementById('board');
+  const statusText = document.getElementById('statusText');
+  const newRoundBtn = document.getElementById('newRoundBtn');
+  const capturedByWhiteEl = document.getElementById('capturedByWhite');
+  const capturedByBlackEl = document.getElementById('capturedByBlack');
+  const promoOverlay = document.getElementById('promoOverlay');
+  const promoChoices = document.getElementById('promoChoices');
+  const endOverlay = document.getElementById('endOverlay');
+  const endText = document.getElementById('endText');
+  const endSub = document.getElementById('endSub');
+  const endBtn = document.getElementById('endBtn');
+
+  const modeCpu = document.getElementById('modeCpu');
+  const mode2p = document.getElementById('mode2p');
+  const modeOnline = document.getElementById('modeOnline');
+  const onlinePanel = document.getElementById('onlinePanel');
+  const onlineStatus = document.getElementById('onlineStatus');
+  const onlineActions = document.getElementById('onlineActions');
+  const createRoomBtn = document.getElementById('createRoomBtn');
+  const joinCodeInput = document.getElementById('joinCodeInput');
+  const joinRoomBtn = document.getElementById('joinRoomBtn');
+  const roomInfo = document.getElementById('roomInfo');
+  const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+  const copyRoomLinkBtn = document.getElementById('copyRoomLinkBtn');
+
+  const GLYPH = {
+    w: { p:'♙', n:'♘', b:'♗', r:'♖', q:'♕', k:'♔' },
+    b: { p:'♟', n:'♞', b:'♝', r:'♜', q:'♛', k:'♚' }
+  };
+  const VALUES = { p:100, n:320, b:330, r:500, q:900, k:20000 };
+  const knightMoves = [[-2,-1],[-2,1],[-1,-2],[-1,2],[1,-2],[1,2],[2,-1],[2,1]];
+  const bishopDirs = [[-1,-1],[-1,1],[1,-1],[1,1]];
+  const rookDirs = [[-1,0],[1,0],[0,-1],[0,1]];
+  const queenDirs = bishopDirs.concat(rookDirs);
+
+  let board, turn, enPassant, moved, mode='cpu', selected=null, legalForSelected=[], over=false;
+  let onlineMode=false, peer=null, conn=null, myColor=null, onlineConnected=false, pendingPromotion=null;
+  let capturedByWhite=[], capturedByBlack=[];
+
+  function inBounds(r,c){ return r>=0&&r<8&&c>=0&&c<8; }
+  function opp(color){ return color==='w'?'b':'w'; }
+
+  function initBoard(){
+    const b = Array.from({length:8}, () => Array(8).fill(null));
+    const back = ['r','n','b','q','k','b','n','r'];
+    for (let c=0;c<8;c++){
+      b[0][c] = { t: back[c], c:'b' };
+      b[1][c] = { t:'p', c:'b' };
+      b[6][c] = { t:'p', c:'w' };
+      b[7][c] = { t: back[c], c:'w' };
+    }
+    return b;
+  }
+
+  function newGame(){
+    board = initBoard();
+    turn = 'w';
+    enPassant = null;
+    moved = { wK:false, wRa:false, wRh:false, bK:false, bRa:false, bRh:false };
+    selected = null; legalForSelected = [];
+    over = false; pendingPromotion = null;
+    capturedByWhite = []; capturedByBlack = [];
+    promoOverlay.classList.remove('show');
+    endOverlay.classList.remove('show');
+    render();
+    updateStatus();
+    updateCaptured();
+  }
+
+  function pseudoMoves(r,c, bd){
+    bd = bd || board;
+    const piece = bd[r][c];
+    if (!piece) return [];
+    const moves = [];
+    if (piece.t === 'p'){
+      const dir = piece.c==='w' ? -1 : 1;
+      const startRow = piece.c==='w' ? 6 : 1;
+      const promoRow = piece.c==='w' ? 0 : 7;
+      if (inBounds(r+dir,c) && !bd[r+dir][c]){
+        pushPawn(moves, r+dir, c, promoRow, false);
+        if (r===startRow && !bd[r+2*dir][c]) moves.push({ r:r+2*dir, c, special:'double' });
+      }
+      [[dir,-1],[dir,1]].forEach(([dr,dc]) => {
+        const nr=r+dr, nc=c+dc;
+        if (!inBounds(nr,nc)) return;
+        if (bd[nr][nc] && bd[nr][nc].c !== piece.c){ pushPawn(moves, nr, nc, promoRow, true); }
+        else if (enPassant && enPassant.r===nr && enPassant.c===nc && !bd[nr][nc]){
+          moves.push({ r:nr, c:nc, special:'enpassant', capture:true });
+        }
+      });
+    } else if (piece.t === 'n'){
+      knightMoves.forEach(([dr,dc]) => {
+        const nr=r+dr, nc=c+dc;
+        if (inBounds(nr,nc) && (!bd[nr][nc] || bd[nr][nc].c!==piece.c)) moves.push({ r:nr, c:nc, capture: !!bd[nr][nc] });
+      });
+    } else if (piece.t === 'k'){
+      queenDirs.forEach(([dr,dc]) => {
+        const nr=r+dr, nc=c+dc;
+        if (inBounds(nr,nc) && (!bd[nr][nc] || bd[nr][nc].c!==piece.c)) moves.push({ r:nr, c:nc, capture: !!bd[nr][nc] });
+      });
+    } else {
+      const dirs = piece.t==='b' ? bishopDirs : piece.t==='r' ? rookDirs : queenDirs;
+      dirs.forEach(([dr,dc]) => {
+        let nr=r+dr, nc=c+dc;
+        while (inBounds(nr,nc)){
+          if (!bd[nr][nc]) moves.push({ r:nr, c:nc });
+          else { if (bd[nr][nc].c !== piece.c) moves.push({ r:nr, c:nc, capture:true }); break; }
+          nr+=dr; nc+=dc;
+        }
+      });
+    }
+    return moves;
+
+    function pushPawn(list, nr, nc, promoRow, capture){
+      if (nr === promoRow) list.push({ r:nr, c:nc, special:'promotion', capture });
+      else list.push({ r:nr, c:nc, capture });
+    }
+  }
+
+  function isAttacked(r, c, byColor, bd){
+    bd = bd || board;
+    const pawnDir = byColor==='w' ? -1 : 1;
+    const pr = r - pawnDir;
+    for (const pc of [c-1,c+1]){
+      if (inBounds(pr,pc) && bd[pr][pc] && bd[pr][pc].t==='p' && bd[pr][pc].c===byColor) return true;
+    }
+    for (const [dr,dc] of knightMoves){
+      const nr=r+dr, nc=c+dc;
+      if (inBounds(nr,nc) && bd[nr][nc] && bd[nr][nc].t==='n' && bd[nr][nc].c===byColor) return true;
+    }
+    for (const [dr,dc] of queenDirs){
+      const nr=r+dr, nc=c+dc;
+      if (inBounds(nr,nc) && bd[nr][nc] && bd[nr][nc].t==='k' && bd[nr][nc].c===byColor) return true;
+    }
+    for (const [dr,dc] of bishopDirs){
+      let nr=r+dr, nc=c+dc;
+      while (inBounds(nr,nc)){
+        if (bd[nr][nc]){ if (bd[nr][nc].c===byColor && (bd[nr][nc].t==='b'||bd[nr][nc].t==='q')) return true; break; }
+        nr+=dr; nc+=dc;
+      }
+    }
+    for (const [dr,dc] of rookDirs){
+      let nr=r+dr, nc=c+dc;
+      while (inBounds(nr,nc)){
+        if (bd[nr][nc]){ if (bd[nr][nc].c===byColor && (bd[nr][nc].t==='r'||bd[nr][nc].t==='q')) return true; break; }
+        nr+=dr; nc+=dc;
+      }
+    }
+    return false;
+  }
+
+  function findKing(color, bd){
+    bd = bd || board;
+    for (let r=0;r<8;r++) for (let c=0;c<8;c++){ if (bd[r][c] && bd[r][c].t==='k' && bd[r][c].c===color) return {r,c}; }
+    return null;
+  }
+
+  function cloneBoard(bd){ return bd.map(row => row.slice()); }
+
+  function simulate(bd, fromR, fromC, move){
+    const nb = cloneBoard(bd);
+    const piece = nb[fromR][fromC];
+    if (move.special === 'enpassant'){
+      nb[fromR][move.c] = null;
+    }
+    if (move.special === 'castleK'){
+      nb[fromR][5] = nb[fromR][7]; nb[fromR][7] = null;
+    } else if (move.special === 'castleQ'){
+      nb[fromR][3] = nb[fromR][0]; nb[fromR][0] = null;
+    }
+    nb[fromR][fromC] = null;
+    nb[move.r][move.c] = move.special==='promotion' ? { t: move.promoteTo||'q', c: piece.c } : piece;
+    return nb;
+  }
+
+  function getLegalMoves(r,c){
+    const piece = board[r][c];
+    if (!piece) return [];
+    let moves = pseudoMoves(r,c);
+
+    if (piece.t === 'k' && !isAttacked(r,c,opp(piece.c))){
+      const kMovedFlag = piece.c==='w' ? moved.wK : moved.bK;
+      const rHFlag = piece.c==='w' ? moved.wRh : moved.bRh;
+      const rAFlag = piece.c==='w' ? moved.wRa : moved.bRa;
+      if (!kMovedFlag){
+        if (!rHFlag && board[r][5]===null && board[r][6]===null && board[r][7] && board[r][7].t==='r' && board[r][7].c===piece.c){
+          if (!isAttacked(r,4,opp(piece.c)) && !isAttacked(r,5,opp(piece.c)) && !isAttacked(r,6,opp(piece.c))){
+            moves.push({ r, c:6, special:'castleK' });
+          }
+        }
+        if (!rAFlag && board[r][1]===null && board[r][2]===null && board[r][3]===null && board[r][0] && board[r][0].t==='r' && board[r][0].c===piece.c){
+          if (!isAttacked(r,4,opp(piece.c)) && !isAttacked(r,3,opp(piece.c)) && !isAttacked(r,2,opp(piece.c))){
+            moves.push({ r, c:2, special:'castleQ' });
+          }
+        }
+      }
+    }
+
+    moves = moves.filter(m => {
+      const nb = simulate(board, r, c, m);
+      const kingPos = piece.t==='k' ? {r:m.r,c:m.c} : findKing(piece.c, nb);
+      return !isAttacked(kingPos.r, kingPos.c, opp(piece.c), nb);
+    });
+    return moves;
+  }
+
+  function hasAnyLegalMove(color){
+    for (let r=0;r<8;r++) for (let c=0;c<8;c++){
+      if (board[r][c] && board[r][c].c===color && getLegalMoves(r,c).length) return true;
+    }
+    return false;
+  }
+
+  function applyMove(fromR, fromC, move){
+    const piece = board[fromR][fromC];
+    const capturedPiece = board[move.r][move.c];
+
+    if (move.special === 'enpassant'){
+      const capturedPawn = board[fromR][move.c];
+      if (capturedPawn) recordCapture(capturedPawn);
+      board[fromR][move.c] = null;
+    } else if (capturedPiece){
+      recordCapture(capturedPiece);
+    }
+
+    if (move.special === 'castleK'){ board[fromR][5] = board[fromR][7]; board[fromR][7] = null; }
+    if (move.special === 'castleQ'){ board[fromR][3] = board[fromR][0]; board[fromR][0] = null; }
+
+    board[fromR][fromC] = null;
+    board[move.r][move.c] = move.special==='promotion' ? { t: move.promoteTo||'q', c: piece.c } : piece;
+
+    if (piece.t==='k'){ if (piece.c==='w') moved.wK=true; else moved.bK=true; }
+    if (piece.t==='r'){
+      if (piece.c==='w'){ if (fromR===7&&fromC===0) moved.wRa=true; if (fromR===7&&fromC===7) moved.wRh=true; }
+      else { if (fromR===0&&fromC===0) moved.bRa=true; if (fromR===0&&fromC===7) moved.bRh=true; }
+    }
+
+    enPassant = move.special==='double' ? { r:(fromR+move.r)/2, c: fromC } : null;
+
+    turn = opp(turn);
+    selected = null; legalForSelected = [];
+    render();
+    updateCaptured();
+
+    const kp = findKing(turn, board);
+    const inCheckNow = kp ? isAttacked(kp.r, kp.c, opp(turn)) : false;
+    const anyMoves = hasAnyLegalMove(turn);
+    if (!anyMoves){
+      over = true;
+      if (inCheckNow){
+        const winner = opp(turn);
+        showEnd('Checkmate!', (winner==='w'?'White':'Black') + ' wins by checkmate.');
+      } else {
+        showEnd('Stalemate', "It's a draw — no legal moves remain.");
+      }
+    } else {
+      updateStatus(inCheckNow);
+    }
+  }
+
+  function recordCapture(piece){
+    if (piece.c === 'w') capturedByBlack.push(piece.t);
+    else capturedByWhite.push(piece.t);
+  }
+  function updateCaptured(){
+    capturedByWhiteEl.textContent = capturedByWhite.map(t => GLYPH.w[t]).join(' ');
+    capturedByBlackEl.textContent = capturedByBlack.map(t => GLYPH.b[t]).join(' ');
+  }
+
+  function showEnd(title, sub){
+    endText.textContent = title;
+    endSub.textContent = sub;
+    setTimeout(() => endOverlay.classList.add('show'), 300);
+  }
+
+  function updateStatus(inCheck){
+    if (over) return;
+    const colorName = turn==='w' ? 'White' : 'Black';
+    let who;
+    if (mode==='online') who = turn===myColor ? 'Your turn' : "Opponent's turn";
+    else if (mode==='local') who = colorName + "'s turn";
+    else who = turn==='w' ? 'Your turn' : "Computer's turn";
+    statusText.textContent = who + ' (' + colorName + ')' + (inCheck ? ' — Check!' : '');
+  }
+
+  function render(){
+    boardEl.innerHTML = '';
+    const kp0 = findKing(turn, board);
+    const inCheckColor = kp0 && isAttacked(kp0.r, kp0.c, opp(turn)) ? turn : null;
+    for (let r=0;r<8;r++){
+      for (let c=0;c<8;c++){
+        const sq = document.createElement('div');
+        sq.className = 'square ' + ((r+c)%2===0 ? 'light' : 'dark');
+        const piece = board[r][c];
+        if (piece){
+          const span = document.createElement('span');
+          span.className = 'piece-glyph ' + (piece.c==='w' ? 'white' : 'black');
+          span.textContent = GLYPH[piece.c][piece.t];
+          sq.appendChild(span);
+        }
+        if (inCheckColor && piece && piece.t==='k' && piece.c===inCheckColor) sq.classList.add('in-check');
+        if (selected && selected.r===r && selected.c===c) sq.classList.add('selected');
+        const mv = legalForSelected.find(m => m.r===r && m.c===c);
+        if (mv){ sq.classList.add('movable'); if (mv.capture) sq.classList.add('capture'); }
+        sq.addEventListener('click', () => onSquareClick(r,c));
+        boardEl.appendChild(sq);
+      }
+    }
+  }
+
+  function activeHuman(){
+    if (mode==='cpu') return turn==='w';
+    if (mode==='online') return onlineConnected && turn===myColor;
+    return true;
+  }
+
+  function onSquareClick(r,c){
+    if (over || pendingPromotion) return;
+    if (!activeHuman()) return;
+
+    if (selected){
+      const mv = legalForSelected.find(m => m.r===r && m.c===c);
+      if (mv){
+        if (mv.special === 'promotion'){
+          askPromotion(selected.r, selected.c, mv);
+          return;
+        }
+        doMove(selected.r, selected.c, mv);
+        return;
+      }
+    }
+    const piece = board[r][c];
+    if (piece && piece.c === turn){
+      selected = { r, c };
+      legalForSelected = getLegalMoves(r,c);
+      render();
+    } else {
+      selected = null; legalForSelected = [];
+      render();
+    }
+  }
+
+  function askPromotion(fromR, fromC, move){
+    pendingPromotion = { fromR, fromC, move };
+    promoChoices.innerHTML = '';
+    const color = board[fromR][fromC].c;
+    ['q','r','b','n'].forEach(t => {
+      const btn = document.createElement('button');
+      btn.textContent = GLYPH[color][t];
+      btn.addEventListener('click', () => {
+        const finalMove = { ...move, promoteTo: t };
+        promoOverlay.classList.remove('show');
+        pendingPromotion = null;
+        doMove(fromR, fromC, finalMove);
+      });
+      promoChoices.appendChild(btn);
+    });
+    promoOverlay.classList.add('show');
+  }
+
+  function doMove(fromR, fromC, move){
+    applyMove(fromR, fromC, move);
+    if (mode==='online' && conn && conn.open){
+      conn.send({ type:'move', fromR, fromC, move });
+    }
+    if (mode==='cpu' && turn==='b' && !over){
+      setTimeout(cpuMove, 450);
+    }
+  }
+
+  function evaluateBoard(bd){
+    let score = 0;
+    for (let r=0;r<8;r++) for (let c=0;c<8;c++){
+      const p = bd[r][c];
+      if (p){ score += (p.c==='w'?1:-1) * VALUES[p.t]; }
+    }
+    return score;
+  }
+
+  function allLegalMovesFor(color, bd){
+    const origBoard = board;
+    board = bd;
+    const result = [];
+    for (let r=0;r<8;r++) for (let c=0;c<8;c++){
+      if (bd[r][c] && bd[r][c].c===color){
+        getLegalMoves(r,c).forEach(m => result.push({ fromR:r, fromC:c, move:m }));
+      }
+    }
+    board = origBoard;
+    return result;
+  }
+
+  function cpuMove(){
+    if (over) return;
+    const myMoves = allLegalMovesFor('b', board);
+    if (!myMoves.length) return;
+
+    let bestScore = Infinity, bestMoves = [];
+    myMoves.forEach(({fromR,fromC,move}) => {
+      const mv = move.special==='promotion' ? { ...move, promoteTo:'q' } : move;
+      const nb1 = simulate(board, fromR, fromC, mv);
+      const replies = allLegalMovesFor('w', nb1);
+      let worstForBlack = -Infinity;
+      if (!replies.length){
+        worstForBlack = -50000;
+      } else {
+        replies.forEach(({fromR:r2,fromC:c2,move:m2}) => {
+          const mv2 = m2.special==='promotion' ? { ...m2, promoteTo:'q' } : m2;
+          const nb2 = simulate(nb1, r2, c2, mv2);
+          const s = evaluateBoard(nb2);
+          if (s > worstForBlack) worstForBlack = s;
+        });
+      }
+      if (worstForBlack < bestScore){ bestScore = worstForBlack; bestMoves = [{fromR,fromC,move:mv}]; }
+      else if (worstForBlack === bestScore){ bestMoves.push({fromR,fromC,move:mv}); }
+    });
+
+    const pick = bestMoves[Math.floor(Math.random()*bestMoves.length)];
+    applyMove(pick.fromR, pick.fromC, pick.move);
+  }
+
+  newRoundBtn.addEventListener('click', () => {
+    newGame();
+    if (mode==='online' && conn && conn.open) conn.send({ type:'reset' });
+  });
+  endBtn.addEventListener('click', () => {
+    newGame();
+    if (mode==='online' && conn && conn.open) conn.send({ type:'reset' });
+  });
+
+  function setActiveMode(btn){ [modeCpu, mode2p, modeOnline].forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+
+  modeCpu.addEventListener('click', () => {
+    mode='cpu'; onlineMode=false;
+    setActiveMode(modeCpu); onlinePanel.style.display='none';
+    newGame();
+  });
+  mode2p.addEventListener('click', () => {
+    mode='local'; onlineMode=false;
+    setActiveMode(mode2p); onlinePanel.style.display='none';
+    newGame();
+  });
+  modeOnline.addEventListener('click', () => {
+    mode='online'; onlineMode=true;
+    setActiveMode(modeOnline); onlinePanel.style.display='block';
+    statusText.textContent = 'Connect with a friend to begin';
+    board = initBoard(); render();
+  });
+
+  function genCode(){
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s='';
+    for (let i=0;i<6;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+    return s;
+  }
+
+  function setupConnection(connection, asHost){
+    conn = connection;
+    setTimeout(() => {
+      if (!onlineConnected){
+        onlineStatus.textContent = "Still not connected. This can happen on some WiFi/mobile networks that block direct device connections — try switching one device to mobile data, or a different network.";
+      }
+    }, 14000);
+    conn.on('open', () => {
+      onlineConnected = true;
+      myColor = asHost ? 'w' : 'b';
+      onlineStatus.textContent = 'Connected! You are playing ' + (myColor==='w'?'White':'Black') + '.';
+      onlineActions.style.display='none';
+      roomInfo.style.display='none';
+      newGame();
+    });
+    conn.on('data', (data) => {
+      if (data.type==='move'){ applyMove(data.fromR, data.fromC, data.move); }
+      else if (data.type==='reset'){ newGame(); }
+    });
+    conn.on('close', () => {
+      onlineConnected=false;
+      onlineStatus.textContent='Friend disconnected. Create or join a new room to keep playing.';
+      onlineActions.style.display='flex'; roomInfo.style.display='none';
+    });
+  }
+
+  createRoomBtn.addEventListener('click', () => {
+    const code = genCode();
+    onlineStatus.textContent = 'Setting up room...';
+    peer = new Peer('bright-chess-' + code, PEER_CONFIG);
+    peer.on('open', () => {
+      roomCodeDisplay.textContent = code;
+      roomInfo.style.display = 'flex';
+      onlineStatus.textContent = 'Share this code — waiting for your friend to join...';
+    });
+    peer.on('connection', (connection) => setupConnection(connection, true));
+    peer.on('error', () => { onlineStatus.textContent = 'Connection error. Please try creating a new room.'; });
+  });
+
+  function joinWithCode(code){
+    code = code.trim().toUpperCase();
+    if (!code) return;
+    onlineStatus.textContent = 'Connecting...';
+    peer = new Peer(PEER_CONFIG);
+    peer.on('open', () => {
+      const connection = peer.connect('bright-chess-' + code);
+      connection.on('error', () => { onlineStatus.textContent = "Couldn't connect. Check the code and try again."; });
+      setupConnection(connection, false);
+    });
+    peer.on('error', () => { onlineStatus.textContent = "Couldn't connect. Check the code and try again."; });
+  }
+
+  joinRoomBtn.addEventListener('click', () => joinWithCode(joinCodeInput.value));
+  joinCodeInput.addEventListener('keydown', (e) => { if (e.key==='Enter') joinWithCode(joinCodeInput.value); });
+
+  copyRoomLinkBtn.addEventListener('click', () => {
+    const code = roomCodeDisplay.textContent;
+    const link = window.location.origin + window.location.pathname + '?room=' + code;
+    try {
+      navigator.clipboard.writeText(link).then(() => {
+        const old = copyRoomLinkBtn.textContent;
+        copyRoomLinkBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyRoomLinkBtn.textContent = old; }, 1500);
+      });
+    } catch(e){ window.prompt('Copy this link:', link); }
+  });
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomFromUrl = urlParams.get('room');
+
+  if (roomFromUrl){
+    modeOnline.click();
+    joinCodeInput.value = roomFromUrl;
+    joinWithCode(roomFromUrl);
+  } else {
+    newGame();
+  }
+})();
+</script>
+</body>
+</html>

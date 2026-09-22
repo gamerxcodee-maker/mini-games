@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tic Tac Toe Bright — Play 2 Player or vs Computer Online Free</title>
-<meta name="description" content="Play Tic Tac Toe Bright free online. Challenge a friend on the same device or play against the computer, with a clean colourful board.">
+<title>Tic Tac Toe Bright — Play Online with a Friend, 2 Player or vs Computer</title>
+<meta name="description" content="Play Tic Tac Toe Bright free online. Challenge a friend on a different device with a shareable room code, play locally on the same screen, or test yourself against the computer.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -208,6 +208,21 @@
   .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); }
   .share-btn.cp { background:#6b7094; }
   .share-btn:active { transform: scale(0.96); }
+
+  .online-panel { background: var(--panel); border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .online-status { font-size: 13.5px; color: var(--muted); margin-bottom: 12px; text-align: center; font-weight: 600; }
+  .online-actions { display: flex; flex-direction: column; gap: 10px; }
+  .join-row { display: flex; gap: 8px; }
+  .join-row input {
+    flex: 1; border: 1px solid var(--board-bg); border-radius: 10px; padding: 10px 12px;
+    font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg); color: var(--ink);
+    text-transform: uppercase;
+  }
+  .room-info { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px; }
+  .room-code {
+    font-family: 'Baloo 2', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: 4px;
+    background: var(--bg); padding: 10px 20px; border-radius: 12px; color: var(--accent-dark);
+  }
 </style>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
@@ -217,6 +232,7 @@
     gtag('js', new Date());
     gtag('config', 'G-VCXTW15M2M');
   </script>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -224,12 +240,28 @@
 
   <header class="top">
     <h1><span>Tic Tac Toe</span> Bright</h1>
-    <p class="tagline">The classic 3x3 grid game. Play against a friend on the same screen, or test yourself against the computer.</p>
+    <p class="tagline">The classic 3x3 grid game. Play a friend on a different device with a room code, pass the same screen back and forth, or test yourself against the computer.</p>
   </header>
 
   <div class="mode-row">
     <button class="mode-btn active" id="mode2p">2 Players</button>
     <button class="mode-btn" id="modeCpu">vs Computer</button>
+    <button class="mode-btn" id="modeOnline">🌐 Play with Friend</button>
+  </div>
+
+  <div class="online-panel" id="onlinePanel" style="display:none;">
+    <div class="online-status" id="onlineStatus">Create a room or enter a friend's code to connect.</div>
+    <div class="online-actions" id="onlineActions">
+      <button class="new-game" id="createRoomBtn">Create Room</button>
+      <div class="join-row">
+        <input type="text" id="joinCodeInput" placeholder="Enter friend's code" maxlength="8">
+        <button class="new-game" id="joinRoomBtn">Join</button>
+      </div>
+    </div>
+    <div class="room-info" id="roomInfo" style="display:none;">
+      <div class="room-code" id="roomCodeDisplay"></div>
+      <button class="new-game" id="copyRoomLinkBtn">📋 Copy Invite Link</button>
+    </div>
   </div>
 
   <div class="scores">
@@ -310,8 +342,13 @@
   </section>
 
   <section class="info">
-    <h2>2 Player or vs Computer</h2>
-    <p>Switch to "2 Players" to pass the device back and forth with a friend, or pick "vs Computer" to play solo — the computer plays as O and always makes a valid, competitive move.</p>
+    <h2>2 Player, vs Computer, or Play with a Friend online</h2>
+    <p>Switch to "2 Players" to pass the device back and forth with a friend, or pick "vs Computer" to play solo — the computer plays as O and always makes a valid, competitive move. Pick "Play with Friend" to connect with someone on a completely different device: one of you creates a room and shares the code or link, the other joins, and you play in real time.</p>
+  </section>
+
+  <section class="info">
+    <h2>How the online room works</h2>
+    <p>The room connects your two browsers directly to each other using a technology called WebRTC — no account or sign-up needed. This works reliably on most home and mobile networks. If a connection doesn't go through on the first try, it's usually a restrictive network (like some office or school Wi-Fi) — refreshing and trying again, or switching to mobile data, usually fixes it.</p>
   </section>
 
   <footer class="credit">Original build · runs entirely in your browser · scores reset when you refresh the page</footer>
@@ -328,11 +365,22 @@
   const newGameBtn = document.getElementById('newGameBtn');
   const mode2p = document.getElementById('mode2p');
   const modeCpu = document.getElementById('modeCpu');
+  const modeOnline = document.getElementById('modeOnline');
   const p1Score = document.getElementById('p1Score');
   const p2Score = document.getElementById('p2Score');
   const drawScore = document.getElementById('drawScore');
   const p1Label = document.getElementById('p1Label');
   const p2Label = document.getElementById('p2Label');
+
+  const onlinePanel = document.getElementById('onlinePanel');
+  const onlineStatus = document.getElementById('onlineStatus');
+  const onlineActions = document.getElementById('onlineActions');
+  const createRoomBtn = document.getElementById('createRoomBtn');
+  const joinCodeInput = document.getElementById('joinCodeInput');
+  const joinRoomBtn = document.getElementById('joinRoomBtn');
+  const roomInfo = document.getElementById('roomInfo');
+  const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+  const copyRoomLinkBtn = document.getElementById('copyRoomLinkBtn');
 
   const LINES = [
     [0,1,2],[3,4,5],[6,7,8],
@@ -342,6 +390,8 @@
 
   let board, turn, over, vsCpu = false;
   let scores = { x: 0, o: 0, draw: 0 };
+
+  let onlineMode = false, peer = null, conn = null, myRole = null, onlineConnected = false;
 
   function newRound(){
     board = Array(9).fill(null);
@@ -354,7 +404,12 @@
 
   function updateStatus(){
     if (over) return;
-    statusText.innerHTML = 'Turn: <span class="' + turn + '">' + turn.toUpperCase() + '</span>';
+    if (onlineMode){
+      const label = turn === myRole ? 'Your turn' : "Opponent's turn";
+      statusText.innerHTML = label + ' — <span class="' + turn + '">' + turn.toUpperCase() + '</span>';
+    } else {
+      statusText.innerHTML = 'Turn: <span class="' + turn + '">' + turn.toUpperCase() + '</span>';
+    }
   }
 
   function checkWin(){
@@ -384,7 +439,11 @@
     } else {
       scores[result.winner]++;
       (result.winner === 'x' ? p1Score : p2Score).textContent = scores[result.winner];
-      overlayText.textContent = result.winner.toUpperCase() + ' Wins!';
+      if (onlineMode){
+        overlayText.textContent = (result.winner === myRole ? 'You Win! 🎉' : 'Opponent Wins');
+      } else {
+        overlayText.textContent = result.winner.toUpperCase() + ' Wins!';
+      }
       result.line.forEach(i => cells[i].classList.add('win'));
     }
     overlay.classList.add('show');
@@ -409,41 +468,54 @@
     if (over) return;
     const empty = board.map((v,i)=>v===null?i:null).filter(v=>v!==null);
 
-    // 1. win if possible
     for (const i of empty){
       board[i] = 'o';
       if (checkWin()?.winner === 'o'){ board[i]=null; handleMove(i); return; }
       board[i] = null;
     }
-    // 2. block opponent win
     for (const i of empty){
       board[i] = 'x';
       if (checkWin()?.winner === 'x'){ board[i]=null; handleMove(i); return; }
       board[i] = null;
     }
-    // 3. take center
     if (board[4]===null){ handleMove(4); return; }
-    // 4. take a corner
     const corners = [0,2,6,8].filter(i=>board[i]===null);
     if (corners.length){ handleMove(corners[Math.floor(Math.random()*corners.length)]); return; }
-    // 5. any remaining
     handleMove(empty[Math.floor(Math.random()*empty.length)]);
+  }
+
+  function onResetClick(){
+    newRound();
+    if (onlineMode && conn && conn.open){ conn.send({ type: 'reset' }); }
   }
 
   boardEl.addEventListener('click', (e) => {
     const cell = e.target.closest('.cell');
     if (!cell) return;
+    const i = parseInt(cell.dataset.i, 10);
+
+    if (onlineMode){
+      if (!onlineConnected || turn !== myRole || over) return;
+      handleMove(i);
+      if (conn && conn.open) conn.send({ type: 'move', index: i });
+      return;
+    }
     if (vsCpu && turn === 'o') return;
-    handleMove(parseInt(cell.dataset.i, 10));
+    handleMove(i);
   });
 
-  overlayBtn.addEventListener('click', newRound);
-  newGameBtn.addEventListener('click', newRound);
+  overlayBtn.addEventListener('click', onResetClick);
+  newGameBtn.addEventListener('click', onResetClick);
+
+  function setActiveMode(btn){
+    [mode2p, modeCpu, modeOnline].forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
 
   mode2p.addEventListener('click', () => {
-    vsCpu = false;
-    mode2p.classList.add('active');
-    modeCpu.classList.remove('active');
+    vsCpu = false; onlineMode = false;
+    setActiveMode(mode2p);
+    onlinePanel.style.display = 'none';
     p1Label.textContent = 'Player X';
     p2Label.textContent = 'Player O';
     scores = { x:0, o:0, draw:0 };
@@ -451,15 +523,119 @@
     newRound();
   });
   modeCpu.addEventListener('click', () => {
-    vsCpu = true;
-    modeCpu.classList.add('active');
-    mode2p.classList.remove('active');
+    vsCpu = true; onlineMode = false;
+    setActiveMode(modeCpu);
+    onlinePanel.style.display = 'none';
     p1Label.textContent = 'You';
     p2Label.textContent = 'Computer';
     scores = { x:0, o:0, draw:0 };
     p1Score.textContent = 0; p2Score.textContent = 0; drawScore.textContent = 0;
     newRound();
   });
+  modeOnline.addEventListener('click', () => {
+    vsCpu = false; onlineMode = true;
+    setActiveMode(modeOnline);
+    onlinePanel.style.display = 'block';
+    p1Label.textContent = 'Player X';
+    p2Label.textContent = 'Player O';
+    scores = { x:0, o:0, draw:0 };
+    p1Score.textContent = 0; p2Score.textContent = 0; drawScore.textContent = 0;
+    statusText.textContent = 'Connect with a friend to begin';
+    board = Array(9).fill(null);
+    cells.forEach(c => { c.textContent=''; c.className='cell'; });
+  });
+
+  function genCode(){
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = '';
+    for (let i=0;i<6;i++) s += chars[Math.floor(Math.random()*chars.length)];
+    return s;
+  }
+
+  function setupConnection(connection, asHost){
+    conn = connection;
+    conn.on('open', () => {
+      onlineConnected = true;
+      myRole = asHost ? 'x' : 'o';
+      onlineStatus.textContent = 'Connected! You are playing as ' + myRole.toUpperCase() + '.';
+      onlineActions.style.display = 'none';
+      roomInfo.style.display = 'none';
+      newRound();
+    });
+    conn.on('data', (data) => {
+      if (data.type === 'move'){
+        handleMove(data.index);
+      } else if (data.type === 'reset'){
+        newRound();
+      }
+    });
+    conn.on('close', () => {
+      onlineConnected = false;
+      onlineStatus.textContent = 'Friend disconnected. Create or join a new room to keep playing.';
+      onlineActions.style.display = 'flex';
+      roomInfo.style.display = 'none';
+    });
+  }
+
+  createRoomBtn.addEventListener('click', () => {
+    const code = genCode();
+    onlineStatus.textContent = 'Setting up room...';
+    peer = new Peer('bright-ttt-' + code);
+    peer.on('open', () => {
+      roomCodeDisplay.textContent = code;
+      roomInfo.style.display = 'flex';
+      onlineStatus.textContent = 'Share this code — waiting for your friend to join...';
+    });
+    peer.on('connection', (connection) => {
+      setupConnection(connection, true);
+    });
+    peer.on('error', (err) => {
+      onlineStatus.textContent = 'Connection error. Please try creating a new room.';
+    });
+  });
+
+  function joinWithCode(code){
+    code = code.trim().toUpperCase();
+    if (!code) return;
+    onlineStatus.textContent = 'Connecting...';
+    peer = new Peer();
+    peer.on('open', () => {
+      const connection = peer.connect('bright-ttt-' + code);
+      connection.on('open', () => {});
+      connection.on('error', () => {
+        onlineStatus.textContent = "Couldn't connect. Check the code and try again.";
+      });
+      setupConnection(connection, false);
+    });
+    peer.on('error', () => {
+      onlineStatus.textContent = "Couldn't connect. Check the code and try again.";
+    });
+  }
+
+  joinRoomBtn.addEventListener('click', () => joinWithCode(joinCodeInput.value));
+  joinCodeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinWithCode(joinCodeInput.value); });
+
+  copyRoomLinkBtn.addEventListener('click', () => {
+    const code = roomCodeDisplay.textContent;
+    const link = window.location.origin + window.location.pathname + '?room=' + code;
+    try {
+      navigator.clipboard.writeText(link).then(() => {
+        const old = copyRoomLinkBtn.textContent;
+        copyRoomLinkBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyRoomLinkBtn.textContent = old; }, 1500);
+      });
+    } catch(e){
+      window.prompt('Copy this link:', link);
+    }
+  });
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomFromUrl = urlParams.get('room');
+  if (roomFromUrl){
+    modeOnline.click();
+    joinCodeInput.value = roomFromUrl;
+    joinWithCode(roomFromUrl);
+  }
 
   newRound();
 })();

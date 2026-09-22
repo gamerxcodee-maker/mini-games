@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bubble Shooter Bright — Free Online Bubble Popping Game</title>
+<meta name="description" content="Play Bubble Shooter Bright, a free online bubble popping game. Aim and shoot to match three or more bubbles of the same colour and clear the board.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --well-top: #1b1e3a; --well-bottom: #2a2d55;
+    --accent: #a86bff; --accent-dark: #8347e0;
+    --b0: #00d1e0; --b1: #ff5c8a; --b2: #ffcc29; --b3: #22d38a; --b4: #ff8b3d; --b5: #a86bff;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 460px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,34px); margin:0; }
+  h1 span { background: linear-gradient(90deg, var(--b0), var(--b1) 60%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 44ch; }
+
+  .scores { display:flex; gap:8px; }
+  .score-box { background: var(--panel); border-radius: 12px; padding: 7px 10px; text-align:center; min-width:52px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .score-box .label { font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600; }
+  .score-box .value { font-family:'Baloo 2',sans-serif; font-size:17px; font-weight:700; }
+
+  .hint-row { color:var(--muted); font-size:13.5px; margin: 10px 0 12px; text-align:center; }
+
+  .board-shell {
+    position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3/4.2; max-width: 100%;
+    touch-action: none; user-select: none; box-shadow: 0 4px 20px rgba(30,30,60,0.18);
+  }
+  canvas { width:100%; height:100%; display:block; }
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(15,10,35,0.82);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; text-align:center; padding:20px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:24px; }
+  .overlay p { color:#e4e5f7; margin:0; font-size:14px; max-width:30ch; }
+  .overlay button { background:white; color:var(--accent-dark); border:none; padding:10px 22px; border-radius:10px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <div>
+      <h1><span>Bubble</span> Shooter</h1>
+      <p class="tagline">Aim and shoot to match three or more bubbles of the same colour. Clear the board before it reaches the bottom.</p>
+    </div>
+    <div class="scores">
+      <div class="score-box"><div class="label">Score</div><div class="value" id="score">0</div></div>
+      <div class="score-box"><div class="label">Best</div><div class="value" id="best">0</div></div>
+    </div>
+  </header>
+
+  <div class="hint-row" id="hint">Drag to aim, release to shoot.</div>
+
+  <div class="board-shell" id="board">
+    <canvas id="canvas"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Bubble Shooter</h2>
+      <p id="overlaySub">Drag to aim your shot, release to fire. Match 3 or more bubbles of the same colour to clear them.</p>
+      <button id="overlayBtn">Start</button>
+    </div>
+  </div>
+
+  <section class="info">
+    <h2>How to play Bubble Shooter</h2>
+    <p>Drag anywhere on the board to aim, then release to fire the bubble from the shooter. When your bubble touches two or more bubbles of the same colour, all connected bubbles of that colour pop and disappear. Any bubbles left floating with no path back to the ceiling fall away too, for bonus points. Clear every bubble to win — but if the stack reaches the bottom line, the round ends.</p>
+  </section>
+
+  <section class="info">
+    <h2>Tips for clearing the board faster</h2>
+    <p>Aim for the edges of colour clusters rather than the middle — popping from the side often disconnects more bubbles at once than a direct center hit. Watch for opportunities to knock out a "support" bubble that's holding up a cluster of a different colour; removing it can bring down a whole floating group for bonus points. When no obvious match is available, bank your shot off a side wall to reach an angle you couldn't hit directly.</p>
+  </section>
+
+  <section class="info">
+    <h2>Frequently asked questions</h2>
+    <p><strong>What happens to disconnected bubbles?</strong> Any bubble no longer connected to the ceiling — directly or through a chain of neighbours — falls away automatically and scores bonus points.</p>
+    <p><strong>Can I bounce my shot off the walls?</strong> Yes — bubbles bounce off the left and right walls, which is a useful trick for reaching awkward angles.</p>
+    <p><strong>What ends the round?</strong> The round ends if the bubble stack reaches the bottom line near the shooter, or you win by clearing the board completely.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best score saved only on this device</footer>
+</div>
+
+<div class="share-row">
+  <span class="share-label">Challenge a friend:</span>
+  <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+  <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+  <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+</div>
+<script>
+(function(){
+  var pageUrl = window.location.href;
+  var shareText = "Can you beat my Bubble Shooter score? Try it here:";
+  var wa=document.getElementById('shareWA'),fb=document.getElementById('shareFB'),rd=document.getElementById('shareRD'),ig=document.getElementById('shareIG'),cp=document.getElementById('shareCopy');
+  if(wa)wa.href="https://wa.me/?text="+encodeURIComponent(shareText+" "+pageUrl);
+  if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(pageUrl);
+  if(rd)rd.href="https://reddit.com/submit?url="+encodeURIComponent(pageUrl)+"&title="+encodeURIComponent(shareText);
+  function copyLink(btn){ try{ navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500);}); }catch(e){ window.prompt('Copy this link:', pageUrl);} }
+  if(ig)ig.addEventListener('click',function(){ if(navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+  if(cp)cp.addEventListener('click',function(){ copyLink(cp); });
+})();
+</script>
+
+<script>
+(function(){
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const boardEl = document.getElementById('board');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+
+  let W,H,dpr;
+  function resize(){
+    const rect = boardEl.getBoundingClientRect();
+    dpr = window.devicePixelRatio||1;
+    W = rect.width; H = rect.height;
+    canvas.width = W*dpr; canvas.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    layout();
+  }
+  window.addEventListener('resize', resize);
+
+  const COLORS = ['#00d1e0','#ff5c8a','#ffcc29','#22d38a','#ff8b3d','#a86bff'];
+  const COLS = 8;
+  let R, rowH, gridTop, gridLeft;
+
+  let grid; // grid[row] = array of length COLS (or COLS for even/odd), value = colorIdx or null
+  let ROWS_TOTAL;
+  let shooterX, shooterY, aimAngle, dragging;
+  let flying; // {x,y,vx,vy,color}
+  let nextColor, queueColor;
+  let score, best, over, started, gameOverRow, particles;
+
+  function layout(){
+    R = W / (COLS*2 + 1);
+    rowH = R * 1.73;
+    gridLeft = R;
+    gridTop = R;
+    ROWS_TOTAL = Math.floor((H*0.72) / rowH);
+    shooterX = W/2; shooterY = H - R*1.6;
+    gameOverRow = Math.floor((shooterY - gridTop) / rowH) - 1;
+  }
+
+  function loadBest(){ try { const v = localStorage.getItem('bubbleshooter_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
+  function saveBest(v){ try { localStorage.setItem('bubbleshooter_best', String(v)); } catch(e){} }
+
+  function colsInRow(r){ return r%2===0 ? COLS : COLS-1; }
+
+  function cellCenter(r,c){
+    const x = gridLeft + c*(R*2) + (r%2===1 ? R : 0) + R;
+    const y = gridTop + r*rowH + R;
+    return {x,y};
+  }
+
+  function neighbors(r,c){
+    const even = r%2===0;
+    const deltas = even
+      ? [[0,-1],[0,1],[-1,-1],[-1,0],[1,-1],[1,0]]
+      : [[0,-1],[0,1],[-1,0],[-1,1],[1,0],[1,1]];
+    return deltas.map(([dr,dc]) => [r+dr, c+dc]).filter(([nr,nc]) => nr>=0 && nr<grid.length && nc>=0 && nc<colsInRow(nr));
+  }
+
+  function randColor(exclude){
+    const present = new Set();
+    grid.forEach(row => row.forEach(v => { if (v!==null) present.add(v); }));
+    const pool = present.size ? Array.from(present) : COLORS.map((_,i)=>i);
+    let c;
+    do { c = pool[Math.floor(Math.random()*pool.length)]; } while (exclude!==undefined && c===exclude && pool.length>1);
+    return c;
+  }
+
+  function initGrid(){
+    grid = [];
+    const startRows = 5;
+    for (let r=0;r<startRows;r++){
+      const row = [];
+      for (let c=0;c<colsInRow(r);c++){ row.push(Math.floor(Math.random()*Math.min(5,COLORS.length))); }
+      grid.push(row);
+    }
+  }
+
+  function newGame(){
+    initGrid();
+    score = 0; over = false; started = false; particles = [];
+    best = loadBest();
+    scoreEl.textContent = 0; bestEl.textContent = best;
+    nextColor = randColor();
+    queueColor = randColor();
+    flying = null;
+    aimAngle = -Math.PI/2;
+    overlayText.textContent = 'Bubble Shooter';
+    overlaySub.textContent = 'Drag to aim your shot, release to fire. Match 3 or more bubbles of the same colour to clear them.';
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+  }
+
+  function fire(){
+    if (flying || over || !started) return;
+    const speed = 780;
+    flying = {
+      x: shooterX, y: shooterY,
+      vx: Math.cos(aimAngle)*speed, vy: Math.sin(aimAngle)*speed,
+      color: nextColor
+    };
+    nextColor = queueColor;
+    queueColor = randColor();
+  }
+
+  function findNearestEmptyNeighbor(r, c, px, py){
+    let best=null, bestD=Infinity;
+    neighbors(r,c).forEach(([nr,nc]) => {
+      if (grid[nr] && grid[nr][nc]===null){
+        const {x,y} = cellCenter(nr,nc);
+        const d = Math.hypot(x-px, y-py);
+        if (d<bestD){ bestD=d; best=[nr,nc]; }
+      }
+    });
+    if (!best){
+      let br=-1,bc=-1, bd=Infinity;
+      for (let rr=0; rr<grid.length+1; rr++){
+        for (let cc=0; cc<colsInRow(rr); cc++){
+          if (!grid[rr]) grid[rr] = Array(colsInRow(rr)).fill(null);
+          if (grid[rr][cc]===null){
+            const {x,y} = cellCenter(rr,cc);
+            const d = Math.hypot(x-px,y-py);
+            if (d<bd){ bd=d; br=rr; bc=cc; }
+          }
+        }
+      }
+      best = [br,bc];
+    }
+    return best;
+  }
+
+  function ensureRowExists(r){
+    while (grid.length <= r){
+      const rn = grid.length;
+      grid.push(Array(colsInRow(rn)).fill(null));
+    }
+  }
+
+  function popGroup(r,c){
+    const color = grid[r][c];
+    const visited = new Set();
+    const stack = [[r,c]];
+    const group = [];
+    visited.add(r+','+c);
+    while (stack.length){
+      const [cr,cc] = stack.pop();
+      group.push([cr,cc]);
+      neighbors(cr,cc).forEach(([nr,nc]) => {
+        const key = nr+','+nc;
+        if (!visited.has(key) && grid[nr] && grid[nr][nc]===color){
+          visited.add(key);
+          stack.push([nr,nc]);
+        }
+      });
+    }
+    return group;
+  }
+
+  function removeFloating(){
+    const anchored = new Set();
+    const stack = [];
+    for (let c=0;c<colsInRow(0);c++){
+      if (grid[0][c]!==null){ anchored.add('0,'+c); stack.push([0,c]); }
+    }
+    while (stack.length){
+      const [r,c] = stack.pop();
+      neighbors(r,c).forEach(([nr,nc]) => {
+        const key = nr+','+nc;
+        if (!anchored.has(key) && grid[nr] && grid[nr][nc]!==null){
+          anchored.add(key);
+          stack.push([nr,nc]);
+        }
+      });
+    }
+    let removed = 0;
+    for (let r=0;r<grid.length;r++){
+      for (let c=0;c<colsInRow(r);c++){
+        if (grid[r][c]!==null && !anchored.has(r+','+c)){
+          const {x,y} = cellCenter(r,c);
+          spawnParticles(x,y,COLORS[grid[r][c]]);
+          grid[r][c] = null;
+          removed++;
+        }
+      }
+    }
+    return removed;
+  }
+
+  function spawnParticles(x,y,color){
+    for (let i=0;i<8;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = 60+Math.random()*120;
+      particles.push({ x,y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, life:0.5, color });
+    }
+  }
+
+  function settleBubble(px,py,color){
+    let bestR=-1,bestC=-1,bestD=Infinity;
+    for (let r=0;r<grid.length;r++){
+      for (let c=0;c<colsInRow(r);c++){
+        if (grid[r][c]!==null){
+          const {x,y} = cellCenter(r,c);
+          const d = Math.hypot(x-px,y-py);
+          if (d < R*2.05 && d<bestD){ bestD=d; bestR=r; bestC=c; }
+        }
+      }
+    }
+    let targetR, targetC;
+    if (bestR===-1){
+      let br=-1,bc=-1,bd=Infinity;
+      for (let c=0;c<colsInRow(0);c++){
+        const {x,y} = cellCenter(0,c);
+        const d = Math.hypot(x-px,y-py);
+        if (d<bd){ bd=d; bc=c; br=0; }
+      }
+      targetR=br; targetC=bc;
+    } else {
+      ensureRowExists(bestR+1);
+      const [nr,nc] = findNearestEmptyNeighbor(bestR,bestC,px,py);
+      targetR=nr; targetC=nc;
+    }
+    ensureRowExists(targetR);
+    if (grid[targetR][targetC] !== null){
+      const [nr,nc] = findNearestEmptyNeighbor(targetR,targetC,px,py) || [targetR,targetC];
+      targetR=nr; targetC=nc;
+    }
+    grid[targetR][targetC] = color;
+
+    const group = popGroup(targetR,targetC);
+    if (group.length >= 3){
+      group.forEach(([r,c]) => {
+        const {x,y} = cellCenter(r,c);
+        spawnParticles(x,y,COLORS[grid[r][c]]);
+        grid[r][c] = null;
+      });
+      score += group.length*10;
+      const floatRemoved = removeFloating();
+      score += floatRemoved*15;
+      scoreEl.textContent = score;
+      if (score>best){ best=score; bestEl.textContent=best; saveBest(best); }
+    }
+
+    let maxRow = -1;
+    for (let r=0;r<grid.length;r++){ if (grid[r].some(v=>v!==null)) maxRow=r; }
+    if (maxRow === -1){
+      over = true;
+      overlayText.textContent = 'Board Cleared! 🎉';
+      overlaySub.textContent = 'Final score: ' + score + (score>=best?' — new best!':'');
+      overlayBtn.textContent = 'Play Again';
+      setTimeout(()=>overlay.classList.add('show'), 300);
+    } else if (maxRow >= gameOverRow){
+      over = true;
+      overlayText.textContent = 'Game Over';
+      overlaySub.textContent = 'The stack reached the bottom. Score: ' + score + (score>=best?' — new best!':'');
+      overlayBtn.textContent = 'Play Again';
+      setTimeout(()=>overlay.classList.add('show'), 300);
+    }
+  }
+
+  function update(dt){
+    if (flying){
+      const sub = 4;
+      for (let i=0;i<sub && flying;i++){
+        flying.x += flying.vx*dt/sub;
+        flying.y += flying.vy*dt/sub;
+        if (flying.x - R < 0){ flying.x = R; flying.vx*=-1; }
+        if (flying.x + R > W){ flying.x = W-R; flying.vx*=-1; }
+        if (flying.y - R <= gridTop){
+          settleBubble(flying.x, gridTop+1, flying.color);
+          flying = null; break;
+        }
+        for (let r=0;r<grid.length && flying;r++){
+          for (let c=0;c<colsInRow(r) && flying;c++){
+            if (grid[r][c]!==null){
+              const {x,y} = cellCenter(r,c);
+              if (Math.hypot(flying.x-x, flying.y-y) < R*1.95){
+                settleBubble(flying.x, flying.y, flying.color);
+                flying = null; break;
+              }
+            }
+          }
+        }
+      }
+    }
+    particles.forEach(p => { p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=300*dt; p.life-=dt; });
+    particles = particles.filter(p=>p.life>0);
+  }
+
+  function draw(){
+    const grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--well-top'));
+    grad.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--well-bottom'));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W,H);
+
+    ctx.strokeStyle = 'rgba(255,61,110,0.4)';
+    ctx.setLineDash([5,5]);
+    ctx.beginPath();
+    const gy = gridTop + (gameOverRow+1)*rowH;
+    ctx.moveTo(0,gy); ctx.lineTo(W,gy);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    for (let r=0;r<grid.length;r++){
+      for (let c=0;c<colsInRow(r);c++){
+        if (grid[r][c]!==null){
+          const {x,y} = cellCenter(r,c);
+          drawBubble(x,y,COLORS[grid[r][c]]);
+        }
+      }
+    }
+
+    if (started && !over && !flying){
+      ctx.strokeStyle = 'rgba(255,255,255,0.4)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4,6]);
+      ctx.beginPath();
+      ctx.moveTo(shooterX, shooterY);
+      ctx.lineTo(shooterX+Math.cos(aimAngle)*80, shooterY+Math.sin(aimAngle)*80);
+      ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    if (flying) drawBubble(flying.x, flying.y, COLORS[flying.color]);
+
+    if (started){
+      drawBubble(shooterX, shooterY, COLORS[nextColor]);
+      ctx.fillStyle = 'rgba(255,255,255,0.7)';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Next', shooterX+R*2.2, shooterY-R*0.6);
+      drawBubble(shooterX+R*2.2, shooterY, COLORS[queueColor], 0.7);
+    }
+
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0,p.life/0.5);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function drawBubble(x,y,color,scale){
+    scale = scale||1;
+    ctx.fillStyle = color;
+    ctx.beginPath(); ctx.arc(x,y,R*0.92*scale,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.beginPath(); ctx.arc(x-R*0.28*scale,y-R*0.28*scale,R*0.28*scale,0,Math.PI*2); ctx.fill();
+  }
+
+  function frame(ts){
+    if (!frame.last) frame.last = ts;
+    const dt = Math.min(0.032,(ts-frame.last)/1000);
+    frame.last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  function angleFromPoint(px,py){
+    let a = Math.atan2(py-shooterY, px-shooterX);
+    const minA = -Math.PI+0.18, maxA = -0.18;
+    if (a > 0) a = a - Math.PI*2;
+    a = Math.max(-Math.PI+0.12, Math.min(-0.12, a));
+    return a;
+  }
+
+  boardEl.addEventListener('pointerdown', (e) => {
+    if (over){ newGame(); return; }
+    if (!started){ started=true; overlay.classList.remove('show'); }
+    const rect = boardEl.getBoundingClientRect();
+    dragging = true;
+    aimAngle = angleFromPoint(e.clientX-rect.left, e.clientY-rect.top);
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!dragging) return;
+    const rect = boardEl.getBoundingClientRect();
+    aimAngle = angleFromPoint(e.clientX-rect.left, e.clientY-rect.top);
+  });
+  window.addEventListener('pointerup', () => {
+    if (dragging){ dragging=false; fire(); }
+  });
+
+  overlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (over){ newGame(); }
+    else { started=true; overlay.classList.remove('show'); }
+  });
+
+  resize();
+  newGame();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

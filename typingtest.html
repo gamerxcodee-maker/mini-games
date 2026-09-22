@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Typing Speed Test Bright — Free Online WPM Test</title>
+<meta name="description" content="Free online typing speed test. Measure your words per minute (WPM) and accuracy with easy, medium and hard passages. No sign-up needed.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --accent: #a86bff; --accent-dark: #8347e0;
+    --correct: #22d38a; --wrong: #ff3d6e; --wrong-bg: rgba(255,61,110,0.15);
+    --cursor: #ffcc29;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { margin-bottom: 14px; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,36px); margin:0; }
+  h1 span { background: linear-gradient(90deg, var(--accent), var(--correct) 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 50ch; }
+
+  .mode-row { display:flex; gap:8px; margin: 16px 0 14px; background: var(--panel); padding:6px; border-radius:14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); flex-wrap: wrap; }
+  .mode-btn { flex:1; min-width: 70px; padding:9px; border:none; background:transparent; border-radius:10px; font-family:'Inter',sans-serif; font-weight:600; font-size:13px; color:var(--muted); cursor:pointer; }
+  .mode-btn.active { background: var(--accent); color:white; }
+
+  .stats { display:flex; gap:10px; margin-bottom:14px; flex-wrap: wrap; }
+  .stat-box { flex:1; min-width: 80px; background: var(--panel); border-radius:12px; padding:10px; text-align:center; box-shadow: 0 2px 8px rgba(30,30,60,0.06); }
+  .stat-box .label { font-size:10.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .stat-box .value { font-family:'Baloo 2',sans-serif; font-size:24px; font-weight:700; }
+
+  .text-panel {
+    background: var(--panel); border-radius: 16px; padding: 22px; box-shadow: 0 4px 16px rgba(30,30,60,0.1);
+    font-size: 19px; line-height: 1.8; font-family: 'Inter', monospace, sans-serif; letter-spacing: 0.3px;
+    position: relative; cursor: text; margin-bottom: 14px;
+  }
+  .text-panel .char { color: var(--muted); }
+  .text-panel .char.correct { color: var(--ink); }
+  .text-panel .char.wrong { color: var(--wrong); background: var(--wrong-bg); border-radius: 3px; }
+  .text-panel .char.current { border-left: 2px solid var(--cursor); }
+  .hidden-input { position: absolute; opacity: 0; pointer-events: none; }
+  .start-hint { text-align:center; color: var(--muted); font-size: 13px; margin-bottom: 14px; }
+
+  .btn-row { display:flex; gap:10px; justify-content:center; }
+  button.new-game { background: var(--accent); color:white; border:none; padding:10px 22px; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer; font-family:'Inter',sans-serif; }
+  button.new-game:hover { background: var(--accent-dark); }
+
+  .result-card { background: var(--panel); border-radius: 16px; padding: 24px; text-align:center; box-shadow: 0 4px 16px rgba(30,30,60,0.1); margin-bottom: 14px; display: none; }
+  .result-card.show { display: block; }
+  .result-card h2 { font-family:'Baloo 2',sans-serif; margin: 0 0 14px; font-size: 22px; }
+  .result-grid { display:flex; justify-content:center; gap: 24px; flex-wrap: wrap; margin-bottom: 16px; }
+  .result-grid div { text-align:center; }
+  .result-grid .big { font-family:'Baloo 2',sans-serif; font-size: 30px; font-weight: 800; color: var(--accent-dark); }
+  .result-grid .small { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; }
+
+  .info { margin-top: 30px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:20px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:15px; }
+  .info + .info { margin-top: 14px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <h1><span>Typing</span> Speed Test</h1>
+    <p class="tagline">Type the passage as fast and accurately as you can. See your words-per-minute and accuracy the moment you finish.</p>
+  </header>
+
+  <div class="mode-row">
+    <button class="mode-btn active" data-diff="easy">Easy</button>
+    <button class="mode-btn" data-diff="medium">Medium</button>
+    <button class="mode-btn" data-diff="hard">Hard</button>
+  </div>
+
+  <div class="stats">
+    <div class="stat-box"><div class="label">Time</div><div class="value" id="timeVal">60</div></div>
+    <div class="stat-box"><div class="label">WPM</div><div class="value" id="wpmVal">0</div></div>
+    <div class="stat-box"><div class="label">Accuracy</div><div class="value" id="accVal">100%</div></div>
+    <div class="stat-box"><div class="label">Best WPM</div><div class="value" id="bestVal">0</div></div>
+  </div>
+
+  <div class="start-hint" id="startHint">Click the text box below and just start typing to begin.</div>
+
+  <div class="text-panel" id="textPanel" tabindex="0">
+    <span id="textDisplay"></span>
+    <input type="text" class="hidden-input" id="hiddenInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+  </div>
+
+  <div class="result-card" id="resultCard">
+    <h2 id="resultTitle">Test Complete!</h2>
+    <div class="result-grid">
+      <div><div class="big" id="finalWpm">0</div><div class="small">WPM</div></div>
+      <div><div class="big" id="finalAcc">0%</div><div class="small">Accuracy</div></div>
+      <div><div class="big" id="finalErrors">0</div><div class="small">Errors</div></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="new-game" id="restartBtn">New Test</button>
+  </div>
+
+  <section class="info">
+    <h2>How the typing test works</h2>
+    <p>Click into the text box and start typing the passage shown — the timer starts automatically on your first keystroke. Correctly typed characters turn dark, mistakes are highlighted in red. Finish the whole passage, or run out of time, and your results appear: words per minute (WPM) and accuracy.</p>
+  </section>
+
+  <section class="info">
+    <h2>Difficulty levels</h2>
+    <p>Easy uses short, simple sentences with common words. Medium mixes in longer sentences and punctuation. Hard includes longer words, numbers, and more complex punctuation — a real test of both speed and precision.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best WPM saved only on this device</footer>
+</div>
+
+<div class="share-row">
+  <span class="share-label">Challenge a friend:</span>
+  <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+  <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+  <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+</div>
+<script>
+(function(){
+  var pageUrl = window.location.href;
+  var shareText = "Test your typing speed! Try it here:";
+  var wa=document.getElementById('shareWA'),fb=document.getElementById('shareFB'),rd=document.getElementById('shareRD'),ig=document.getElementById('shareIG'),cp=document.getElementById('shareCopy');
+  if(wa)wa.href="https://wa.me/?text="+encodeURIComponent(shareText+" "+pageUrl);
+  if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(pageUrl);
+  if(rd)rd.href="https://reddit.com/submit?url="+encodeURIComponent(pageUrl)+"&title="+encodeURIComponent(shareText);
+  function copyLink(btn){ try{ navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500);}); }catch(e){ window.prompt('Copy this link:', pageUrl);} }
+  if(ig)ig.addEventListener('click',function(){ if(navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+  if(cp)cp.addEventListener('click',function(){ copyLink(cp); });
+})();
+</script>
+
+<script>
+(function(){
+  const textPanel = document.getElementById('textPanel');
+  const textDisplay = document.getElementById('textDisplay');
+  const hiddenInput = document.getElementById('hiddenInput');
+  const timeValEl = document.getElementById('timeVal');
+  const wpmValEl = document.getElementById('wpmVal');
+  const accValEl = document.getElementById('accVal');
+  const bestValEl = document.getElementById('bestVal');
+  const startHint = document.getElementById('startHint');
+  const resultCard = document.getElementById('resultCard');
+  const resultTitle = document.getElementById('resultTitle');
+  const finalWpm = document.getElementById('finalWpm');
+  const finalAcc = document.getElementById('finalAcc');
+  const finalErrors = document.getElementById('finalErrors');
+  const restartBtn = document.getElementById('restartBtn');
+  const modeBtns = document.querySelectorAll('.mode-btn');
+
+  const PASSAGES = {
+    easy: [
+      "The sun was warm and the sky was clear. Birds sang in the trees as people walked their dogs in the park. It was a good day to be outside.",
+      "She made a cup of tea and sat by the window. The rain fell softly outside, tapping on the glass. It felt calm and quiet in the small room.",
+      "He packed his bag and left for school. The bus was late again, so he waited at the stop with a few other kids from his street."
+    ],
+    medium: [
+      "Learning to type quickly takes practice, patience, and a bit of daily repetition. Most people improve fastest when they focus on accuracy first, then slowly build up their speed over several weeks.",
+      "The old library smelled of dust and paper, and the shelves stretched higher than anyone could reach without the wooden ladder that slid along a metal rail bolted to the floor.",
+      "Remote work has changed how many companies think about offices, commutes, and even hiring — some teams now span several countries, meeting only through video calls and shared documents."
+    ],
+    hard: [
+      "By 2024, roughly 63% of surveyed developers reported using at least one AI-assisted tool weekly; adoption varied significantly (from 41% to 78%) depending on company size, region, and prior tooling maturity.",
+      "The contract stipulated: \"Payment shall be rendered within 30 days of invoice, net of applicable taxes,\" a clause later disputed when the vendor's invoice #4471-B arrived nine days past the quarter's close.",
+      "Quantum entanglement — often summarized (imprecisely) as 'spooky action at a distance' — doesn't actually transmit information faster than light; it correlates measurement outcomes across otherwise independent systems."
+    ]
+  };
+
+  let difficulty = 'easy';
+  let targetText = '';
+  let typed = '';
+  let startTime = null;
+  let timerInterval = null;
+  let timeLimit = 60;
+  let timeLeft = 60;
+  let finished = false;
+  let errorCount = 0;
+
+  function loadBest(diff){ try { const v = localStorage.getItem('typingtest_best_'+diff); return v?parseInt(v,10):0; } catch(e){ return 0; } }
+  function saveBest(diff, v){ try { localStorage.setItem('typingtest_best_'+diff, String(v)); } catch(e){} }
+
+  function pickPassage(diff){
+    const list = PASSAGES[diff];
+    return list[Math.floor(Math.random()*list.length)];
+  }
+
+  function renderText(){
+    textDisplay.innerHTML = '';
+    for (let i=0;i<targetText.length;i++){
+      const span = document.createElement('span');
+      span.className = 'char';
+      span.textContent = targetText[i];
+      if (i < typed.length){
+        span.classList.add(typed[i]===targetText[i] ? 'correct' : 'wrong');
+      } else if (i === typed.length){
+        span.classList.add('current');
+      }
+      textDisplay.appendChild(span);
+    }
+  }
+
+  function resetTest(){
+    difficulty = document.querySelector('.mode-btn.active').dataset.diff;
+    targetText = pickPassage(difficulty);
+    typed = '';
+    startTime = null;
+    finished = false;
+    errorCount = 0;
+    timeLimit = difficulty==='easy' ? 60 : difficulty==='medium' ? 75 : 90;
+    timeLeft = timeLimit;
+    timeValEl.textContent = timeLeft;
+    wpmValEl.textContent = 0;
+    accValEl.textContent = '100%';
+    bestValEl.textContent = loadBest(difficulty);
+    clearInterval(timerInterval);
+    resultCard.classList.remove('show');
+    startHint.textContent = 'Click the text box below and just start typing to begin.';
+    hiddenInput.value = '';
+    renderText();
+  }
+
+  function startTimer(){
+    startTime = Date.now();
+    timerInterval = setInterval(() => {
+      timeLeft--;
+      timeValEl.textContent = Math.max(0, timeLeft);
+      updateLiveWpm();
+      if (timeLeft <= 0){ finishTest('time'); }
+    }, 1000);
+  }
+
+  function updateLiveWpm(){
+    if (!startTime) return;
+    const elapsedMin = (Date.now()-startTime)/60000;
+    if (elapsedMin <= 0) return;
+    const wordsTyped = typed.length/5;
+    wpmValEl.textContent = Math.round(wordsTyped/elapsedMin);
+    let correct=0;
+    for (let i=0;i<typed.length;i++){ if (typed[i]===targetText[i]) correct++; }
+    accValEl.textContent = typed.length ? Math.round((correct/typed.length)*100)+'%' : '100%';
+  }
+
+  function finishTest(reason){
+    if (finished) return;
+    finished = true;
+    clearInterval(timerInterval);
+    const elapsedMin = startTime ? (Date.now()-startTime)/60000 : (timeLimit/60);
+    let correct=0;
+    for (let i=0;i<typed.length;i++){ if (typed[i]===targetText[i]) correct++; else errorCount++; }
+    const wpm = elapsedMin>0 ? Math.round((typed.length/5)/elapsedMin) : 0;
+    const acc = typed.length ? Math.round((correct/typed.length)*100) : 100;
+
+    resultTitle.textContent = reason==='complete' ? 'Passage Complete! 🎉' : "Time's Up!";
+    finalWpm.textContent = wpm;
+    finalAcc.textContent = acc+'%';
+    finalErrors.textContent = errorCount;
+    resultCard.classList.add('show');
+
+    const best = loadBest(difficulty);
+    if (wpm > best){ saveBest(difficulty, wpm); bestValEl.textContent = wpm; }
+    hiddenInput.blur();
+  }
+
+  hiddenInput.addEventListener('input', () => {
+    if (finished) return;
+    if (!startTime) { startTimer(); startHint.textContent = ''; }
+    typed = hiddenInput.value;
+    if (typed.length > targetText.length) typed = typed.slice(0, targetText.length);
+    renderText();
+    updateLiveWpm();
+    if (typed.length === targetText.length){ finishTest('complete'); }
+
+    const panelRect = textPanel.getBoundingClientRect();
+    const currentSpan = textDisplay.children[Math.min(typed.length, targetText.length-1)];
+    if (currentSpan){
+      const spanRect = currentSpan.getBoundingClientRect();
+      if (spanRect.bottom > panelRect.bottom - 20){ textPanel.scrollTop += 40; }
+    }
+  });
+
+  textPanel.addEventListener('click', () => hiddenInput.focus());
+
+  restartBtn.addEventListener('click', resetTest);
+  modeBtns.forEach(btn => btn.addEventListener('click', () => {
+    modeBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    resetTest();
+  }));
+
+  resetTest();
+})();
+</script>
+</body>
+</html>

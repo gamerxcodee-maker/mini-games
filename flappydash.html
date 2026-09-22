@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flappy Dash Bright — Free Online Flappy Bird Style Game</title>
+<meta name="description" content="Play Flappy Dash Bright, a free online flappy-style tap game. Guide the bird through the gaps and beat your best score, on desktop or mobile.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --ink: #1f2340;
+    --muted: #6b7094;
+    --sky-top: #6ec8ff;
+    --sky-bottom: #bfe8ff;
+    --pipe: #22d38a;
+    --pipe-dark: #16a86a;
+    --bird: #ffcc29;
+    --ground: #e0c46f;
+    --accent: #3d7bff;
+    --accent-dark: #2a5fd6;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce;
+    }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 560px; margin: 0 auto; padding: 28px 18px 60px; }
+
+  header.top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  h1 { font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: clamp(26px, 6.5vw, 40px); margin: 0; }
+  h1 span {
+    background: linear-gradient(90deg, var(--bird), var(--pipe) 70%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 15px; max-width: 46ch; }
+
+  .scores { display: flex; gap: 10px; }
+  .score-box { background: var(--panel); border-radius: 14px; padding: 10px 16px; text-align: center; min-width: 70px; box-shadow: 0 2px 10px rgba(30,30,60,0.08); }
+  .score-box .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 600; }
+  .score-box .value { font-family: 'Baloo 2', sans-serif; font-size: 22px; font-weight: 700; }
+
+  .hint-row { color: var(--muted); font-size: 14px; margin-bottom: 12px; }
+
+  .board-shell {
+    position: relative;
+    border-radius: 18px;
+    overflow: hidden;
+    aspect-ratio: 3 / 4;
+    max-width: 100%;
+    touch-action: none;
+    user-select: none;
+    box-shadow: 0 4px 20px rgba(30,30,60,0.15);
+  }
+  canvas { width: 100%; height: 100%; display: block; }
+
+  .overlay {
+    position: absolute; inset: 0;
+    background: rgba(10, 20, 40, 0.62);
+    display: none; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; text-align: center; padding: 20px;
+  }
+  .overlay.show { display: flex; }
+  .overlay h2 { font-family: 'Baloo 2', sans-serif; color: white; margin: 0; font-size: 26px; }
+  .overlay p { color: #eaf3ff; margin: 0; font-size: 14px; }
+  .overlay button {
+    background: white; color: var(--accent-dark); border: none; padding: 10px 20px;
+    border-radius: 10px; font-weight: 700; cursor: pointer; font-family: 'Inter', sans-serif;
+  }
+
+  .info { margin-top: 34px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family: 'Baloo 2', sans-serif; font-size: 20px; margin: 0 0 8px; }
+  .info p { color: var(--muted); line-height: 1.6; font-size: 15px; }
+  .info + .info { margin-top: 14px; }
+
+  footer.credit { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <h1><span>Flappy</span> Dash Bright</h1>
+      <p class="tagline">Tap, click, or press space to flap. Thread the gaps without touching a pipe or the ground.</p>
+    </div>
+    <div class="scores">
+      <div class="score-box"><div class="label">Score</div><div class="value" id="score">0</div></div>
+      <div class="score-box"><div class="label">Best</div><div class="value" id="best">0</div></div>
+    </div>
+  </header>
+
+  <div class="hint-row" id="hint">Tap the board, click, or press Space to start and flap.</div>
+
+  <div class="board-shell" id="board">
+    <canvas id="canvas"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Ready?</h2>
+      <p id="overlaySub">Tap anywhere to start flying.</p>
+      <button id="overlayBtn">Start</button>
+    </div>
+  </div>
+
+  <section class="info">
+    <h2>How to play Flappy Dash</h2>
+    <p>Tap the screen, click with your mouse, or press the space bar to make the bird flap upward. Gravity pulls it back down constantly, so you need a steady rhythm of taps to stay level. Fly through the gap in each pair of pipes to score a point — touching a pipe or the ground ends the run.</p>
+  </section>
+
+  <section class="info">
+    <h2>Tips for a higher score</h2>
+    <p>Small, frequent taps give you more control than a few big ones. Try to keep the bird near the vertical centre of each gap rather than diving in from the edge, since that gives you more room to react to the next pipe.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best score is saved only on this device</footer>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const boardEl = document.getElementById('board');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+  const hint = document.getElementById('hint');
+
+  let W, H, dpr;
+
+  function resize(){
+    const rect = boardEl.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1;
+    W = rect.width;
+    H = rect.height;
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', resize);
+
+  function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  const GRAVITY = 1400;
+  const FLAP_VELOCITY = -420;
+  const PIPE_GAP = 0.28;
+  const PIPE_WIDTH_RATIO = 0.16;
+  const PIPE_SPEED = 140;
+  const PIPE_INTERVAL = 1500;
+
+  let bird, pipes, score, best, state, lastTime, spawnTimer, groundOffset;
+
+  function loadBest(){
+    try { const b = localStorage.getItem('brightflappy_best'); return b ? parseInt(b,10) : 0; } catch(e){ return 0; }
+  }
+  function saveBest(v){ try { localStorage.setItem('brightflappy_best', String(v)); } catch(e){} }
+
+  function reset(){
+    bird = { x: W*0.28, y: H*0.4, vy: 0, r: Math.min(W,H)*0.035 };
+    pipes = [];
+    score = 0;
+    state = 'ready';
+    spawnTimer = 0;
+    groundOffset = 0;
+    scoreEl.textContent = 0;
+    overlayText.textContent = 'Ready?';
+    overlaySub.textContent = 'Tap anywhere to start flying.';
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+  }
+
+  function flap(){
+    if (state === 'ready'){
+      state = 'playing';
+      overlay.classList.remove('show');
+    }
+    if (state === 'playing'){
+      bird.vy = FLAP_VELOCITY;
+    }
+    if (state === 'over'){
+      reset();
+    }
+  }
+
+  function spawnPipe(){
+    const gapH = H * PIPE_GAP;
+    const margin = H * 0.12;
+    const gapY = margin + Math.random() * (H - margin*2 - gapH);
+    pipes.push({ x: W + 10, gapY, passed: false });
+  }
+
+  function update(dt){
+    groundOffset = (groundOffset + PIPE_SPEED*dt) % 40;
+
+    if (state !== 'playing') return;
+
+    bird.vy += GRAVITY * dt;
+    bird.y += bird.vy * dt;
+
+    spawnTimer += dt*1000;
+    if (spawnTimer > PIPE_INTERVAL){
+      spawnTimer = 0;
+      spawnPipe();
+    }
+
+    const pipeW = W * PIPE_WIDTH_RATIO;
+    const gapH = H * PIPE_GAP;
+
+    for (const p of pipes){
+      p.x -= PIPE_SPEED * dt;
+      if (!p.passed && p.x + pipeW < bird.x){
+        p.passed = true;
+        score++;
+        scoreEl.textContent = score;
+      }
+    }
+    pipes = pipes.filter(p => p.x + pipeW > -10);
+
+    const groundY = H - 24;
+    if (bird.y + bird.r > groundY || bird.y - bird.r < 0){
+      endGame();
+      return;
+    }
+
+    for (const p of pipes){
+      if (bird.x + bird.r > p.x && bird.x - bird.r < p.x + pipeW){
+        if (bird.y - bird.r < p.gapY || bird.y + bird.r > p.gapY + gapH){
+          endGame();
+          return;
+        }
+      }
+    }
+  }
+
+  function endGame(){
+    state = 'over';
+    best = Math.max(best, score);
+    bestEl.textContent = best;
+    saveBest(best);
+    overlayText.textContent = 'Game Over';
+    overlaySub.textContent = 'Score: ' + score + (score >= best && score > 0 ? ' — new best!' : '');
+    overlayBtn.textContent = 'Try Again';
+    overlay.classList.add('show');
+  }
+
+  function draw(){
+    const skyTop = getCss('--sky-top');
+    const skyBottom = getCss('--sky-bottom');
+    const grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0, skyTop);
+    grad.addColorStop(1, skyBottom);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W,H);
+
+    const pipeW = W * PIPE_WIDTH_RATIO;
+    const gapH = H * PIPE_GAP;
+    ctx.fillStyle = getCss('--pipe');
+    pipes.forEach(p => {
+      ctx.fillRect(p.x, 0, pipeW, p.gapY);
+      ctx.fillRect(p.x, p.gapY + gapH, pipeW, H - (p.gapY+gapH));
+      ctx.fillStyle = getCss('--pipe-dark');
+      ctx.fillRect(p.x-2, p.gapY-14, pipeW+4, 14);
+      ctx.fillRect(p.x-2, p.gapY+gapH, pipeW+4, 14);
+      ctx.fillStyle = getCss('--pipe');
+    });
+
+    const groundY = H - 24;
+    ctx.fillStyle = getCss('--ground');
+    ctx.fillRect(0, groundY, W, 24);
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    for (let x = -groundOffset; x < W; x += 20){
+      ctx.fillRect(x, groundY, 10, 24);
+    }
+
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    const angle = Math.max(-0.5, Math.min(0.9, bird.vy / 600));
+    ctx.rotate(angle);
+    ctx.fillStyle = getCss('--bird');
+    ctx.beginPath();
+    ctx.arc(0,0,bird.r,0,Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(bird.r*0.35, -bird.r*0.25, bird.r*0.28, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#1f2340';
+    ctx.beginPath();
+    ctx.arc(bird.r*0.42, -bird.r*0.25, bird.r*0.12, 0, Math.PI*2);
+    ctx.fill();
+    ctx.fillStyle = '#ff8b3d';
+    ctx.beginPath();
+    ctx.moveTo(bird.r*0.8, 0);
+    ctx.lineTo(bird.r*1.4, bird.r*0.12);
+    ctx.lineTo(bird.r*0.8, bird.r*0.3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function frame(ts){
+    if (!lastTime) lastTime = ts;
+    const dt = Math.min(0.033, (ts - lastTime) / 1000);
+    lastTime = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  boardEl.addEventListener('pointerdown', (e) => { e.preventDefault(); flap(); });
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space'){ e.preventDefault(); flap(); }
+  });
+  overlayBtn.addEventListener('click', (e) => { e.stopPropagation(); flap(); });
+
+  best = loadBest();
+  bestEl.textContent = best;
+  resize();
+  reset();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

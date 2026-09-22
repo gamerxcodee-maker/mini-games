@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rock Paper Scissors Bright — Play Online with a Friend or Computer</title>
+<meta name="description" content="Play Rock Paper Scissors Bright free online. Challenge a friend on a different device with a room code, play locally on the same screen, or face the computer, best of 5.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --accent: #a86bff; --accent-dark: #8347e0;
+    --rock: #ff8b3d; --paper: #00d1e0; --scissors: #ff5c8a;
+    --win: #22d38a; --lose: #ff3d6e; --draw: #ffcc29;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { margin-bottom: 14px; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,36px); margin:0; }
+  h1 span { background: linear-gradient(90deg, var(--rock), var(--paper) 50%, var(--scissors)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 46ch; }
+
+  .mode-row { display:flex; gap:8px; margin: 16px 0 14px; background: var(--panel); padding:6px; border-radius:14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); flex-wrap: wrap; }
+  .mode-btn { flex:1; min-width: 90px; padding:10px; border:none; background:transparent; border-radius:10px; font-family:'Inter',sans-serif; font-weight:600; font-size:13px; color:var(--muted); cursor:pointer; }
+  .mode-btn.active { background: var(--accent); color:white; }
+
+  .online-panel { background: var(--panel); border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .online-status { font-size: 13.5px; color: var(--muted); margin-bottom: 12px; text-align: center; font-weight: 600; }
+  .online-actions { display: flex; flex-direction: column; gap: 10px; }
+  .join-row { display: flex; gap: 8px; }
+  .join-row input { flex: 1; border: 1px solid var(--bg); border-radius: 10px; padding: 10px 12px; font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg); color: var(--ink); text-transform: uppercase; }
+  .room-info { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px; }
+  .room-code { font-family: 'Baloo 2', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: 4px; background: var(--bg); padding: 8px 18px; border-radius: 12px; color: var(--accent-dark); }
+  button.util-btn { background: var(--accent); color:white; border:none; padding:10px 18px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; }
+  button.util-btn:hover { background: var(--accent-dark); }
+
+  .scores { display:flex; gap:10px; margin-bottom:18px; }
+  .score-box { flex:1; background: var(--panel); border-radius:12px; padding:10px; text-align:center; box-shadow: 0 2px 8px rgba(30,30,60,0.06); }
+  .score-box .label { font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .score-box .value { font-family:'Baloo 2',sans-serif; font-size:22px; font-weight:700; }
+
+  .arena { display:flex; align-items:center; justify-content:space-around; margin: 20px 0; min-height: 120px; }
+  .player-slot { display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .player-choice {
+    width: 84px; height: 84px; border-radius: 50%; background: var(--panel);
+    display:flex; align-items:center; justify-content:center; font-size: 40px;
+    box-shadow: 0 2px 10px rgba(30,30,60,0.1); transition: transform 0.2s ease;
+  }
+  .player-choice.reveal { animation: pop 0.3s ease; }
+  @keyframes pop { 0%{transform:scale(0.6);} 60%{transform:scale(1.15);} 100%{transform:scale(1);} }
+  .player-name { font-family:'Baloo 2',sans-serif; font-size:14px; font-weight:700; color: var(--muted); }
+  .vs-text { font-family:'Baloo 2',sans-serif; font-size:20px; color: var(--muted); }
+
+  .result-banner { text-align:center; font-family:'Baloo 2',sans-serif; font-size:20px; font-weight:700; min-height: 30px; margin-bottom: 10px; }
+  .result-banner.win { color: var(--win); }
+  .result-banner.lose { color: var(--lose); }
+  .result-banner.draw { color: var(--draw); }
+
+  .choices-row { display:flex; gap:14px; justify-content:center; margin-top: 10px; }
+  .choice-btn {
+    width: 76px; height: 76px; border-radius: 50%; border: none; font-size: 34px; cursor: pointer;
+    background: var(--panel); box-shadow: 0 2px 10px rgba(30,30,60,0.1); transition: transform 0.1s ease;
+  }
+  .choice-btn:active { transform: scale(0.9); }
+  .choice-btn:disabled { opacity: 0.4; cursor: default; }
+  .choice-btn.rock { border: 3px solid var(--rock); }
+  .choice-btn.paper { border: 3px solid var(--paper); }
+  .choice-btn.scissors { border: 3px solid var(--scissors); }
+
+  button.new-game { display:block; margin: 18px auto 0; background: var(--accent); color:white; border:none; padding:10px 22px; border-radius:12px; font-weight:700; font-size:14px; cursor:pointer; font-family:'Inter',sans-serif; }
+  button.new-game:hover { background: var(--accent-dark); }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 24px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  .info { margin-top: 30px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:20px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:15px; }
+  .info + .info { margin-top: 14px; }
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <h1><span>Rock Paper</span> Scissors</h1>
+    <p class="tagline">Best of 5. Play the computer, pass the device to a friend, or connect with someone on a different device.</p>
+  </header>
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="modeCpu">vs Computer</button>
+    <button class="mode-btn" id="mode2p">2 Players</button>
+    <button class="mode-btn" id="modeOnline">🌐 Play with Friend</button>
+  </div>
+
+  <div class="online-panel" id="onlinePanel" style="display:none;">
+    <div class="online-status" id="onlineStatus">Create a room or enter a friend's code to connect.</div>
+    <div class="online-actions" id="onlineActions">
+      <button class="util-btn" id="createRoomBtn">Create Room</button>
+      <div class="join-row">
+        <input type="text" id="joinCodeInput" placeholder="Enter friend's code" maxlength="8">
+        <button class="util-btn" id="joinRoomBtn">Join</button>
+      </div>
+    </div>
+    <div class="room-info" id="roomInfo" style="display:none;">
+      <div class="room-code" id="roomCodeDisplay"></div>
+      <button class="util-btn" id="copyRoomLinkBtn">📋 Copy Invite Link</button>
+    </div>
+  </div>
+
+  <div class="scores">
+    <div class="score-box"><div class="label" id="p1Label">You</div><div class="value" id="p1Score">0</div></div>
+    <div class="score-box"><div class="label">Round</div><div class="value" id="roundNum">1</div></div>
+    <div class="score-box"><div class="label" id="p2Label">Computer</div><div class="value" id="p2Score">0</div></div>
+  </div>
+
+  <div class="result-banner" id="resultBanner"></div>
+
+  <div class="arena">
+    <div class="player-slot">
+      <div class="player-choice" id="p1Choice">❔</div>
+      <div class="player-name" id="p1ArenaLabel">You</div>
+    </div>
+    <div class="vs-text">VS</div>
+    <div class="player-slot">
+      <div class="player-choice" id="p2Choice">❔</div>
+      <div class="player-name" id="p2ArenaLabel">Computer</div>
+    </div>
+  </div>
+
+  <div class="choices-row" id="choicesRow">
+    <button class="choice-btn rock" data-choice="rock">🪨</button>
+    <button class="choice-btn paper" data-choice="paper">📄</button>
+    <button class="choice-btn scissors" data-choice="scissors">✂️</button>
+  </div>
+
+  <button class="new-game" id="newMatchBtn">New Match</button>
+
+  <div class="share-row">
+    <span class="share-label">Challenge a friend:</span>
+    <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+    <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+    <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+    <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+  </div>
+  <script>
+  (function(){
+    var pageUrl = window.location.href;
+    var shareText = "Play Rock Paper Scissors with me — best of 5! Try it here:";
+    var wa = document.getElementById('shareWA'), fb = document.getElementById('shareFB'), rd = document.getElementById('shareRD'), ig = document.getElementById('shareIG'), cp = document.getElementById('shareCopy');
+    if (wa) wa.href = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + pageUrl);
+    if (fb) fb.href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(pageUrl);
+    if (rd) rd.href = "https://reddit.com/submit?url=" + encodeURIComponent(pageUrl) + "&title=" + encodeURIComponent(shareText);
+    function copyLink(btn){ try { navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500); }); } catch(e){ window.prompt('Copy this link:', pageUrl); } }
+    if (ig) ig.addEventListener('click', function(){ if (navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+    if (cp) cp.addEventListener('click', function(){ copyLink(cp); });
+  })();
+  </script>
+
+  <section class="info">
+    <h2>How to play Rock Paper Scissors</h2>
+    <p>Rock beats scissors, scissors beats paper, and paper beats rock. Pick your move each round — first to win 3 rounds takes the match. Play against the computer for quick practice, pass the device to a friend for local rounds, or connect online to play someone on a different device in real time.</p>
+  </section>
+
+  <section class="info">
+    <h2>Playing with a friend online</h2>
+    <p>Pick "Play with Friend", create a room, and send the code or invite link to whoever you want to play. Both players pick a move each round — choices stay hidden until you've both locked one in, then they reveal together, just like playing in person.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · online play uses a direct peer-to-peer connection</footer>
+</div>
+
+<script>
+(function(){
+  const p1ScoreEl = document.getElementById('p1Score');
+  const p2ScoreEl = document.getElementById('p2Score');
+  const roundNumEl = document.getElementById('roundNum');
+  const p1Label = document.getElementById('p1Label');
+  const p2Label = document.getElementById('p2Label');
+  const p1ArenaLabel = document.getElementById('p1ArenaLabel');
+  const p2ArenaLabel = document.getElementById('p2ArenaLabel');
+  const p1ChoiceEl = document.getElementById('p1Choice');
+  const p2ChoiceEl = document.getElementById('p2Choice');
+  const resultBanner = document.getElementById('resultBanner');
+  const choicesRow = document.getElementById('choicesRow');
+  const choiceBtns = Array.from(document.querySelectorAll('.choice-btn'));
+  const newMatchBtn = document.getElementById('newMatchBtn');
+
+  const modeCpu = document.getElementById('modeCpu');
+  const mode2p = document.getElementById('mode2p');
+  const modeOnline = document.getElementById('modeOnline');
+  const onlinePanel = document.getElementById('onlinePanel');
+  const onlineStatus = document.getElementById('onlineStatus');
+  const onlineActions = document.getElementById('onlineActions');
+  const createRoomBtn = document.getElementById('createRoomBtn');
+  const joinCodeInput = document.getElementById('joinCodeInput');
+  const joinRoomBtn = document.getElementById('joinRoomBtn');
+  const roomInfo = document.getElementById('roomInfo');
+  const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+  const copyRoomLinkBtn = document.getElementById('copyRoomLinkBtn');
+
+  const EMOJI = { rock:'🪨', paper:'📄', scissors:'✂️' };
+  const BEATS = { rock:'scissors', paper:'rock', scissors:'paper' };
+
+  let mode = 'cpu'; // cpu | local | online
+  let scores, round, myChoice, oppChoice, locked, awaitingLocal2p, localTurn;
+  let onlineMode = false, peer=null, conn=null, myRole=null, onlineConnected=false;
+
+  function resetMatch(){
+    scores = { p1: 0, p2: 0 };
+    round = 1;
+    p1ScoreEl.textContent = 0; p2ScoreEl.textContent = 0; roundNumEl.textContent = 1;
+    startRound();
+  }
+
+  function startRound(){
+    myChoice = null; oppChoice = null; locked = false; awaitingLocal2p = false; localTurn = 1;
+    p1ChoiceEl.textContent = '❔'; p2ChoiceEl.textContent = '❔';
+    p1ChoiceEl.classList.remove('reveal'); p2ChoiceEl.classList.remove('reveal');
+    resultBanner.textContent = '';
+    resultBanner.className = 'result-banner';
+    choiceBtns.forEach(b => b.disabled = false);
+    if (mode === 'local'){
+      p1ArenaLabel.textContent = 'Player 1: pick';
+      p2ArenaLabel.textContent = 'Player 2';
+    } else if (mode === 'online'){
+      p1ArenaLabel.textContent = myRole === 'p1' ? 'You' : 'You';
+      p2ArenaLabel.textContent = 'Opponent';
+    } else {
+      p1ArenaLabel.textContent = 'You';
+      p2ArenaLabel.textContent = 'Computer';
+    }
+  }
+
+  function decide(a, b){
+    if (a === b) return 'draw';
+    return BEATS[a] === b ? 'p1' : 'p2';
+  }
+
+  function finishRound(c1, c2){
+    p1ChoiceEl.textContent = EMOJI[c1];
+    p2ChoiceEl.textContent = EMOJI[c2];
+    p1ChoiceEl.classList.add('reveal');
+    p2ChoiceEl.classList.add('reveal');
+    const result = decide(c1, c2);
+    if (result === 'draw'){
+      resultBanner.textContent = "It's a Draw!";
+      resultBanner.classList.add('draw');
+    } else if (result === 'p1'){
+      scores.p1++;
+      p1ScoreEl.textContent = scores.p1;
+      resultBanner.textContent = (mode==='online' ? (myRole==='p1'?'You Win the Round!':'Opponent Wins the Round') : mode==='local' ? 'Player 1 Wins the Round!' : 'You Win the Round!');
+      resultBanner.classList.add(mode==='online' ? (myRole==='p1'?'win':'lose') : 'win');
+    } else {
+      scores.p2++;
+      p2ScoreEl.textContent = scores.p2;
+      resultBanner.textContent = (mode==='online' ? (myRole==='p2'?'You Win the Round!':'Opponent Wins the Round') : mode==='local' ? 'Player 2 Wins the Round!' : 'Computer Wins the Round!');
+      resultBanner.classList.add(mode==='online' ? (myRole==='p2'?'win':'lose') : 'lose');
+    }
+    choiceBtns.forEach(b => b.disabled = true);
+
+    if (scores.p1 >= 3 || scores.p2 >= 3){
+      setTimeout(() => {
+        const matchWinner = scores.p1 >= 3 ? 'p1' : 'p2';
+        let text;
+        if (mode==='online') text = matchWinner===myRole ? '🎉 You Won the Match!' : 'Opponent Won the Match';
+        else if (mode==='local') text = (matchWinner==='p1'?'Player 1':'Player 2') + ' Wins the Match! 🎉';
+        else text = matchWinner==='p1' ? '🎉 You Won the Match!' : 'Computer Won the Match';
+        resultBanner.textContent = text;
+      }, 900);
+    } else {
+      setTimeout(() => {
+        round++;
+        roundNumEl.textContent = round;
+        startRound();
+      }, 1400);
+    }
+  }
+
+  function cpuChoice(){ const opts=['rock','paper','scissors']; return opts[Math.floor(Math.random()*3)]; }
+
+  function handleChoice(choice){
+    if (locked && mode !== 'local') return;
+
+    if (mode === 'cpu'){
+      locked = true;
+      const c2 = cpuChoice();
+      finishRound(choice, c2);
+    } else if (mode === 'local'){
+      if (localTurn === 1){
+        myChoice = choice;
+        localTurn = 2;
+        p1ArenaLabel.textContent = 'Player 1: locked';
+        p2ArenaLabel.textContent = 'Player 2: pick';
+        return;
+      } else {
+        oppChoice = choice;
+        finishRound(myChoice, oppChoice);
+      }
+    } else if (mode === 'online'){
+      if (!onlineConnected) return;
+      myChoice = choice;
+      choiceBtns.forEach(b => b.disabled = true);
+      const label = myRole === 'p1' ? p1ArenaLabel : p2ArenaLabel;
+      label.textContent = 'You: locked in';
+      if (conn && conn.open) conn.send({ type:'choice', choice });
+      tryResolveOnline();
+    }
+  }
+
+  function tryResolveOnline(){
+    if (myChoice && oppChoice){
+      const c1 = myRole === 'p1' ? myChoice : oppChoice;
+      const c2 = myRole === 'p1' ? oppChoice : myChoice;
+      finishRound(c1, c2);
+    }
+  }
+
+  choiceBtns.forEach(btn => btn.addEventListener('click', () => handleChoice(btn.dataset.choice)));
+  newMatchBtn.addEventListener('click', () => {
+    resetMatch();
+    if (mode === 'online' && conn && conn.open) conn.send({ type:'newmatch' });
+  });
+
+  function setActiveMode(btn){ [modeCpu, mode2p, modeOnline].forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+
+  modeCpu.addEventListener('click', () => {
+    mode = 'cpu'; onlineMode = false;
+    setActiveMode(modeCpu); onlinePanel.style.display='none';
+    p1Label.textContent = 'You'; p2Label.textContent = 'Computer';
+    resetMatch();
+  });
+  mode2p.addEventListener('click', () => {
+    mode = 'local'; onlineMode = false;
+    setActiveMode(mode2p); onlinePanel.style.display='none';
+    p1Label.textContent = 'Player 1'; p2Label.textContent = 'Player 2';
+    resetMatch();
+  });
+  modeOnline.addEventListener('click', () => {
+    mode = 'online'; onlineMode = true;
+    setActiveMode(modeOnline); onlinePanel.style.display='block';
+    p1Label.textContent = 'Player 1'; p2Label.textContent = 'Player 2';
+    resultBanner.textContent = '';
+    choiceBtns.forEach(b => b.disabled = true);
+    onlineStatus.textContent = 'Create a room or enter a friend\\'s code to connect.';
+  });
+
+  function genCode(){
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let s = ''; for (let i=0;i<6;i++) s += chars[Math.floor(Math.random()*chars.length)];
+    return s;
+  }
+
+  function setupConnection(connection, asHost){
+    conn = connection;
+    conn.on('open', () => {
+      onlineConnected = true;
+      myRole = asHost ? 'p1' : 'p2';
+      onlineStatus.textContent = 'Connected! Playing as ' + (myRole==='p1'?'Player 1':'Player 2') + '.';
+      onlineActions.style.display = 'none';
+      roomInfo.style.display = 'none';
+      resetMatch();
+    });
+    conn.on('data', (data) => {
+      if (data.type === 'choice'){
+        oppChoice = data.choice;
+        const oppLabel = myRole === 'p1' ? p2ArenaLabel : p1ArenaLabel;
+        oppLabel.textContent = 'Opponent: locked in';
+        tryResolveOnline();
+      } else if (data.type === 'newmatch'){
+        resetMatch();
+      }
+    });
+    conn.on('close', () => {
+      onlineConnected = false;
+      onlineStatus.textContent = 'Friend disconnected. Create or join a new room to keep playing.';
+      onlineActions.style.display = 'flex';
+      roomInfo.style.display = 'none';
+      choiceBtns.forEach(b => b.disabled = true);
+    });
+  }
+
+  createRoomBtn.addEventListener('click', () => {
+    const code = genCode();
+    onlineStatus.textContent = 'Setting up room...';
+    peer = new Peer('bright-rps-' + code);
+    peer.on('open', () => {
+      roomCodeDisplay.textContent = code;
+      roomInfo.style.display = 'flex';
+      onlineStatus.textContent = 'Share this code — waiting for your friend to join...';
+    });
+    peer.on('connection', (connection) => setupConnection(connection, true));
+    peer.on('error', () => { onlineStatus.textContent = 'Connection error. Please try creating a new room.'; });
+  });
+
+  function joinWithCode(code){
+    code = code.trim().toUpperCase();
+    if (!code) return;
+    onlineStatus.textContent = 'Connecting...';
+    peer = new Peer();
+    peer.on('open', () => {
+      const connection = peer.connect('bright-rps-' + code);
+      connection.on('error', () => { onlineStatus.textContent = "Couldn't connect. Check the code and try again."; });
+      setupConnection(connection, false);
+    });
+    peer.on('error', () => { onlineStatus.textContent = "Couldn't connect. Check the code and try again."; });
+  }
+
+  joinRoomBtn.addEventListener('click', () => joinWithCode(joinCodeInput.value));
+  joinCodeInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinWithCode(joinCodeInput.value); });
+
+  copyRoomLinkBtn.addEventListener('click', () => {
+    const code = roomCodeDisplay.textContent;
+    const link = window.location.origin + window.location.pathname + '?room=' + code;
+    try {
+      navigator.clipboard.writeText(link).then(() => {
+        const old = copyRoomLinkBtn.textContent;
+        copyRoomLinkBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyRoomLinkBtn.textContent = old; }, 1500);
+      });
+    } catch(e){ window.prompt('Copy this link:', link); }
+  });
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomFromUrl = urlParams.get('room');
+  if (roomFromUrl){
+    modeOnline.click();
+    joinCodeInput.value = roomFromUrl;
+    joinWithCode(roomFromUrl);
+  }
+
+  resetMatch();
+})();
+</script>
+</body>
+</html>

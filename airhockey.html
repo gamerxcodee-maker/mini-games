@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Air Hockey Bright — Play Online with a Friend or Computer</title>
+<meta name="description" content="Play Air Hockey Bright free online. Challenge a friend on a different device with a room code, play locally on the same screen, or face the computer.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --table: #1b1e3a; --table-line: rgba(255,255,255,0.25);
+    --p1-color: #00d1e0; --p2-color: #ff5c8a; --puck: #ffcc29;
+    --accent: #a86bff; --accent-dark: #8347e0;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { margin-bottom: 14px; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,36px); margin:0; }
+  h1 span { background: linear-gradient(90deg, var(--p1-color), var(--p2-color) 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 46ch; }
+
+  .mode-row { display:flex; gap:8px; margin: 16px 0 14px; background: var(--panel); padding:6px; border-radius:14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); flex-wrap: wrap; }
+  .mode-btn { flex:1; min-width: 90px; padding:10px; border:none; background:transparent; border-radius:10px; font-family:'Inter',sans-serif; font-weight:600; font-size:13px; color:var(--muted); cursor:pointer; }
+  .mode-btn.active { background: var(--accent); color:white; }
+
+  .online-panel { background: var(--panel); border-radius: 14px; padding: 16px; margin-bottom: 14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .online-status { font-size: 13.5px; color: var(--muted); margin-bottom: 12px; text-align: center; font-weight: 600; }
+  .online-actions { display: flex; flex-direction: column; gap: 10px; }
+  .join-row { display: flex; gap: 8px; }
+  .join-row input { flex: 1; border: 1px solid var(--bg); border-radius: 10px; padding: 10px 12px; font-family: 'Inter', sans-serif; font-size: 14px; background: var(--bg); color: var(--ink); text-transform: uppercase; }
+  .room-info { display: flex; flex-direction: column; align-items: center; gap: 10px; margin-top: 10px; }
+  .room-code { font-family: 'Baloo 2', sans-serif; font-size: 26px; font-weight: 800; letter-spacing: 4px; background: var(--bg); padding: 8px 18px; border-radius: 12px; color: var(--accent-dark); }
+  button.util-btn { background: var(--accent); color:white; border:none; padding:10px 18px; border-radius:12px; font-weight:700; font-size:13px; cursor:pointer; font-family:'Inter',sans-serif; }
+  button.util-btn:hover { background: var(--accent-dark); }
+
+  .scores { display:flex; gap:10px; margin-bottom:12px; }
+  .score-box { flex:1; background: var(--panel); border-radius:12px; padding:8px; text-align:center; box-shadow: 0 2px 8px rgba(30,30,60,0.06); }
+  .score-box .label { font-size:10.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .score-box .value { font-family:'Baloo 2',sans-serif; font-size:20px; font-weight:700; }
+
+  .hint-row { color:var(--muted); font-size:13px; margin: 0 0 10px; text-align:center; }
+
+  .board-shell {
+    position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3/4.4; max-width: 100%;
+    touch-action: none; user-select: none; box-shadow: 0 4px 20px rgba(30,30,60,0.18);
+  }
+  canvas { width:100%; height:100%; display:block; }
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(15,10,35,0.8);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; text-align:center; padding:20px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:24px; }
+  .overlay p { color:#e4e5f7; margin:0; font-size:14px; max-width:30ch; }
+  .overlay button { background:white; color:var(--accent-dark); border:none; padding:10px 22px; border-radius:10px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <h1><span>Air</span> Hockey</h1>
+    <p class="tagline">Drag your mallet to defend your goal and strike the puck into theirs. First to 7 wins.</p>
+  </header>
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="modeCpu">vs Computer</button>
+    <button class="mode-btn" id="mode2p">2 Players</button>
+    <button class="mode-btn" id="modeOnline">🌐 Play with Friend</button>
+  </div>
+
+  <div class="online-panel" id="onlinePanel" style="display:none;">
+    <div class="online-status" id="onlineStatus">Create a room or enter a friend's code to connect.</div>
+    <div class="online-actions" id="onlineActions">
+      <button class="util-btn" id="createRoomBtn">Create Room</button>
+      <div class="join-row">
+        <input type="text" id="joinCodeInput" placeholder="Enter friend's code" maxlength="8">
+        <button class="util-btn" id="joinRoomBtn">Join</button>
+      </div>
+    </div>
+    <div class="room-info" id="roomInfo" style="display:none;">
+      <div class="room-code" id="roomCodeDisplay"></div>
+      <button class="util-btn" id="copyRoomLinkBtn">📋 Copy Invite Link</button>
+    </div>
+  </div>
+
+  <div class="scores">
+    <div class="score-box"><div class="label" id="p1Label">You</div><div class="value" id="p1Score">0</div></div>
+    <div class="score-box"><div class="label" id="p2Label">Computer</div><div class="value" id="p2Score">0</div></div>
+  </div>
+
+  <div class="hint-row" id="hintRow">Drag your mallet (bottom half) to hit the puck.</div>
+
+  <div class="board-shell" id="board">
+    <canvas id="canvas"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Air Hockey</h2>
+      <p id="overlaySub">Drag your mallet to hit the puck into your opponent's goal. First to 7 wins.</p>
+      <button id="overlayBtn">Start</button>
+    </div>
+  </div>
+
+  <section class="info">
+    <h2>How to play Air Hockey</h2>
+    <p>Drag your mallet anywhere within your half of the table to block and strike the puck. Hit it past your opponent's mallet and into their goal to score. First player to reach 7 goals wins the match. Play against the computer, share the screen with a friend for local two-player, or connect online with a friend on a different device.</p>
+  </section>
+
+  <section class="info">
+    <h2>Playing with a friend online</h2>
+    <p>Pick "Play with Friend", create a room, and share the code or invite link. The player who creates the room defends the bottom goal; whoever joins defends the top. Puck movement is kept in sync between both browsers over a direct connection.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · online play uses a direct peer-to-peer connection</footer>
+</div>
+
+<div class="share-row">
+  <span class="share-label">Challenge a friend:</span>
+  <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+  <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+  <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+</div>
+<script>
+(function(){
+  var pageUrl = window.location.href;
+  var shareText = "Play Air Hockey with me! Try it here:";
+  var wa=document.getElementById('shareWA'),fb=document.getElementById('shareFB'),rd=document.getElementById('shareRD'),ig=document.getElementById('shareIG'),cp=document.getElementById('shareCopy');
+  if(wa)wa.href="https://wa.me/?text="+encodeURIComponent(shareText+" "+pageUrl);
+  if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(pageUrl);
+  if(rd)rd.href="https://reddit.com/submit?url="+encodeURIComponent(pageUrl)+"&title="+encodeURIComponent(shareText);
+  function copyLink(btn){ try{ navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500);}); }catch(e){ window.prompt('Copy this link:', pageUrl);} }
+  if(ig)ig.addEventListener('click',function(){ if(navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+  if(cp)cp.addEventListener('click',function(){ copyLink(cp); });
+})();
+</script>
+
+<script>
+(function(){
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const boardEl = document.getElementById('board');
+  const p1ScoreEl = document.getElementById('p1Score');
+  const p2ScoreEl = document.getElementById('p2Score');
+  const p1Label = document.getElementById('p1Label');
+  const p2Label = document.getElementById('p2Label');
+  const hintRow = document.getElementById('hintRow');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+
+  const modeCpu = document.getElementById('modeCpu');
+  const mode2p = document.getElementById('mode2p');
+  const modeOnline = document.getElementById('modeOnline');
+  const onlinePanel = document.getElementById('onlinePanel');
+  const onlineStatus = document.getElementById('onlineStatus');
+  const onlineActions = document.getElementById('onlineActions');
+  const createRoomBtn = document.getElementById('createRoomBtn');
+  const joinCodeInput = document.getElementById('joinCodeInput');
+  const joinRoomBtn = document.getElementById('joinRoomBtn');
+  const roomInfo = document.getElementById('roomInfo');
+  const roomCodeDisplay = document.getElementById('roomCodeDisplay');
+  const copyRoomLinkBtn = document.getElementById('copyRoomLinkBtn');
+
+  let W,H,dpr;
+  function resize(){
+    const rect = boardEl.getBoundingClientRect();
+    dpr = window.devicePixelRatio||1;
+    W = rect.width; H = rect.height;
+    canvas.width = W*dpr; canvas.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+  function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  let mode = 'cpu'; // cpu | local | online
+  let onlineMode=false, peer=null, conn=null, myRole=null, onlineConnected=false, isHost=false;
+
+  let mallet1, mallet2, puck, scores, over, started, goalPause;
+  const FRICTION = 0.994;
+  const MAX_SPEED = 1400;
+
+  function layout(){
+    const malletR = W*0.11;
+    const puckR = W*0.065;
+    mallet1 = { x: W/2, y: H*0.88, r: malletR, vx:0, vy:0, tx: W/2, ty: H*0.88 };
+    mallet2 = { x: W/2, y: H*0.12, r: malletR, vx:0, vy:0, tx: W/2, ty: H*0.12 };
+    puck = { x: W/2, y: H/2, r: puckR, vx:0, vy:0 };
+  }
+
+  function newMatch(){
+    scores = { p1:0, p2:0 };
+    over = false; started = false; goalPause = 0;
+    p1ScoreEl.textContent = 0; p2ScoreEl.textContent = 0;
+    layout();
+    overlayText.textContent = 'Air Hockey';
+    overlaySub.textContent = "Drag your mallet to hit the puck into your opponent's goal. First to 7 wins.";
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+  }
+
+  function resetPuck(dir){
+    puck.x = W/2; puck.y = H/2;
+    const angle = (Math.random()*0.6-0.3) + (dir>0 ? Math.PI/2 : -Math.PI/2);
+    const speed = 220;
+    puck.vx = Math.cos(angle)*speed;
+    puck.vy = Math.sin(angle)*speed;
+  }
+
+  function goalWidth(){ return W*0.36; }
+
+  function checkGoals(){
+    const gw = goalWidth();
+    if (puck.y - puck.r < 0){
+      if (puck.x > W/2-gw/2 && puck.x < W/2+gw/2){
+        scores.p1++; p1ScoreEl.textContent = scores.p1;
+        onGoalScored('p1');
+        return true;
+      } else {
+        puck.y = puck.r; puck.vy *= -1;
+      }
+    }
+    if (puck.y + puck.r > H){
+      if (puck.x > W/2-gw/2 && puck.x < W/2+gw/2){
+        scores.p2++; p2ScoreEl.textContent = scores.p2;
+        onGoalScored('p2');
+        return true;
+      } else {
+        puck.y = H-puck.r; puck.vy *= -1;
+      }
+    }
+    return false;
+  }
+
+  function onGoalScored(scorer){
+    if (mode==='online' && !isHost) return;
+    goalPause = 1.0;
+    if (scores.p1>=7 || scores.p2>=7){
+      over = true;
+      const winner = scores.p1>=7 ? 'p1' : 'p2';
+      setTimeout(() => {
+        if (mode==='online') overlayText.textContent = winner===myRole ? 'You Win the Match! 🎉' : 'Opponent Won the Match';
+        else if (mode==='local') overlayText.textContent = (winner==='p1'?'Player 1':'Player 2') + ' Wins the Match! 🎉';
+        else overlayText.textContent = winner==='p1' ? 'You Win the Match! 🎉' : 'Computer Wins the Match';
+        overlaySub.textContent = 'Final score: ' + scores.p1 + ' - ' + scores.p2;
+        overlayBtn.textContent = 'New Match';
+        overlay.classList.add('show');
+      }, 500);
+    } else {
+      resetPuck(scorer==='p1' ? -1 : 1);
+    }
+  }
+
+  function clampMallet(m, minY, maxY){
+    m.x = Math.max(m.r, Math.min(W-m.r, m.x));
+    m.y = Math.max(minY, Math.min(maxY, m.y));
+  }
+
+  function updatePhysics(dt){
+    if (goalPause > 0){ goalPause -= dt; if (goalPause<=0){ /* resume */ } return; }
+
+    puck.x += puck.vx*dt;
+    puck.y += puck.vy*dt;
+    puck.vx *= FRICTION; puck.vy *= FRICTION;
+
+    if (puck.x - puck.r < 0){ puck.x = puck.r; puck.vx *= -1; }
+    if (puck.x + puck.r > W){ puck.x = W-puck.r; puck.vx *= -1; }
+
+    if (checkGoals()) return;
+
+    [mallet1, mallet2].forEach(m => {
+      const dx = puck.x-m.x, dy = puck.y-m.y;
+      const dist = Math.hypot(dx,dy);
+      const minDist = puck.r+m.r;
+      if (dist < minDist && dist>0.01){
+        const nx=dx/dist, ny=dy/dist;
+        puck.x = m.x+nx*minDist; puck.y = m.y+ny*minDist;
+        const speed = Math.hypot(puck.vx,puck.vy);
+        const malletSpeed = Math.hypot(m.vx||0, m.vy||0);
+        const newSpeed = Math.min(MAX_SPEED, Math.max(speed, 260) + malletSpeed*0.5);
+        puck.vx = nx*newSpeed; puck.vy = ny*newSpeed;
+      }
+    });
+  }
+
+  function updateMalletTracking(m, dt){
+    const prevX=m.x, prevY=m.y;
+    m.x += (m.tx-m.x)*Math.min(1, dt*22);
+    m.y += (m.ty-m.y)*Math.min(1, dt*22);
+    m.vx = (m.x-prevX)/dt; m.vy = (m.y-prevY)/dt;
+  }
+
+  function cpuThink(dt){
+    const target = { x: puck.x, y: Math.min(H*0.32, mallet2.ty) };
+    if (puck.y < H*0.5){
+      mallet2.tx = puck.x;
+      mallet2.ty = Math.max(mallet2.r, Math.min(H*0.42, puck.y - 10));
+    } else {
+      mallet2.tx = W/2 + (puck.x-W/2)*0.3;
+      mallet2.ty = H*0.18;
+    }
+  }
+
+  function update(dt){
+    if (!started || over) return;
+    if (mode==='cpu') cpuThink(dt);
+    updateMalletTracking(mallet1, dt);
+    updateMalletTracking(mallet2, dt);
+    clampMallet(mallet1, H*0.55, H-mallet1.r);
+    clampMallet(mallet2, mallet2.r, H*0.45);
+
+    if (mode==='online'){
+      if (isHost){
+        updatePhysics(dt);
+      }
+    } else {
+      updatePhysics(dt);
+    }
+  }
+
+  function draw(){
+    ctx.fillStyle = getCss('--table');
+    ctx.fillRect(0,0,W,H);
+
+    ctx.strokeStyle = getCss('--table-line');
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0,H/2); ctx.lineTo(W,H/2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(W/2,H/2,W*0.18,0,Math.PI*2); ctx.stroke();
+
+    const gw = goalWidth();
+    ctx.strokeStyle = getCss('--p2-color');
+    ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.moveTo(W/2-gw/2,2); ctx.lineTo(W/2+gw/2,2); ctx.stroke();
+    ctx.strokeStyle = getCss('--p1-color');
+    ctx.beginPath(); ctx.moveTo(W/2-gw/2,H-2); ctx.lineTo(W/2+gw/2,H-2); ctx.stroke();
+
+    ctx.fillStyle = getCss('--puck');
+    ctx.beginPath(); ctx.arc(puck.x, puck.y, puck.r, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = getCss('--p1-color');
+    ctx.beginPath(); ctx.arc(mallet1.x, mallet1.y, mallet1.r, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath(); ctx.arc(mallet1.x, mallet1.y, mallet1.r*0.4, 0, Math.PI*2); ctx.fill();
+
+    ctx.fillStyle = getCss('--p2-color');
+    ctx.beginPath(); ctx.arc(mallet2.x, mallet2.y, mallet2.r, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.3)';
+    ctx.beginPath(); ctx.arc(mallet2.x, mallet2.y, mallet2.r*0.4, 0, Math.PI*2); ctx.fill();
+  }
+
+  function frame(ts){
+    if (!frame.last) frame.last = ts;
+    const dt = Math.min(0.032, (ts-frame.last)/1000);
+    frame.last = ts;
+    update(dt);
+    draw();
+
+    if (mode==='online' && onlineConnected && conn && conn.open){
+      netTimer = (netTimer||0) + dt;
+      if (netTimer > 0.045){
+        netTimer = 0;
+        if (isHost){
+          conn.send({ type:'state', puck:{x:puck.x,y:puck.y}, mallet2:{x:mallet2.x,y:mallet2.y}, scores });
+        } else {
+          conn.send({ type:'paddle', x: mallet2.x, y: mallet2.y });
+        }
+      }
+    }
+    requestAnimationFrame(frame);
+  }
+  let netTimer = 0;
+
+  function pointerToLocal(e){
+    const rect = boardEl.getBoundingClientRect();
+    return { x: e.clientX-rect.left, y: e.clientY-rect.top };
+  }
+
+  let activePointers = {};
+
+  boardEl.addEventListener('pointerdown', (e) => {
+    if (over){ return; }
+    if (!started){ started = true; overlay.classList.remove('show'); }
+    const p = pointerToLocal(e);
+    activePointers[e.pointerId] = { startedInBottom: p.y > H/2 };
+    setTargetFromPoint(p, e.pointerId);
+  });
+  boardEl.addEventListener('pointermove', (e) => {
+    if (!activePointers[e.pointerId]) return;
+    const p = pointerToLocal(e);
+    setTargetFromPoint(p, e.pointerId);
+  });
+  window.addEventListener('pointerup', (e) => { delete activePointers[e.pointerId]; });
+  window.addEventListener('pointercancel', (e) => { delete activePointers[e.pointerId]; });
+
+  function setTargetFromPoint(p, pointerId){
+    if (mode==='local'){
+      const info = activePointers[pointerId];
+      if (info.startedInBottom){ mallet1.tx = p.x; mallet1.ty = p.y; }
+      else { mallet2.tx = p.x; mallet2.ty = p.y; }
+    } else if (mode==='cpu'){
+      mallet1.tx = p.x; mallet1.ty = p.y;
+    } else if (mode==='online'){
+      if (isHost){ mallet1.tx = p.x; mallet1.ty = p.y; }
+      else { mallet2.tx = p.x; mallet2.ty = p.y; }
+    }
+  }
+
+  overlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (over || overlayBtn.textContent==='New Match'){ newMatch(); if (mode==='online' && conn && conn.open) conn.send({type:'reset'}); }
+    else { started = true; overlay.classList.remove('show'); }
+  });
+
+  function setActiveMode(btn){ [modeCpu, mode2p, modeOnline].forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+
+  modeCpu.addEventListener('click', () => {
+    mode='cpu'; onlineMode=false;
+    setActiveMode(modeCpu); onlinePanel.style.display='none';
+    p1Label.textContent='You'; p2Label.textContent='Computer';
+    hintRow.textContent = 'Drag your mallet (bottom half) to hit the puck.';
+    newMatch();
+  });
+  mode2p.addEventListener('click', () => {
+    mode='local'; onlineMode=false;
+    setActiveMode(mode2p); onlinePanel.style.display='none';
+    p1Label.textContent='Player 1'; p2Label.textContent='Player 2';
+    hintRow.textContent = 'Player 1 uses the bottom half, Player 2 the top — both can drag at once.';
+    newMatch();
+  });
+  modeOnline.addEventListener('click', () => {
+    mode='online'; onlineMode=true;
+    setActiveMode(modeOnline); onlinePanel.style.display='block';
+    p1Label.textContent='Player 1'; p2Label.textContent='Player 2';
+    hintRow.textContent = 'Connect with a friend to begin.';
+    overlay.classList.remove('show');
+    started = false;
+  });
+
+  function genCode(){
+    const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s='';
+    for (let i=0;i<6;i++) s+=chars[Math.floor(Math.random()*chars.length)];
+    return s;
+  }
+
+  function setupConnection(connection, asHost){
+    conn = connection;
+    isHost = asHost;
+    conn.on('open', () => {
+      onlineConnected = true;
+      myRole = asHost ? 'p1' : 'p2';
+      onlineStatus.textContent = 'Connected! You play ' + (asHost?'bottom (host)':'top') + '.';
+      onlineActions.style.display='none';
+      roomInfo.style.display='none';
+      hintRow.textContent = asHost ? 'Drag your mallet (bottom half) to hit the puck.' : 'Drag your mallet (top half) to hit the puck.';
+      newMatch();
+    });
+    conn.on('data', (data) => {
+      if (data.type==='state' && !isHost){
+        puck.x = data.puck.x; puck.y = data.puck.y;
+        mallet1.x = data.mallet2.x; mallet1.y = data.mallet2.y;
+        scores = data.scores;
+        p1ScoreEl.textContent = scores.p1; p2ScoreEl.textContent = scores.p2;
+      } else if (data.type==='paddle' && isHost){
+        mallet2.tx = data.x; mallet2.ty = data.y;
+        mallet2.x = data.x; mallet2.y = data.y;
+      } else if (data.type==='reset'){
+        newMatch();
+      }
+    });
+    conn.on('close', () => {
+      onlineConnected=false;
+      onlineStatus.textContent='Friend disconnected. Create or join a new room to keep playing.';
+      onlineActions.style.display='flex'; roomInfo.style.display='none';
+    });
+  }
+
+  createRoomBtn.addEventListener('click', () => {
+    const code = genCode();
+    onlineStatus.textContent = 'Setting up room...';
+    peer = new Peer('bright-ah-' + code);
+    peer.on('open', () => {
+      roomCodeDisplay.textContent = code;
+      roomInfo.style.display = 'flex';
+      onlineStatus.textContent = 'Share this code — waiting for your friend to join...';
+    });
+    peer.on('connection', (connection) => setupConnection(connection, true));
+    peer.on('error', () => { onlineStatus.textContent = 'Connection error. Please try creating a new room.'; });
+  });
+
+  function joinWithCode(code){
+    code = code.trim().toUpperCase();
+    if (!code) return;
+    onlineStatus.textContent = 'Connecting...';
+    peer = new Peer();
+    peer.on('open', () => {
+      const connection = peer.connect('bright-ah-' + code);
+      connection.on('error', () => { onlineStatus.textContent = "Couldn't connect. Check the code and try again."; });
+      setupConnection(connection, false);
+    });
+    peer.on('error', () => { onlineStatus.textContent = "Couldn't connect. Check the code and try again."; });
+  }
+
+  joinRoomBtn.addEventListener('click', () => joinWithCode(joinCodeInput.value));
+  joinCodeInput.addEventListener('keydown', (e) => { if (e.key==='Enter') joinWithCode(joinCodeInput.value); });
+
+  copyRoomLinkBtn.addEventListener('click', () => {
+    const code = roomCodeDisplay.textContent;
+    const link = window.location.origin + window.location.pathname + '?room=' + code;
+    try {
+      navigator.clipboard.writeText(link).then(() => {
+        const old = copyRoomLinkBtn.textContent;
+        copyRoomLinkBtn.textContent = '✅ Copied!';
+        setTimeout(() => { copyRoomLinkBtn.textContent = old; }, 1500);
+      });
+    } catch(e){ window.prompt('Copy this link:', link); }
+  });
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const roomFromUrl = urlParams.get('room');
+
+  resize();
+  if (roomFromUrl){
+    modeOnline.click();
+    joinCodeInput.value = roomFromUrl;
+    joinWithCode(roomFromUrl);
+  } else {
+    newMatch();
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

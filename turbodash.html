@@ -88,10 +88,21 @@
   .info + .info { margin-top: 14px; }
 
   footer.credit { text-align: center; color: var(--muted); font-size: 12px; margin-top: 30px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; }
+  .share-btn.fb { background:#1877F2; }
+  .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); }
+  .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
 </style>
 </head>
 <body>
 <div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
 
   <header class="top">
     <div>
@@ -114,6 +125,51 @@
       <button id="overlayBtn">Start</button>
     </div>
   </div>
+
+  <div class="share-row">
+    <span class="share-label">Challenge a friend:</span>
+    <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+    <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+    <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+    <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+  </div>
+  <script>
+  (function(){
+    var pageUrl = window.location.href;
+    var h1 = document.querySelector('h1');
+    var gameName = (h1 ? h1.innerText.replace(/\s+/g,' ').trim() : document.title);
+    var shareText = "Can you beat my score in " + gameName + "? Try it here:";
+    var wa = document.getElementById('shareWA');
+    var fb = document.getElementById('shareFB');
+    var rd = document.getElementById('shareRD');
+    var ig = document.getElementById('shareIG');
+    var cp = document.getElementById('shareCopy');
+    if (wa) wa.href = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + pageUrl);
+    if (fb) fb.href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(pageUrl);
+    if (rd) rd.href = "https://reddit.com/submit?url=" + encodeURIComponent(pageUrl) + "&title=" + encodeURIComponent(shareText);
+    function copyLink(btn){
+      try {
+        navigator.clipboard.writeText(pageUrl).then(function(){
+          var old = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(function(){ btn.textContent = old; }, 1500);
+        });
+      } catch(e){
+        window.prompt('Copy this link:', pageUrl);
+      }
+    }
+    if (ig) ig.addEventListener('click', function(){
+      if (navigator.share){
+        navigator.share({ title: gameName, text: shareText, url: pageUrl }).catch(function(){});
+      } else {
+        copyLink(ig);
+        window.alert('Link copied! Paste it in your Instagram story or bio.');
+      }
+    });
+    if (cp) cp.addEventListener('click', function(){ copyLink(cp); });
+  })();
+  </script>
 
   <section class="info">
     <h2>How to play Turbo Dash</h2>

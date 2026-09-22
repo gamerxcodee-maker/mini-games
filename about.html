@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>About Bright Arcade — Free Browser Games</title>
+<meta name="description" content="Learn about Bright Arcade, a small independent collection of free browser games built for instant play with no downloads or accounts.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094; --border: #e4e7f5;
+    --c1: #00d1e0; --c2: #a86bff;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --border: #2c2f52; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --border: #2c2f52; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink); font-family:'Inter',system-ui,sans-serif; }
+  a { color: inherit; }
+  .site-header { display:flex; align-items:center; justify-content:space-between; max-width:760px; margin:0 auto; padding:22px 20px 0; }
+  .brand { display:flex; align-items:center; gap:8px; font-family:'Baloo 2',sans-serif; font-weight:800; font-size:20px; text-decoration:none; }
+  .brand .dot { width:10px; height:10px; border-radius:50%; background:linear-gradient(135deg,var(--c1),var(--c2)); }
+  .site-nav { display:flex; gap:18px; font-size:14px; font-weight:600; color:var(--muted); }
+  .site-nav a { text-decoration:none; }
+  .site-nav a:hover { color:var(--ink); }
+  main { max-width:760px; margin:0 auto; padding:50px 20px 60px; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(28px,5vw,40px); margin:0 0 18px; }
+  p { color:var(--muted); font-size:16px; line-height:1.7; margin:0 0 16px; }
+  h2 { font-family:'Baloo 2',sans-serif; font-size:20px; margin:28px 0 8px; color:var(--ink); }
+  footer.site-footer { border-top:1px solid var(--border); margin-top:30px; padding:26px 20px 40px; }
+  .footer-inner { max-width:760px; margin:0 auto; display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+  .footer-links { display:flex; gap:18px; font-size:13.5px; color:var(--muted); }
+  .footer-links a { text-decoration:none; }
+  .footer-links a:hover { color:var(--ink); }
+  .footer-note { color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="index.html"><span class="dot"></span> Bright Arcade</a>
+    <nav class="site-nav">
+      <a href="index.html#games">Games</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>About Bright Arcade</h1>
+    <p>Bright Arcade is a small, independent collection of browser games. Every game is built from scratch to be simple to pick up, fast to load, and free to play on any device — no installs, no accounts, and no paywalls.</p>
+
+    <h2>What we build</h2>
+    <p>The collection mixes a few reworked classics — a number-merge puzzle, a snake game, tic tac toe — with original ideas that don't copy an existing format. The goal with every game is the same: something you can open on a short break and actually enjoy, without waiting for anything to install.</p>
+
+    <h2>How the site is run</h2>
+    <p>Bright Arcade is supported by ads shown alongside the games, which is what keeps every game free to play with no sign-up required. We don't sell accounts, subscriptions, or in-game purchases.</p>
+
+    <h2>More games are coming</h2>
+    <p>This is an active, growing project. New games get added as they're finished, so if you've played through everything here, it's worth checking back later.</p>
+
+    <h2>Get in touch</h2>
+    <p>Questions, feedback, or bug reports are always welcome at <a href="mailto:gamerxcodee@gmail.com" style="color:var(--c2); font-weight:600; text-decoration:underline;">gamerxcodee@gmail.com</a>.</p>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-note">© <span id="year"></span> Bright Arcade.</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>document.getElementById('year').textContent = new Date().getFullYear();</script>
+</body>
+</html>

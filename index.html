@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Bright Arcade — Free Online Browser Games, No Download Needed</title>
+<meta name="description" content="Bright Arcade is a free collection of original browser games — 2048, Snake, Tic Tac Toe, Memory Match, Flappy Dash, Turbo Dash and Mirror Flap. No downloads, no sign-up, play instantly.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --ink: #1f2340;
+    --muted: #6b7094;
+    --border: #e4e7f5;
+
+    --c1: #00d1e0;
+    --c2: #a86bff;
+    --c3: #22d38a;
+    --c4: #ffcc29;
+    --c5: #ff8b3d;
+    --c6: #ff5c8a;
+    --c7: #3d7bff;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --border: #2c2f52;
+    }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --border: #2c2f52; }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  a { color: inherit; }
+
+  .site-header {
+    display: flex; align-items: center; justify-content: space-between;
+    max-width: 1000px; margin: 0 auto; padding: 22px 20px 0;
+  }
+  .brand { display: flex; align-items: center; gap: 8px; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 20px; }
+  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--c1), var(--c2)); }
+  .site-nav { display: flex; gap: 18px; font-size: 14px; font-weight: 600; color: var(--muted); }
+  .site-nav a { text-decoration: none; }
+  .site-nav a:hover { color: var(--ink); }
+
+  .hero {
+    max-width: 1000px; margin: 0 auto; padding: 54px 20px 30px;
+    text-align: left;
+  }
+  .hero h1 {
+    font-family: 'Baloo 2', sans-serif;
+    font-weight: 800;
+    font-size: clamp(32px, 6vw, 54px);
+    line-height: 1.08;
+    margin: 0 0 14px;
+    max-width: 16ch;
+  }
+  .hero h1 .grad {
+    background: linear-gradient(90deg, var(--c1), var(--c2) 45%, var(--c6));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .hero p { color: var(--muted); font-size: 17px; max-width: 56ch; line-height: 1.6; margin: 0 0 22px; }
+  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--ink); color: var(--bg); text-decoration: none;
+    padding: 12px 22px; border-radius: 12px; font-weight: 700; font-size: 15px;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-secondary {
+    border: 1px solid var(--border); text-decoration: none; color: var(--ink);
+    padding: 12px 22px; border-radius: 12px; font-weight: 700; font-size: 15px;
+  }
+
+  .strip {
+    max-width: 1000px; margin: 30px auto 0; padding: 0 20px;
+    display: flex; gap: 28px; flex-wrap: wrap;
+    color: var(--muted); font-size: 14px;
+  }
+  .strip span { font-weight: 700; color: var(--ink); }
+
+  .games-section { max-width: 1000px; margin: 0 auto; padding: 56px 20px 20px; }
+  .games-section h2 {
+    font-family: 'Baloo 2', sans-serif; font-size: clamp(24px, 4vw, 32px); margin: 0 0 6px;
+  }
+  .games-section > p { color: var(--muted); margin: 0 0 28px; font-size: 15px; max-width: 56ch; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: var(--panel);
+    border-radius: 16px;
+    padding: 20px;
+    text-decoration: none;
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    border-top: 4px solid var(--accent, var(--c1));
+    box-shadow: 0 2px 10px rgba(30,30,60,0.06);
+    transition: transform 0.12s ease;
+  }
+  .card:hover { transform: translateY(-3px); }
+  .card .icon { font-size: 30px; }
+  .card h3 { font-family: 'Baloo 2', sans-serif; font-size: 19px; margin: 0; }
+  .card p { color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: 0; flex: 1; }
+  .card .play { font-size: 13px; font-weight: 700; color: var(--ink); }
+
+  .info-section { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 20px; }
+  .info-grid h3 { font-family: 'Baloo 2', sans-serif; font-size: 18px; margin: 0 0 8px; }
+  .info-grid p { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 0; }
+  .info-section h2 { font-family: 'Baloo 2', sans-serif; font-size: clamp(22px, 3.6vw, 28px); margin: 0; }
+  .info-section > p.lead { color: var(--muted); font-size: 15px; max-width: 62ch; margin: 10px 0 0; line-height: 1.6; }
+
+  footer.site-footer {
+    border-top: 1px solid var(--border);
+    margin-top: 50px;
+    padding: 26px 20px 40px;
+  }
+  .footer-inner {
+    max-width: 1000px; margin: 0 auto;
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+  }
+  .footer-links { display: flex; gap: 18px; font-size: 13.5px; color: var(--muted); }
+  .footer-links a { text-decoration: none; }
+  .footer-links a:hover { color: var(--ink); }
+  .footer-note { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="brand"><span class="dot"></span> Bright Arcade</div>
+    <nav class="site-nav">
+      <a href="#games">Games</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h1>Free games.<br><span class="grad">Zero downloads.</span></h1>
+    <p>Bright Arcade is a small, growing collection of browser games — a few reworked classics and a couple of genuinely original ideas — built to load in under a second and play on anything with a screen.</p>
+    <div class="hero-actions">
+      <a class="btn-primary" href="#games">Browse the games</a>
+      <a class="btn-secondary" href="about.html">About this site</a>
+    </div>
+    <div class="strip">
+      <div><span id="gameCount">0</span> games</div>
+      <div><span>0</span> installs</div>
+      <div><span>0</span> accounts needed</div>
+      <div><span>100%</span> free</div>
+    </div>
+  </section>
+
+  <section class="games-section" id="games">
+    <h2>Pick a game</h2>
+    <p>Every game runs entirely in your browser. Tap in, play a round, and come back whenever you've got a minute to kill.</p>
+
+    <div class="grid">
+      <a class="card" style="--accent: var(--c4)" href="2048.html">
+        <div class="icon">🎮</div>
+        <h3>2048 Bright</h3>
+        <p>The classic number-merge puzzle, rebuilt with a bold, high-contrast colour palette so every tile is instantly readable.</p>
+        <div class="play">Play now →</div>
+      </a>
+
+      <a class="card" style="--accent: var(--c3)" href="snake.html">
+        <div class="icon">🐍</div>
+        <h3>Snake Bright</h3>
+        <p>Guide your snake around the board, eat, grow, and try not to run into your own tail as things speed up.</p>
+        <div class="play">Play now →</div>
+      </a>
+
+      <a class="card" style="--accent: var(--c5)" href="tictactoe.html">
+        <div class="icon">❌</div>
+        <h3>Tic Tac Toe Bright</h3>
+        <p>Play a friend on the same screen, or challenge a computer opponent that actually plays to win.</p>
+        <div class="play">Play now →</div>
+      </a>
+
+      <a class="card" style="--accent: var(--c2)" href="memorymatch.html">
+        <div class="icon">🧠</div>
+        <h3>Memory Match Bright</h3>
+        <p>Flip cards, find every pair, and try to beat your best move count across three difficulty levels.</p>
+        <div class="play">Play now →</div>
+      </a>
+
+      <a class="card" style="--accent: var(--c7)" href="flappydash.html">
+        <div class="icon">🐤</div>
+        <h3>Flappy Dash Bright</h3>
+        <p>Tap to flap and thread the gaps between pipes. One touch to start, one touch to try again.</p>
+        <div class="play">Play now →</div>
+      </a>
+
+      <a class="card" style="--accent: var(--c6)" href="turbodash.html">
+        <div class="icon">🏎️</div>
+        <h3>Turbo Dash Bright</h3>
+        <p>Switch lanes to dodge barriers and grab coins while the road keeps getting faster underneath you.</p>
+        <div class="play">Play now →</div>
+      </a>
+
+      <a class="card" style="--accent: var(--c1)" href="mirrorflap.html">
+        <div class="icon">🌗</div>
+        <h3>Mirror Flap Bright</h3>
+        <p>One tap controls two mirrored orbs at once — one falls, one floats. An original twist on the tap-to-fly formula.</p>
+        <div class="play">Play now →</div>
+      </a>
+    </div>
+  </section>
+
+  <section class="info-section">
+    <h2>Why play on Bright Arcade</h2>
+    <p class="lead">Every game here is built the same way: fast to load, simple to pick up, and free to play for as long as you want, on desktop or mobile.</p>
+    <div class="info-grid">
+      <div>
+        <h3>No installs, no accounts</h3>
+        <p>There's nothing to download and nothing to sign up for. Open a game and you're playing within a second or two, even on a slow connection.</p>
+      </div>
+      <div>
+        <h3>Works on any device</h3>
+        <p>Every game is built to fit a phone screen just as well as a desktop monitor, with touch controls on mobile and keyboard controls on desktop.</p>
+      </div>
+      <div>
+        <h3>Original where it counts</h3>
+        <p>Alongside familiar formats like 2048 and Snake, Bright Arcade includes original ideas like Mirror Flap — games you won't find built quite the same way anywhere else.</p>
+      </div>
+      <div>
+        <h3>New games over time</h3>
+        <p>This is a growing collection. More games get added as they're finished, so it's worth checking back if you've cleared everything here.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-note">© <span id="year"></span> Bright Arcade. All games built in-house.</div>
+      <div class="footer-links">
+        <a href="about.html">About</a>
+        <a href="privacy.html">Privacy Policy</a>
+        <a href="contact.html">Contact</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+    document.getElementById('gameCount').textContent = document.querySelectorAll('.grid .card').length;
+  </script>
+</body>
+</html>

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stack Tower Bright — Free Online Block Stacking Game</title>
+<meta name="description" content="Play Stack Tower Bright, a free online precision stacking game. Tap to drop each block, line up perfect stacks for combo bonuses, and build the tallest tower.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --ink: #1f2340;
+    --muted: #6b7094;
+    --sky-top: #a86bff;
+    --sky-bottom: #00d1e0;
+    --accent: #ff8b3d;
+    --accent-dark: #e06f1f;
+
+    --b0: #00d1e0; --b1: #a86bff; --b2: #22d38a; --b3: #ffcc29;
+    --b4: #ff8b3d; --b5: #ff5c8a; --b6: #3d7bff; --b7: #17c3c3;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 520px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,36px); margin:0; }
+  h1 span {
+    background: linear-gradient(90deg, var(--b0), var(--b4) 60%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 44ch; }
+
+  .scores { display:flex; gap:8px; }
+  .score-box { background: var(--panel); border-radius: 12px; padding: 8px 12px; text-align:center; min-width:56px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .score-box .label { font-size:10px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .score-box .value { font-family:'Baloo 2',sans-serif; font-size:18px; font-weight:700; }
+
+  .hint-row { color:var(--muted); font-size:14px; margin: 10px 0 12px; text-align:center; }
+
+  .board-shell {
+    position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3/4; max-width: 100%;
+    touch-action: none; user-select: none; box-shadow: 0 4px 20px rgba(30,30,60,0.18);
+  }
+  canvas { width:100%; height:100%; display:block; }
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(15,10,35,0.78);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; text-align:center; padding:20px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:26px; }
+  .overlay p { color:#eaeaf7; margin:0; font-size:14px; max-width:32ch; }
+  .overlay button {
+    background:white; color:var(--accent-dark); border:none; padding:10px 22px; border-radius:10px;
+    font-weight:700; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+
+  .info { margin-top: 30px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:20px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:15px; }
+  .info + .info { margin-top: 14px; }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; }
+  .share-btn.fb { background:#1877F2; }
+  .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); }
+  .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <div>
+      <h1><span>Stack</span> Tower</h1>
+      <p class="tagline">Tap to drop each block. Line it up perfectly to keep your width — miss and the tower gets thinner.</p>
+    </div>
+    <div class="scores">
+      <div class="score-box"><div class="label">Height</div><div class="value" id="score">0</div></div>
+      <div class="score-box"><div class="label">Best</div><div class="value" id="best">0</div></div>
+    </div>
+  </header>
+
+  <div class="hint-row" id="hint">Tap, click, or press Space to drop the block.</div>
+
+  <div class="board-shell" id="board">
+    <canvas id="canvas"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Stack Tower</h2>
+      <p id="overlaySub">Tap when the moving block lines up with the one below it. Perfect stacks build a combo bonus.</p>
+      <button id="overlayBtn">Start</button>
+    </div>
+  </div>
+
+  <div class="share-row">
+    <span class="share-label">Challenge a friend:</span>
+    <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+    <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+    <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+    <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+  </div>
+  <script>
+  (function(){
+    var pageUrl = window.location.href;
+    var h1 = document.querySelector('h1');
+    var gameName = (h1 ? h1.innerText.replace(/\s+/g,' ').trim() : document.title);
+    var shareText = "Can you beat my score in " + gameName + "? Try it here:";
+    var wa = document.getElementById('shareWA');
+    var fb = document.getElementById('shareFB');
+    var rd = document.getElementById('shareRD');
+    var ig = document.getElementById('shareIG');
+    var cp = document.getElementById('shareCopy');
+    if (wa) wa.href = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + pageUrl);
+    if (fb) fb.href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(pageUrl);
+    if (rd) rd.href = "https://reddit.com/submit?url=" + encodeURIComponent(pageUrl) + "&title=" + encodeURIComponent(shareText);
+    function copyLink(btn){
+      try {
+        navigator.clipboard.writeText(pageUrl).then(function(){
+          var old = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(function(){ btn.textContent = old; }, 1500);
+        });
+      } catch(e){
+        window.prompt('Copy this link:', pageUrl);
+      }
+    }
+    if (ig) ig.addEventListener('click', function(){
+      if (navigator.share){
+        navigator.share({ title: gameName, text: shareText, url: pageUrl }).catch(function(){});
+      } else {
+        copyLink(ig);
+        window.alert('Link copied! Paste it in your Instagram story or bio.');
+      }
+    });
+    if (cp) cp.addEventListener('click', function(){ copyLink(cp); });
+  })();
+  </script>
+
+  <section class="info">
+    <h2>How to play Stack Tower</h2>
+    <p>A block slides back and forth above your tower. Tap, click, or press Space to drop it onto the block below. Only the overlapping part sticks — anything hanging over the edge falls away, so the tower gets narrower with every imperfect drop. Miss completely with no overlap at all, and the run ends.</p>
+  </section>
+
+  <section class="info">
+    <h2>Perfect stacks and combos</h2>
+    <p>Drop a block close enough to a perfect line-up and it snaps to the exact width of the one below instead of shrinking, and builds a combo streak worth bonus points. The tower speeds up the higher you go, so a long perfect streak becomes harder to keep alive the further you push it.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best height saved only on this device</footer>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const boardEl = document.getElementById('board');
+  const scoreEl = document.getElementById('score');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+
+  let W, H, dpr;
+  function resize(){
+    const rect = boardEl.getBoundingClientRect();
+    dpr = window.devicePixelRatio || 1;
+    W = rect.width; H = rect.height;
+    canvas.width = W*dpr; canvas.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+  function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  const COLORS = ['--b0','--b1','--b2','--b3','--b4','--b5','--b6','--b7'];
+
+  const BLOCK_H_RATIO = 0.085;
+  const PERFECT_TOL_RATIO = 0.012;
+
+  let blockH, stack, current, debris, score, best, over, started, speed, combo, anchorY, tState;
+
+  function loadBest(){ try { const b = localStorage.getItem('stacktower_best'); return b?parseInt(b,10):0; } catch(e){ return 0; } }
+  function saveBest(v){ try { localStorage.setItem('stacktower_best', String(v)); } catch(e){} }
+
+  function newGame(){
+    blockH = H * BLOCK_H_RATIO;
+    anchorY = H*0.62;
+    const startW = W*0.5;
+    stack = [{ x: (W-startW)/2, w: startW, colorIdx: 0 }];
+    debris = [];
+    score = 0;
+    over = false;
+    started = false;
+    speed = W*0.32;
+    combo = 0;
+    tState = 0;
+    best = loadBest();
+    scoreEl.textContent = 0;
+    bestEl.textContent = best;
+    spawnCurrent();
+    overlayText.textContent = 'Stack Tower';
+    overlaySub.textContent = 'Tap when the moving block lines up with the one below it. Perfect stacks build a combo bonus.';
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+  }
+
+  function spawnCurrent(){
+    const last = stack[stack.length-1];
+    const fromLeft = Math.random() < 0.5;
+    current = {
+      x: fromLeft ? -last.w : W,
+      w: last.w,
+      dir: fromLeft ? 1 : -1,
+      colorIdx: (last.colorIdx+1) % COLORS.length
+    };
+  }
+
+  function drop(){
+    if (over) return;
+    if (!started){ started = true; overlay.classList.remove('show'); }
+    const last = stack[stack.length-1];
+    const curLeft = current.x, curRight = current.x+current.w;
+    const lastLeft = last.x, lastRight = last.x+last.w;
+    const overlapLeft = Math.max(curLeft, lastLeft);
+    const overlapRight = Math.min(curRight, lastRight);
+    const overlapW = overlapRight - overlapLeft;
+
+    if (overlapW <= 2){
+      endGame(current);
+      return;
+    }
+
+    const tol = W*PERFECT_TOL_RATIO;
+    const isPerfect = Math.abs(curLeft-lastLeft) < tol && Math.abs(curRight-lastRight) < tol;
+
+    let newBlock;
+    if (isPerfect){
+      newBlock = { x: lastLeft, w: last.w, colorIdx: current.colorIdx };
+      combo++;
+    } else {
+      newBlock = { x: overlapLeft, w: overlapW, colorIdx: current.colorIdx };
+      combo = 0;
+      if (curLeft < overlapLeft){
+        debris.push({ x: curLeft, w: overlapLeft-curLeft, y: anchorY-blockH, vy: 0, vx: -80, rot:0, vr: -0.05, colorIdx: current.colorIdx, life: 1.2 });
+      }
+      if (curRight > overlapRight){
+        debris.push({ x: overlapRight, w: curRight-overlapRight, y: anchorY-blockH, vy: 0, vx: 80, rot:0, vr: 0.05, colorIdx: current.colorIdx, life: 1.2 });
+      }
+    }
+    stack.push(newBlock);
+    score++;
+    scoreEl.textContent = score + (combo>1 ? '  🔥x'+combo : '');
+    if (score > best){ best = score; bestEl.textContent = best; saveBest(best); }
+
+    speed = Math.min(W*0.85, speed + W*0.012);
+    spawnCurrent();
+  }
+
+  function endGame(fallenBlock){
+    over = true;
+    debris.push({ x: fallenBlock.x, w: fallenBlock.w, y: anchorY-blockH, vy: -60, vx: (Math.random()-0.5)*100, rot:0, vr:(Math.random()-0.5)*0.1, colorIdx: fallenBlock.colorIdx, life: 2 });
+    overlayText.textContent = 'Tower Collapsed!';
+    overlaySub.textContent = 'Height: ' + score + (score >= best ? ' — new best!' : ' · Best: ' + best);
+    overlayBtn.textContent = 'Try Again';
+    setTimeout(() => overlay.classList.add('show'), 450);
+  }
+
+  function update(dt){
+    if (!started) return;
+    tState += dt;
+    if (!over){
+      current.x += current.dir * speed * dt;
+      if (current.x <= -current.w*0.2 && current.dir < 0) current.dir = 1;
+      if (current.x >= W - current.w*0.8 && current.dir > 0) current.dir = -1;
+      if (current.x < -current.w) { current.x = -current.w; current.dir = 1; }
+      if (current.x > W) { current.x = W; current.dir = -1; }
+    }
+    debris.forEach(d => {
+      d.vy += 900*dt;
+      d.x += d.vx*dt;
+      d.y += d.vy*dt;
+      d.rot += d.vr;
+      d.life -= dt;
+    });
+    debris = debris.filter(d => d.life > 0 && d.y < H+60);
+  }
+
+  function draw(){
+    const grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0, getCss('--sky-top'));
+    grad.addColorStop(1, getCss('--sky-bottom'));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W,H);
+
+    const visibleCount = Math.min(stack.length, 12);
+    for (let i=0;i<visibleCount;i++){
+      const block = stack[stack.length-1-i];
+      const y = anchorY + i*blockH;
+      if (y > H+blockH) continue;
+      ctx.fillStyle = getCss(COLORS[block.colorIdx]);
+      ctx.fillRect(block.x, y, block.w, blockH-2);
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      ctx.fillRect(block.x, y, block.w, blockH*0.25);
+    }
+
+    if (started && !over){
+      ctx.fillStyle = getCss(COLORS[current.colorIdx]);
+      ctx.fillRect(current.x, anchorY-blockH, current.w, blockH-2);
+      ctx.fillStyle = 'rgba(255,255,255,0.22)';
+      ctx.fillRect(current.x, anchorY-blockH, current.w, blockH*0.25);
+    }
+
+    debris.forEach(d => {
+      ctx.save();
+      ctx.translate(d.x+d.w/2, d.y+blockH/2);
+      ctx.rotate(d.rot);
+      ctx.globalAlpha = Math.max(0, Math.min(1, d.life));
+      ctx.fillStyle = getCss(COLORS[d.colorIdx]);
+      ctx.fillRect(-d.w/2, -blockH/2, d.w, blockH-2);
+      ctx.restore();
+    });
+    ctx.globalAlpha = 1;
+  }
+
+  function frame(ts){
+    if (!frame.last) frame.last = ts;
+    const dt = Math.min(0.032, (ts-frame.last)/1000);
+    frame.last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  boardEl.addEventListener('pointerdown', () => {
+    if (over){ newGame(); return; }
+    drop();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.code === 'Space'){
+      e.preventDefault();
+      if (over){ newGame(); } else { drop(); }
+    }
+  });
+  overlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (over){ newGame(); } else { started = true; overlay.classList.remove('show'); }
+  });
+
+  resize();
+  newGame();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

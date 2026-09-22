@@ -356,6 +356,18 @@
 
 <script>
 (function(){
+  const PEER_CONFIG = {
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:openrelay.metered.ca:80' },
+        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
+      ]
+    }
+  };
+
   const cells = Array.from(document.querySelectorAll('.cell'));
   const boardEl = document.getElementById('board');
   const statusText = document.getElementById('statusText');
@@ -554,6 +566,12 @@
 
   function setupConnection(connection, asHost){
     conn = connection;
+    setTimeout(() => {
+      if (!onlineConnected){
+        onlineStatus.textContent = "Still not connected. This can happen on some WiFi/mobile networks that block direct device connections — try switching one device to mobile data, or a different network.";
+      }
+    }, 14000);
+
     conn.on('open', () => {
       onlineConnected = true;
       myRole = asHost ? 'x' : 'o';
@@ -580,7 +598,7 @@
   createRoomBtn.addEventListener('click', () => {
     const code = genCode();
     onlineStatus.textContent = 'Setting up room...';
-    peer = new Peer('bright-ttt-' + code);
+    peer = new Peer('bright-ttt-' + code, PEER_CONFIG);
     peer.on('open', () => {
       roomCodeDisplay.textContent = code;
       roomInfo.style.display = 'flex';
@@ -598,7 +616,7 @@
     code = code.trim().toUpperCase();
     if (!code) return;
     onlineStatus.textContent = 'Connecting...';
-    peer = new Peer();
+    peer = new Peer(PEER_CONFIG);
     peer.on('open', () => {
       const connection = peer.connect('bright-ttt-' + code);
       connection.on('open', () => {});

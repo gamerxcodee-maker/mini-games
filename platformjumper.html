@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Platform Jumper Bright — Free Online Doodle Jump Style Game</title>
+<meta name="description" content="Play Platform Jumper Bright, a free online endless jumping game. Bounce upward across platforms, grab springs for extra height, and climb as high as you can.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --sky-top: #6ec8ff; --sky-bottom: #d8f0ff;
+    --player: #ffcc29; --platform: #22d38a; --platform-move: #3d7bff; --platform-break: #ff8b3d; --platform-spike: #ff3d6e;
+    --spring: #a86bff; --accent: #a86bff; --accent-dark: #8347e0;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 460px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,34px); margin:0; }
+  h1 span { background: linear-gradient(90deg, var(--player), var(--platform-move) 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 44ch; }
+
+  .scores { display:flex; gap:8px; }
+  .score-box { background: var(--panel); border-radius: 12px; padding: 7px 10px; text-align:center; min-width:56px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .score-box .label { font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600; }
+  .score-box .value { font-family:'Baloo 2',sans-serif; font-size:17px; font-weight:700; }
+
+  .hint-row { color:var(--muted); font-size:13.5px; margin: 10px 0 12px; text-align:center; }
+
+  .board-shell {
+    position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3/4.4; max-width: 100%;
+    touch-action: none; user-select: none; box-shadow: 0 4px 20px rgba(30,30,60,0.18);
+  }
+  canvas { width:100%; height:100%; display:block; }
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(15,20,35,0.8);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; text-align:center; padding:20px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:24px; }
+  .overlay p { color:#e4e5f7; margin:0; font-size:14px; max-width:30ch; }
+  .overlay button { background:white; color:var(--accent-dark); border:none; padding:10px 22px; border-radius:10px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <div>
+      <h1><span>Platform</span> Jumper</h1>
+      <p class="tagline">Bounce upward automatically. Drag to steer left and right — climb as high as you can.</p>
+    </div>
+    <div class="scores">
+      <div class="score-box"><div class="label">Height</div><div class="value" id="height">0</div></div>
+      <div class="score-box"><div class="label">Best</div><div class="value" id="best">0</div></div>
+    </div>
+  </header>
+
+  <div class="hint-row" id="hint">Drag left or right to steer. You bounce automatically.</div>
+
+  <div class="board-shell" id="board">
+    <canvas id="canvas"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Platform Jumper</h2>
+      <p id="overlaySub">Drag left or right to steer your character. You bounce off every platform automatically — just avoid falling and watch out for spikes.</p>
+      <button id="overlayBtn">Start</button>
+    </div>
+  </div>
+
+  <section class="info">
+    <h2>How to play Platform Jumper</h2>
+    <p>Your character bounces upward automatically every time it lands on a platform — you only need to drag left or right to steer where it lands. Green platforms are solid, blue ones slide back and forth, and orange ones crumble after a single bounce. Purple springs give an extra-high bounce. Going off one side of the screen brings you back on the other side. Fall below the bottom of the screen and the run ends.</p>
+  </section>
+
+  <section class="info">
+    <h2>Tips for climbing higher</h2>
+    <p>Aim for the center of each platform rather than the edge — a partial landing still bounces you, but a clean center landing gives you the most predictable trajectory for lining up the next platform. Treat breakable platforms as one-time stepping stones — never plan to land on the same one twice. When you spot a spring, it's usually worth a small detour, since the extra height it gives can skip past a tricky patch of platforms entirely.</p>
+  </section>
+
+  <section class="info">
+    <h2>Frequently asked questions</h2>
+    <p><strong>What happens if I miss every platform?</strong> Your character keeps falling — if it drops below the bottom of the visible screen, the run ends.</p>
+    <p><strong>Can I avoid the spike platforms?</strong> Yes — they only appear higher up, and steering slightly to land on a neighbouring platform instead avoids them entirely.</p>
+    <p><strong>Does the game get harder as I climb?</strong> Yes — moving and breakable platforms become more common, and spike hazards start appearing the higher you get.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best height saved only on this device</footer>
+</div>
+
+<div class="share-row">
+  <span class="share-label">Challenge a friend:</span>
+  <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+  <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+  <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+</div>
+<script>
+(function(){
+  var pageUrl = window.location.href;
+  var shareText = "Can you climb higher than me in Platform Jumper? Try it here:";
+  var wa=document.getElementById('shareWA'),fb=document.getElementById('shareFB'),rd=document.getElementById('shareRD'),ig=document.getElementById('shareIG'),cp=document.getElementById('shareCopy');
+  if(wa)wa.href="https://wa.me/?text="+encodeURIComponent(shareText+" "+pageUrl);
+  if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(pageUrl);
+  if(rd)rd.href="https://reddit.com/submit?url="+encodeURIComponent(pageUrl)+"&title="+encodeURIComponent(shareText);
+  function copyLink(btn){ try{ navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500);}); }catch(e){ window.prompt('Copy this link:', pageUrl);} }
+  if(ig)ig.addEventListener('click',function(){ if(navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+  if(cp)cp.addEventListener('click',function(){ copyLink(cp); });
+})();
+</script>
+
+<script>
+(function(){
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const boardEl = document.getElementById('board');
+  const heightEl = document.getElementById('height');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+
+  let W,H,dpr;
+  function resize(){
+    const rect = boardEl.getBoundingClientRect();
+    dpr = window.devicePixelRatio||1;
+    W = rect.width; H = rect.height;
+    canvas.width = W*dpr; canvas.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+  function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  const GRAVITY = 1100;
+  const JUMP_V = -560;
+  const SPRING_V = -880;
+
+  let player, platforms, cameraTop, startY, minY, score, best, over, started, pointerDown, targetX, particles;
+
+  function loadBest(){ try { const v = localStorage.getItem('platformjumper_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
+  function saveBest(v){ try { localStorage.setItem('platformjumper_best', String(v)); } catch(e){} }
+
+  function platformWidth(){ return W*0.22; }
+
+  function makePlatform(y, forcedType){
+    const pw = platformWidth();
+    const x = Math.random()*(W-pw);
+    let type = forcedType;
+    if (!type){
+      const heightFactor = Math.min(1, Math.max(0, (startY - y))/3000);
+      const roll = Math.random();
+      if (roll < 0.5) type='normal';
+      else if (roll < 0.5+0.2+heightFactor*0.1) type='moving';
+      else if (roll < 0.5+0.2+heightFactor*0.1+0.18) type='break';
+      else if (heightFactor > 0.25 && roll < 0.5+0.2+heightFactor*0.1+0.18+0.1) type='spike';
+      else type='normal';
+    }
+    const hasSpring = type==='normal' && Math.random()<0.14;
+    return { x, y, w: pw, h: 14, type, dir: Math.random()<0.5?1:-1, broken:false, spring: hasSpring };
+  }
+
+  function newGame(){
+    startY = 0;
+    player = { x: W/2, y: startY, vy: JUMP_V*0.6, r: Math.min(W,H)*0.035 };
+    platforms = [];
+    let y = startY + 40;
+    platforms.push({ x: W/2-platformWidth()/2, y, w: platformWidth(), h:14, type:'normal', dir:1, broken:false, spring:false });
+    for (let i=0;i<12;i++){
+      y += 55 + Math.random()*35;
+      platforms.push(makePlatform(y));
+    }
+    cameraTop = 0;
+    minY = startY;
+    score = 0; over = false; started = false; particles = [];
+    pointerDown = false; targetX = player.x;
+    best = loadBest();
+    heightEl.textContent = 0;
+    bestEl.textContent = best;
+    overlayText.textContent = 'Platform Jumper';
+    overlaySub.textContent = 'Drag left or right to steer your character. You bounce off every platform automatically — just avoid falling and watch out for spikes.';
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+  }
+
+  function ensurePlatformsAbove(){
+    let highestY = Infinity;
+    platforms.forEach(p => { if (p.y < highestY) highestY = p.y; });
+    while (highestY > cameraTop - H*0.3){
+      highestY -= 55 + Math.random()*35;
+      platforms.push(makePlatform(highestY));
+    }
+    platforms = platforms.filter(p => p.y < cameraTop + H + 60);
+  }
+
+  function spawnParticles(x,y,color,count){
+    for (let i=0;i<count;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = 60+Math.random()*100;
+      particles.push({ x,y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, life:0.4, color });
+    }
+  }
+
+  function update(dt){
+    if (!started || over) return;
+
+    if (pointerDown){
+      const dx = targetX-player.x;
+      player.x += dx*Math.min(1,dt*10);
+    }
+    if (player.x < -player.r) player.x = W+player.r;
+    if (player.x > W+player.r) player.x = -player.r;
+
+    player.vy += GRAVITY*dt;
+    const prevY = player.y;
+    player.y += player.vy*dt;
+
+    if (player.y < minY) minY = player.y;
+    score = Math.max(score, Math.floor((startY-minY)/8));
+    heightEl.textContent = score;
+
+    platforms.forEach(p => {
+      if (p.type==='moving'){
+        p.x += p.dir*70*dt;
+        if (p.x<0){ p.x=0; p.dir=1; }
+        if (p.x+p.w>W){ p.x=W-p.w; p.dir=-1; }
+      }
+    });
+
+    if (player.vy > 0){
+      for (const p of platforms){
+        if (p.broken) continue;
+        const withinX = player.x+player.r*0.6 > p.x && player.x-player.r*0.6 < p.x+p.w;
+        const crossedY = prevY+player.r <= p.y && player.y+player.r >= p.y;
+        if (withinX && crossedY){
+          if (p.type==='spike'){
+            endGame();
+            return;
+          }
+          player.vy = p.spring ? SPRING_V : JUMP_V;
+          spawnParticles(player.x, p.y, getCss('--platform'), 6);
+          if (p.type==='break'){ p.broken = true; }
+          break;
+        }
+      }
+    }
+
+    const screenY = player.y - cameraTop;
+    if (screenY < H*0.4){
+      cameraTop = player.y - H*0.4;
+    }
+
+    platforms = platforms.filter(p => p.y - cameraTop < H + 60);
+    ensurePlatformsAbove();
+
+    if (player.y - cameraTop > H + 60){
+      endGame();
+    }
+
+    particles.forEach(p => { p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt; });
+    particles = particles.filter(p=>p.life>0);
+  }
+
+  function endGame(){
+    if (over) return;
+    over = true;
+    if (score>best){ best=score; bestEl.textContent=best; saveBest(best); }
+    overlayText.textContent = 'Fell Down!';
+    overlaySub.textContent = 'Height: ' + score + (score>=best?' — new best!':' · Best: '+best);
+    overlayBtn.textContent = 'Play Again';
+    setTimeout(()=>overlay.classList.add('show'), 300);
+  }
+
+  function drawPlatform(p){
+    const y = p.y - cameraTop;
+    if (y < -30 || y > H+30) return;
+    let color = getCss('--platform');
+    if (p.type==='moving') color = getCss('--platform-move');
+    else if (p.type==='break') color = getCss('--platform-break');
+    else if (p.type==='spike') color = getCss('--platform-spike');
+    if (p.broken) return;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(p.x, y, p.w, p.h, 6) : ctx.rect(p.x,y,p.w,p.h);
+    ctx.fill();
+    if (p.spring){
+      ctx.fillStyle = getCss('--spring');
+      ctx.fillRect(p.x+p.w/2-6, y-10, 12, 10);
+    }
+    if (p.type==='spike'){
+      ctx.fillStyle = 'rgba(0,0,0,0.25)';
+      for (let i=0;i<4;i++){
+        ctx.beginPath();
+        const sx = p.x + (i+0.5)*(p.w/4);
+        ctx.moveTo(sx-5, y);
+        ctx.lineTo(sx, y-9);
+        ctx.lineTo(sx+5, y);
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+  }
+
+  function draw(){
+    const grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0, getCss('--sky-top'));
+    grad.addColorStop(1, getCss('--sky-bottom'));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W,H);
+
+    platforms.forEach(drawPlatform);
+
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0,p.life/0.4);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y-cameraTop,3,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    if (started){
+      const py = player.y - cameraTop;
+      ctx.fillStyle = getCss('--player');
+      ctx.beginPath(); ctx.arc(player.x, py, player.r, 0, Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(0,0,0,0.7)';
+      ctx.beginPath(); ctx.arc(player.x-player.r*0.3, py-player.r*0.15, player.r*0.14, 0, Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.arc(player.x+player.r*0.3, py-player.r*0.15, player.r*0.14, 0, Math.PI*2); ctx.fill();
+    }
+  }
+
+  function frame(ts){
+    if (!frame.last) frame.last = ts;
+    const dt = Math.min(0.032,(ts-frame.last)/1000);
+    frame.last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  boardEl.addEventListener('pointerdown', (e) => {
+    if (over){ newGame(); return; }
+    if (!started){ started=true; overlay.classList.remove('show'); }
+    pointerDown = true;
+    const rect = boardEl.getBoundingClientRect();
+    targetX = e.clientX-rect.left;
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!pointerDown) return;
+    const rect = boardEl.getBoundingClientRect();
+    targetX = e.clientX-rect.left;
+  });
+  window.addEventListener('pointerup', () => { pointerDown=false; });
+
+  overlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (over){ newGame(); }
+    else { started=true; overlay.classList.remove('show'); }
+  });
+
+  resize();
+  newGame();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Whack-a-Mole Bright — Free Online Reflex Game</title>
+<meta name="description" content="Play Whack-a-Mole Bright, a free online reflex game. Tap the moles before they vanish, grab golden bonus moles, and avoid the bombs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --dirt: #b8865a; --dirt-dark: #8a6440; --hole: #4a3423;
+    --mole: #8a5c3a; --mole-dark: #5c3a20; --bomb: #2a2a3a; --gold: #ffcc29;
+    --accent: #a86bff; --accent-dark: #8347e0;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,34px); margin:0; }
+  h1 span { background: linear-gradient(90deg, var(--mole), var(--gold) 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 44ch; }
+
+  .scores { display:flex; gap:8px; }
+  .score-box { background: var(--panel); border-radius: 12px; padding: 8px 12px; text-align:center; min-width:56px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .score-box .label { font-size:10px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600; }
+  .score-box .value { font-family:'Baloo 2',sans-serif; font-size:19px; font-weight:700; }
+
+  .hint-row { color:var(--muted); font-size:14px; margin: 10px 0 14px; text-align:center; }
+
+  .grid-shell { background: var(--dirt); border-radius: 18px; padding: 14px; box-shadow: 0 4px 16px rgba(30,30,60,0.18); position: relative; }
+  .grid { display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .hole-wrap { aspect-ratio: 1/1; position: relative; overflow: hidden; border-radius: 50%; cursor: pointer; }
+  .hole-bg {
+    position:absolute; inset:0; border-radius:50%;
+    background: radial-gradient(circle at 50% 40%, var(--hole) 0%, var(--hole) 55%, var(--dirt-dark) 60%, var(--dirt-dark) 100%);
+  }
+  .critter {
+    position: absolute; left:8%; right:8%; bottom:-100%; top:14%;
+    border-radius: 50% 50% 46% 46%; display:flex; align-items:center; justify-content:center;
+    font-size: clamp(26px, 8vw, 42px); transition: bottom 0.12s cubic-bezier(.34,1.56,.64,1);
+  }
+  .critter.up { bottom: 0%; }
+  .critter.mole { background: var(--mole); }
+  .critter.bomb { background: var(--bomb); }
+  .critter.gold { background: var(--gold); }
+  .critter.hit { transition: none; transform: scale(0.7); opacity: 0; }
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(20,15,10,0.82); border-radius: 18px;
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; text-align:center; padding:20px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:26px; }
+  .overlay p { color:#f3e9df; margin:0; font-size:14px; max-width:30ch; }
+  .overlay button { background:white; color:var(--accent-dark); border:none; padding:10px 22px; border-radius:10px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <div>
+      <h1><span>Whack-a</span>-Mole</h1>
+      <p class="tagline">Tap the moles before they duck back down. Grab gold ones for bonus points — avoid the bombs.</p>
+    </div>
+    <div class="scores">
+      <div class="score-box"><div class="label">Score</div><div class="value" id="score">0</div></div>
+      <div class="score-box"><div class="label">Time</div><div class="value" id="timeLeft">30</div></div>
+      <div class="score-box"><div class="label">Best</div><div class="value" id="best">0</div></div>
+    </div>
+  </header>
+
+  <div class="hint-row" id="hint">Tap anywhere to start — 30 seconds on the clock.</div>
+
+  <div class="grid-shell" id="board">
+    <div class="grid" id="grid"></div>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Whack-a-Mole</h2>
+      <p id="overlaySub">Tap moles as they pop up. Gold moles are worth extra — bombs cost you points, so don't tap those.</p>
+      <button id="overlayBtn">Start</button>
+    </div>
+  </div>
+
+  <section class="info">
+    <h2>How to play Whack-a-Mole</h2>
+    <p>Moles pop up at random from the nine holes and duck back down after a short moment. Tap or click a mole before it disappears to score points. Occasionally a golden mole appears — worth triple points — or a bomb, which costs you points if you tap it. You've got 30 seconds to score as much as you can.</p>
+  </section>
+
+  <section class="info">
+    <h2>Tips for a higher score</h2>
+    <p>Keep your eyes on the whole grid rather than staring at one hole — moles appear anywhere, and reaction time matters more than prediction. As the round goes on, moles pop up faster and stay up for less time, so don't get thrown off when the pace suddenly increases. It's almost always worth skipping a bomb even if it means missing the next mole; the point penalty is bigger than any single mole is worth.</p>
+  </section>
+
+  <section class="info">
+    <h2>Frequently asked questions</h2>
+    <p><strong>What happens if I tap a bomb?</strong> You lose points and the hole flashes red — bombs are never worth tapping.</p>
+    <p><strong>How much are golden moles worth?</strong> Three times a normal mole's points, but they appear rarely and only stay up briefly.</p>
+    <p><strong>Does the game get harder over time?</strong> Yes — moles pop up more frequently and duck back down faster as the 30-second timer runs down.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best score saved only on this device</footer>
+</div>
+
+<div class="share-row">
+  <span class="share-label">Challenge a friend:</span>
+  <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+  <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+  <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+</div>
+<script>
+(function(){
+  var pageUrl = window.location.href;
+  var shareText = "Can you beat my Whack-a-Mole score? Try it here:";
+  var wa=document.getElementById('shareWA'),fb=document.getElementById('shareFB'),rd=document.getElementById('shareRD'),ig=document.getElementById('shareIG'),cp=document.getElementById('shareCopy');
+  if(wa)wa.href="https://wa.me/?text="+encodeURIComponent(shareText+" "+pageUrl);
+  if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(pageUrl);
+  if(rd)rd.href="https://reddit.com/submit?url="+encodeURIComponent(pageUrl)+"&title="+encodeURIComponent(shareText);
+  function copyLink(btn){ try{ navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500);}); }catch(e){ window.prompt('Copy this link:', pageUrl);} }
+  if(ig)ig.addEventListener('click',function(){ if(navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+  if(cp)cp.addEventListener('click',function(){ copyLink(cp); });
+})();
+</script>
+
+<script>
+(function(){
+  const gridEl = document.getElementById('grid');
+  const boardEl = document.getElementById('board');
+  const scoreEl = document.getElementById('score');
+  const timeLeftEl = document.getElementById('timeLeft');
+  const bestEl = document.getElementById('best');
+  const hint = document.getElementById('hint');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+
+  const HOLES = 9;
+  let holes = [];
+  let score, best, timeLeft, started, over, spawnTimeout, gameTimerInt, elapsed;
+
+  function loadBest(){ try { const v = localStorage.getItem('whackamole_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
+  function saveBest(v){ try { localStorage.setItem('whackamole_best', String(v)); } catch(e){} }
+
+  function buildGrid(){
+    gridEl.innerHTML = '';
+    holes = [];
+    for (let i=0;i<HOLES;i++){
+      const holeWrap = document.createElement('div');
+      holeWrap.className = 'hole-wrap';
+      const bg = document.createElement('div');
+      bg.className = 'hole-bg';
+      const critter = document.createElement('div');
+      critter.className = 'critter';
+      holeWrap.appendChild(bg);
+      holeWrap.appendChild(critter);
+      holeWrap.addEventListener('click', () => onHoleClick(i));
+      gridEl.appendChild(holeWrap);
+      holes.push({ el: critter, state: 'empty', timer: null });
+    }
+  }
+
+  function newGame(){
+    score = 0; timeLeft = 30; started = false; over = false; elapsed = 0;
+    best = loadBest();
+    scoreEl.textContent = 0;
+    timeLeftEl.textContent = 30;
+    bestEl.textContent = best;
+    buildGrid();
+    overlayText.textContent = 'Whack-a-Mole';
+    overlaySub.textContent = "Tap moles as they pop up. Gold moles are worth extra — bombs cost you points, so don't tap those.";
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+    clearTimeout(spawnTimeout);
+    clearInterval(gameTimerInt);
+  }
+
+  function difficultyFactor(){
+    return Math.min(1, elapsed / 25);
+  }
+
+  function spawnLoop(){
+    if (over) return;
+    const df = difficultyFactor();
+    const upDuration = 900 - df*500 + Math.random()*200;
+    const nextSpawnDelay = 500 - df*250 + Math.random()*300;
+
+    const emptyIdx = holes.map((h,i)=>h.state==='empty'?i:null).filter(v=>v!==null);
+    if (emptyIdx.length){
+      const idx = emptyIdx[Math.floor(Math.random()*emptyIdx.length)];
+      const roll = Math.random();
+      let type = 'mole';
+      if (roll < 0.12) type = 'bomb';
+      else if (roll < 0.20) type = 'gold';
+      showCritter(idx, type, upDuration);
+    }
+    spawnTimeout = setTimeout(spawnLoop, nextSpawnDelay);
+  }
+
+  function showCritter(idx, type, duration){
+    const h = holes[idx];
+    h.state = type;
+    h.el.className = 'critter ' + type;
+    h.el.textContent = type==='mole' ? '🐹' : type==='bomb' ? '💣' : '⭐';
+    requestAnimationFrame(() => h.el.classList.add('up'));
+    h.timer = setTimeout(() => {
+      if (h.state === type){
+        hideCritter(idx);
+      }
+    }, duration);
+  }
+
+  function hideCritter(idx){
+    const h = holes[idx];
+    h.el.classList.remove('up');
+    h.state = 'empty';
+  }
+
+  function onHoleClick(idx){
+    if (!started){ startGame(); return; }
+    if (over) return;
+    const h = holes[idx];
+    if (h.state === 'empty') return;
+    const type = h.state;
+    clearTimeout(h.timer);
+    h.el.classList.add('hit');
+    setTimeout(() => { h.el.classList.remove('hit'); }, 200);
+    h.state = 'empty';
+    h.el.classList.remove('up');
+
+    if (type === 'mole'){ score += 10; }
+    else if (type === 'gold'){ score += 30; }
+    else if (type === 'bomb'){ score = Math.max(0, score - 20); }
+    scoreEl.textContent = score;
+  }
+
+  function startGame(){
+    started = true;
+    over = false;
+    overlay.classList.remove('show');
+    hint.textContent = '';
+    elapsed = 0;
+    spawnLoop();
+    gameTimerInt = setInterval(() => {
+      timeLeft--;
+      elapsed++;
+      timeLeftEl.textContent = Math.max(0, timeLeft);
+      if (timeLeft <= 0){ endGame(); }
+    }, 1000);
+  }
+
+  function endGame(){
+    over = true;
+    clearInterval(gameTimerInt);
+    clearTimeout(spawnTimeout);
+    holes.forEach((h,i) => hideCritter(i));
+    if (score > best){ best = score; bestEl.textContent = best; saveBest(best); }
+    overlayText.textContent = "Time's Up!";
+    overlaySub.textContent = 'Final score: ' + score + (score >= best ? ' — new best!' : ' · Best: ' + best);
+    overlayBtn.textContent = 'Play Again';
+    overlay.classList.add('show');
+  }
+
+  overlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    newGame();
+    startGame();
+  });
+
+  newGame();
+})();
+</script>
+</body>
+</html>

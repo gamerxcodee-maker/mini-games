@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Minesweeper Bright — Free Online Classic Minesweeper Game</title>
+<meta name="description" content="Play Minesweeper Bright, a free online classic Minesweeper game. Flag the mines, clear every safe cell, with Easy, Medium and Hard difficulty and a safe first click.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --ink: #1f2340;
+    --muted: #6b7094;
+    --cell-hidden: #a8b0d8;
+    --cell-hidden-alt: #9aa2cc;
+    --cell-revealed: #eceef7;
+    --cell-revealed-alt: #e2e5f4;
+    --mine: #ff3d6e;
+    --flag: #ff8b3d;
+    --accent: #a86bff;
+    --accent-dark: #8347e0;
+    --n1: #00a8e0; --n2: #22b36a; --n3: #ff3d6e; --n4: #7a3fd6;
+    --n5: #b8621a; --n6: #17c3c3; --n7: #1f2340; --n8: #6b7094;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce;
+      --cell-revealed: #262a4d; --cell-revealed-alt: #232748;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce;
+    --cell-revealed: #262a4d; --cell-revealed-alt: #232748;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(22px,6vw,32px); margin:0; }
+  h1 span {
+    background: linear-gradient(90deg, var(--mine), var(--accent) 70%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 13.5px; max-width: 40ch; }
+
+  .stats { display:flex; gap:6px; }
+  .stat-box { background: var(--panel); border-radius: 12px; padding: 7px 10px; text-align:center; min-width:46px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .stat-box .label { font-size:9.5px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .stat-box .value { font-family:'Baloo 2',sans-serif; font-size:16px; font-weight:700; }
+
+  .mode-row { display:flex; gap:6px; margin: 12px 0; background: var(--panel); padding:6px; border-radius:14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .mode-btn { flex:1; padding:8px; border:none; background:transparent; border-radius:10px; font-family:'Inter',sans-serif; font-weight:600; font-size:12px; color:var(--muted); cursor:pointer; }
+  .mode-btn.active { background: var(--accent); color:white; }
+
+  .toolbar { display:flex; gap:8px; margin-bottom: 10px; }
+  .tool-btn {
+    flex:1; background: var(--panel); border:none; padding:9px 8px; border-radius:12px;
+    font-family:'Inter',sans-serif; font-weight:700; font-size:12.5px; color:var(--ink); cursor:pointer;
+    box-shadow: 0 2px 8px rgba(30,30,60,0.06);
+  }
+  .tool-btn.active { background: var(--flag); color:white; }
+
+  .board-shell {
+    background: var(--panel); border-radius: 14px; padding: 8px;
+    box-shadow: 0 4px 16px rgba(30,30,60,0.1); margin-bottom: 14px; position: relative;
+  }
+  .board { display:grid; aspect-ratio: 1/1; border-radius: 6px; overflow: hidden; touch-action: none; }
+  .cell {
+    display:flex; align-items:center; justify-content:center; position: relative;
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size: 13px;
+    cursor: pointer; user-select:none;
+  }
+  .cell.hidden.even { background: var(--cell-hidden); }
+  .cell.hidden.odd { background: var(--cell-hidden-alt); }
+  .cell.hidden:active { filter: brightness(0.9); }
+  .cell.revealed.even { background: var(--cell-revealed); }
+  .cell.revealed.odd { background: var(--cell-revealed-alt); }
+  .cell.mine-hit { background: var(--mine); }
+  .cell.n1{color:var(--n1);} .cell.n2{color:var(--n2);} .cell.n3{color:var(--n3);} .cell.n4{color:var(--n4);}
+  .cell.n5{color:var(--n5);} .cell.n6{color:var(--n6);} .cell.n7{color:var(--n7);} .cell.n8{color:var(--n8);}
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(20,22,42,0.78); border-radius: 10px;
+    display:none; align-items:center; justify-content:center; flex-direction:column; gap:10px; text-align:center; padding:16px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:22px; }
+  .overlay p { color:#e4e5f7; margin:0; font-size:13px; }
+  .overlay button {
+    background:white; color:var(--accent-dark); border:none; padding:9px 20px; border-radius:10px;
+    font-weight:700; cursor:pointer; font-family:'Inter',sans-serif;
+  }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:26px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; }
+  .share-btn.fb { background:#1877F2; }
+  .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); }
+  .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <div>
+      <h1><span>Mine</span>sweeper</h1>
+      <p class="tagline">Clear every safe cell. Numbers tell you how many mines are touching that cell.</p>
+    </div>
+    <div class="stats">
+      <div class="stat-box"><div class="label">Mines</div><div class="value" id="minesLeft">10</div></div>
+      <div class="stat-box"><div class="label">Time</div><div class="value" id="timerVal">0:00</div></div>
+    </div>
+  </header>
+
+  <div class="mode-row">
+    <button class="mode-btn active" data-diff="easy">Easy</button>
+    <button class="mode-btn" data-diff="medium">Medium</button>
+    <button class="mode-btn" data-diff="hard">Hard</button>
+  </div>
+
+  <div class="toolbar">
+    <button class="tool-btn" id="flagModeBtn">🚩 Flag Mode: Off</button>
+    <button class="tool-btn" id="newBtn">🙂 New Game</button>
+  </div>
+
+  <div class="board-shell">
+    <div class="board" id="board"></div>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Minesweeper</h2>
+      <p id="overlaySub">Tap any cell to start. Your first tap is always safe.</p>
+      <button id="overlayBtn">Start</button>
+    </div>
+  </div>
+
+  <div class="share-row">
+    <span class="share-label">Challenge a friend:</span>
+    <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+    <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+    <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+    <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+  </div>
+  <script>
+  (function(){
+    var pageUrl = window.location.href;
+    var h1 = document.querySelector('h1');
+    var gameName = (h1 ? h1.innerText.replace(/\s+/g,' ').trim() : document.title);
+    var shareText = "Can you beat my score in " + gameName + "? Try it here:";
+    var wa = document.getElementById('shareWA');
+    var fb = document.getElementById('shareFB');
+    var rd = document.getElementById('shareRD');
+    var ig = document.getElementById('shareIG');
+    var cp = document.getElementById('shareCopy');
+    if (wa) wa.href = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + pageUrl);
+    if (fb) fb.href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(pageUrl);
+    if (rd) rd.href = "https://reddit.com/submit?url=" + encodeURIComponent(pageUrl) + "&title=" + encodeURIComponent(shareText);
+    function copyLink(btn){
+      try {
+        navigator.clipboard.writeText(pageUrl).then(function(){
+          var old = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(function(){ btn.textContent = old; }, 1500);
+        });
+      } catch(e){
+        window.prompt('Copy this link:', pageUrl);
+      }
+    }
+    if (ig) ig.addEventListener('click', function(){
+      if (navigator.share){
+        navigator.share({ title: gameName, text: shareText, url: pageUrl }).catch(function(){});
+      } else {
+        copyLink(ig);
+        window.alert('Link copied! Paste it in your Instagram story or bio.');
+      }
+    });
+    if (cp) cp.addEventListener('click', function(){ copyLink(cp); });
+  })();
+  </script>
+
+  <section class="info">
+    <h2>How to play Minesweeper</h2>
+    <p>Tap a cell to reveal it. If it's a mine, the round ends — but your very first tap is always guaranteed safe, so you'll never lose on move one. A revealed number tells you exactly how many mines are hidden in the up-to-eight cells touching it. Use that information to work out which nearby cells are safe and which hide mines.</p>
+  </section>
+
+  <section class="info">
+    <h2>Flagging and winning</h2>
+    <p>Right-click on desktop, or turn on Flag Mode and tap on mobile, to mark a cell you're sure hides a mine — this stops you from accidentally revealing it and helps you keep track. You win by revealing every single safe cell; you don't need to flag every mine to win.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best times saved only on this device</footer>
+</div>
+
+<script>
+(function(){
+  const boardEl = document.getElementById('board');
+  const minesLeftEl = document.getElementById('minesLeft');
+  const timerValEl = document.getElementById('timerVal');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+  const flagModeBtn = document.getElementById('flagModeBtn');
+  const newBtn = document.getElementById('newBtn');
+  const modeBtns = document.querySelectorAll('.mode-btn');
+
+  const DIFFS = {
+    easy: { size: 8, mines: 10 },
+    medium: { size: 10, mines: 20 },
+    hard: { size: 12, mines: 30 }
+  };
+
+  let difficulty = 'easy', size, mineCount, grid, revealed, flagged, firstClick, over, won, started, seconds, timerInt;
+
+  function loadBest(diff){ try { const v = localStorage.getItem('minesweeper_best_'+diff); return v?parseInt(v,10):null; } catch(e){ return null; } }
+  function saveBest(diff, v){ try { localStorage.setItem('minesweeper_best_'+diff, String(v)); } catch(e){} }
+
+  function idx(r,c){ return r*size+c; }
+
+  function neighbors(r,c){
+    const list = [];
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++){
+      if (dr===0 && dc===0) continue;
+      const nr=r+dr, nc=c+dc;
+      if (nr>=0 && nr<size && nc>=0 && nc<size) list.push([nr,nc]);
+    }
+    return list;
+  }
+
+  function newGame(diff){
+    difficulty = diff || difficulty;
+    modeBtns.forEach(b => b.classList.toggle('active', b.dataset.diff === difficulty));
+    const cfg = DIFFS[difficulty];
+    size = cfg.size; mineCount = cfg.mines;
+    grid = Array(size*size).fill(0);
+    revealed = Array(size*size).fill(false);
+    flagged = Array(size*size).fill(false);
+    firstClick = true;
+    over = false; won = false; started = false;
+    seconds = 0;
+    clearInterval(timerInt);
+    timerValEl.textContent = '0:00';
+    minesLeftEl.textContent = mineCount;
+    flagModeOn = false;
+    flagModeBtn.textContent = '🚩 Flag Mode: Off';
+    flagModeBtn.classList.remove('active');
+    overlayText.textContent = 'Minesweeper';
+    overlaySub.textContent = 'Tap any cell to start. Your first tap is always safe.';
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+    render();
+  }
+
+  function placeMines(excludeR, excludeC){
+    const excluded = new Set();
+    excluded.add(idx(excludeR,excludeC));
+    neighbors(excludeR,excludeC).forEach(([r,c]) => excluded.add(idx(r,c)));
+
+    let placed = 0;
+    while (placed < mineCount){
+      const i = Math.floor(Math.random()*size*size);
+      if (excluded.has(i) || grid[i]===-1) continue;
+      grid[i] = -1;
+      placed++;
+    }
+    for (let r=0;r<size;r++){
+      for (let c=0;c<size;c++){
+        if (grid[idx(r,c)] === -1) continue;
+        let count = 0;
+        neighbors(r,c).forEach(([nr,nc]) => { if (grid[idx(nr,nc)]===-1) count++; });
+        grid[idx(r,c)] = count;
+      }
+    }
+  }
+
+  function startTimer(){
+    timerInt = setInterval(() => {
+      seconds++;
+      const m = Math.floor(seconds/60), s = seconds%60;
+      timerValEl.textContent = m+':'+String(s).padStart(2,'0');
+    }, 1000);
+  }
+
+  function revealCell(r,c){
+    const i = idx(r,c);
+    if (revealed[i] || flagged[i] || over) return;
+
+    if (firstClick){
+      placeMines(r,c);
+      firstClick = false;
+      started = true;
+      startTimer();
+    }
+
+    if (grid[i] === -1){
+      revealed[i] = true;
+      over = true;
+      clearInterval(timerInt);
+      for (let j=0;j<size*size;j++){ if (grid[j]===-1) revealed[j]=true; }
+      overlayText.textContent = 'Boom!';
+      overlaySub.textContent = 'You hit a mine. Time: ' + timerValEl.textContent;
+      overlayBtn.textContent = 'Try Again';
+      render();
+      setTimeout(() => overlay.classList.add('show'), 250);
+      return;
+    }
+
+    const stack = [[r,c]];
+    while (stack.length){
+      const [cr,cc] = stack.pop();
+      const ci = idx(cr,cc);
+      if (revealed[ci] || flagged[ci]) continue;
+      revealed[ci] = true;
+      if (grid[ci] === 0){
+        neighbors(cr,cc).forEach(([nr,nc]) => {
+          if (!revealed[idx(nr,nc)]) stack.push([nr,nc]);
+        });
+      }
+    }
+    checkWin();
+    render();
+  }
+
+  function toggleFlag(r,c){
+    const i = idx(r,c);
+    if (revealed[i] || over) return;
+    flagged[i] = !flagged[i];
+    const remaining = mineCount - flagged.filter(Boolean).length;
+    minesLeftEl.textContent = remaining;
+    render();
+  }
+
+  function checkWin(){
+    let safeRevealed = 0;
+    for (let i=0;i<size*size;i++){ if (grid[i]!==-1 && revealed[i]) safeRevealed++; }
+    if (safeRevealed === size*size - mineCount){
+      over = true; won = true;
+      clearInterval(timerInt);
+      const best = loadBest(difficulty);
+      let isBest = false;
+      if (best===null || seconds<best){ saveBest(difficulty, seconds); isBest=true; }
+      overlayText.textContent = 'You Win! 🎉';
+      overlaySub.textContent = 'Time: ' + timerValEl.textContent + (isBest ? ' — new best!' : '');
+      overlayBtn.textContent = 'Play Again';
+      setTimeout(() => overlay.classList.add('show'), 200);
+    }
+  }
+
+  let flagModeOn = false;
+
+  function render(){
+    boardEl.innerHTML = '';
+    boardEl.style.gridTemplateColumns = 'repeat('+size+', 1fr)';
+    for (let r=0;r<size;r++){
+      for (let c=0;c<size;c++){
+        const i = idx(r,c);
+        const cell = document.createElement('div');
+        const parity = (r+c)%2===0 ? 'even' : 'odd';
+        cell.className = 'cell ' + (revealed[i] ? 'revealed' : 'hidden') + ' ' + parity;
+
+        if (revealed[i]){
+          if (grid[i] === -1){
+            cell.textContent = '💣';
+            cell.classList.add('mine-hit');
+          } else if (grid[i] > 0){
+            cell.textContent = grid[i];
+            cell.classList.add('n'+grid[i]);
+          }
+        } else if (flagged[i]){
+          cell.textContent = '🚩';
+        }
+
+        cell.addEventListener('click', () => {
+          if (flagModeOn) toggleFlag(r,c);
+          else revealCell(r,c);
+        });
+        cell.addEventListener('contextmenu', (e) => { e.preventDefault(); toggleFlag(r,c); });
+
+        boardEl.appendChild(cell);
+      }
+    }
+  }
+
+  modeBtns.forEach(btn => btn.addEventListener('click', () => newGame(btn.dataset.diff)));
+  newBtn.addEventListener('click', () => newGame(difficulty));
+  overlayBtn.addEventListener('click', () => {
+    if (over){ newGame(difficulty); }
+    else { overlay.classList.remove('show'); }
+  });
+  flagModeBtn.addEventListener('click', () => {
+    flagModeOn = !flagModeOn;
+    flagModeBtn.textContent = flagModeOn ? '🚩 Flag Mode: On' : '🚩 Flag Mode: Off';
+    flagModeBtn.classList.toggle('active', flagModeOn);
+  });
+
+  newGame('easy');
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Word Streak Bright — Free Daily Word Guessing Game</title>
+<meta name="description" content="Play Word Streak Bright, a free daily word-guessing game. Guess the five-letter word in six tries, keep your streak alive, and share your result.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --ink: #1f2340;
+    --muted: #6b7094;
+    --tile-empty: #eceef7;
+    --tile-border: #d5d9ec;
+    --correct: #22d38a;
+    --present: #ffcc29;
+    --absent: #9096b8;
+    --accent: #a86bff;
+    --accent-dark: #8347e0;
+    --key-bg: #e4e7f5;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) {
+      --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce;
+      --tile-empty: #262a4d; --tile-border: #33375f; --key-bg: #2c2f52;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce;
+    --tile-empty: #262a4d; --tile-border: #33375f; --key-bg: #2c2f52;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 480px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:14px; flex-wrap:wrap; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,34px); margin:0; }
+  h1 span {
+    background: linear-gradient(90deg, var(--correct), var(--present) 60%, var(--accent));
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 44ch; }
+
+  .stats { display:flex; gap:8px; }
+  .stat-box { background: var(--panel); border-radius: 12px; padding: 8px 12px; text-align:center; min-width:58px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .stat-box .label { font-size:10px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .stat-box .value { font-family:'Baloo 2',sans-serif; font-size:18px; font-weight:700; }
+
+  .mode-row { display:flex; gap:8px; margin: 14px 0; background: var(--panel); padding:6px; border-radius:14px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .mode-btn { flex:1; padding:9px; border:none; background:transparent; border-radius:10px; font-family:'Inter',sans-serif; font-weight:600; font-size:13px; color:var(--muted); cursor:pointer; }
+  .mode-btn.active { background: var(--accent); color:white; }
+
+  .board { display:grid; grid-template-rows: repeat(6, 1fr); gap: 7px; margin: 0 auto 18px; max-width: 320px; }
+  .row { display:grid; grid-template-columns: repeat(5, 1fr); gap: 7px; }
+  .tile {
+    aspect-ratio: 1/1; border: 2px solid var(--tile-border); border-radius: 8px;
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Baloo 2',sans-serif; font-weight:700; font-size: clamp(18px, 6vw, 26px);
+    background: var(--tile-empty); color: var(--ink);
+    text-transform: uppercase;
+    transition: transform 0.15s ease;
+  }
+  .tile.filled { border-color: var(--muted); }
+  .tile.correct { background: var(--correct); border-color: var(--correct); color:#04321f; }
+  .tile.present { background: var(--present); border-color: var(--present); color:#4a3600; }
+  .tile.absent { background: var(--absent); border-color: var(--absent); color:#fff; }
+  .tile.pop { transform: scale(1.08); }
+
+  .keyboard { display:flex; flex-direction:column; gap:6px; max-width: 460px; margin: 0 auto; }
+  .krow { display:flex; gap:5px; justify-content:center; }
+  .key {
+    flex: 1; max-width: 40px; height: 46px; border:none; border-radius:8px;
+    background: var(--key-bg); color: var(--ink); font-weight:700; font-size:13px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+    font-family:'Inter',sans-serif; text-transform: uppercase;
+  }
+  .key.wide { max-width: 60px; font-size: 11px; }
+  .key.correct { background: var(--correct); color:#04321f; }
+  .key.present { background: var(--present); color:#4a3600; }
+  .key.absent { background: var(--absent); color:#fff; }
+  .key:active { transform: scale(0.94); }
+
+  .message {
+    text-align:center; font-weight:700; font-size:14px; min-height: 20px; margin-bottom: 8px;
+    color: var(--ink);
+  }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; justify-content:center; gap:8px; margin: 16px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; }
+  .share-btn.fb { background:#1877F2; }
+  .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); }
+  .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  .info { margin-top: 30px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:20px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:15px; }
+  .info + .info { margin-top: 14px; }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <div>
+      <h1><span>Word</span> Streak</h1>
+      <p class="tagline">Guess the five-letter word in six tries. A new word every day — keep your streak alive.</p>
+    </div>
+    <div class="stats">
+      <div class="stat-box"><div class="label">Streak</div><div class="value" id="streakVal">0</div></div>
+      <div class="stat-box"><div class="label">Best</div><div class="value" id="bestVal">0</div></div>
+    </div>
+  </header>
+
+  <div class="mode-row">
+    <button class="mode-btn active" id="modeDaily">Daily</button>
+    <button class="mode-btn" id="modePractice">Practice</button>
+  </div>
+
+  <div class="message" id="message"></div>
+
+  <div class="board" id="board"></div>
+
+  <div class="keyboard" id="keyboard"></div>
+
+  <div class="share-row" id="shareRow" style="display:none;">
+    <span class="share-label">Share your result:</span>
+    <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+    <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+    <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+    <button class="share-btn cp" id="shareCopy" type="button">Copy Result</button>
+  </div>
+
+  <section class="info">
+    <h2>How to play Word Streak</h2>
+    <p>You have six tries to guess a hidden five-letter word. After each guess, each letter's tile changes colour: green means that letter is in the word and in the right spot, yellow means it's in the word but in the wrong spot, and grey means it isn't in the word at all. Use the on-screen keyboard, or just type and press Enter on desktop.</p>
+  </section>
+
+  <section class="info">
+    <h2>Daily vs Practice</h2>
+    <p>Daily mode gives everyone the same word each day, and solving it keeps your streak alive — miss a day and the streak resets. Practice mode gives you a fresh random word every time you want to play, with no effect on your streak, so you can warm up or play as many rounds as you like.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · streak and stats saved only on this device</footer>
+</div>
+
+<script>
+(function(){
+  const WORDS = ["about","above","abuse","actor","acute","admit","adopt","adult","agent","agree",
+  "ahead","alarm","album","alert","alike","alive","allow","alone","along","alter",
+  "among","anger","angle","angry","apart","apple","apply","arena","argue","arise",
+  "array","aside","asset","avoid","awake","award","aware","badly","baker","bases",
+  "basic","basis","beach","began","begin","being","below","bench","billy","birth",
+  "black","blame","blind","block","blood","board","boost","booth","bound","brain",
+  "brand","bread","break","breed","brief","bring","broad","broke","brown","build",
+  "built","buyer","cable","calif","carry","catch","cause","chain","chair","chaos",
+  "charm","chart","chase","cheap","check","chest","chief","child","china","chose",
+  "civil","claim","class","clean","clear","click","climb","clock","close","cloud",
+  "coach","coast","could","count","court","cover","craft","crash","cream","crime",
+  "cross","crowd","crown","curve","cycle","daily","dance","dealt","death","debut",
+  "delay","depth","doing","doubt","dozen","draft","drama","drawn","dream","dress",
+  "drill","drink","drive","drove","dying","eager","early","earth","eight","elite",
+  "empty","enemy","enjoy","enter","entry","equal","error","event","every","exact",
+  "exist","extra","faith","false","fault","fiber","field","fifth","fifty","fight",
+  "final","first","fixed","flash","fleet","floor","fluid","focus","force","forth",
+  "forty","forum","found","frame","frank","fraud","fresh","front","fruit","fully",
+  "funny","giant","given","glass","globe","going","grace","grade","grand","grant",
+  "grass","great","green","gross","group","grown","guard","guess","guest","guide"];
+
+  const boardEl = document.getElementById('board');
+  const keyboardEl = document.getElementById('keyboard');
+  const messageEl = document.getElementById('message');
+  const streakValEl = document.getElementById('streakVal');
+  const bestValEl = document.getElementById('bestVal');
+  const modeDailyBtn = document.getElementById('modeDaily');
+  const modePracticeBtn = document.getElementById('modePractice');
+  const shareRow = document.getElementById('shareRow');
+
+  const ROWS = 6, COLS = 5;
+  let grid, curRow, curCol, targetWord, over, mode, keyStates;
+
+  function todayKey(){
+    const d = new Date();
+    return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+  }
+
+  function hashStr(s){
+    let h = 0;
+    for (let i=0;i<s.length;i++){ h = (h*31 + s.charCodeAt(i)) >>> 0; }
+    return h;
+  }
+
+  function getDailyWord(){
+    const idx = hashStr(todayKey()) % WORDS.length;
+    return WORDS[idx];
+  }
+  function getRandomWord(){
+    return WORDS[Math.floor(Math.random()*WORDS.length)];
+  }
+
+  function loadJSON(key, fallback){
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e){ return fallback; }
+  }
+  function saveJSON(key, val){
+    try { localStorage.setItem(key, JSON.stringify(val)); } catch(e){}
+  }
+
+  function buildBoard(){
+    boardEl.innerHTML = '';
+    for (let r=0;r<ROWS;r++){
+      const row = document.createElement('div');
+      row.className = 'row';
+      for (let c=0;c<COLS;c++){
+        const tile = document.createElement('div');
+        tile.className = 'tile';
+        tile.id = 'tile-'+r+'-'+c;
+        row.appendChild(tile);
+      }
+      boardEl.appendChild(row);
+    }
+  }
+
+  const KEY_ROWS = [
+    ['q','w','e','r','t','y','u','i','o','p'],
+    ['a','s','d','f','g','h','j','k','l'],
+    ['ENTER','z','x','c','v','b','n','m','BACK']
+  ];
+
+  function buildKeyboard(){
+    keyboardEl.innerHTML = '';
+    KEY_ROWS.forEach(row => {
+      const krow = document.createElement('div');
+      krow.className = 'krow';
+      row.forEach(k => {
+        const btn = document.createElement('button');
+        btn.className = 'key' + (k.length > 1 ? ' wide' : '');
+        btn.textContent = k === 'BACK' ? '⌫' : (k === 'ENTER' ? 'Enter' : k);
+        btn.dataset.key = k;
+        btn.addEventListener('click', () => handleKey(k));
+        krow.appendChild(btn);
+      });
+      keyboardEl.appendChild(krow);
+    });
+  }
+
+  function setMessage(text){
+    messageEl.textContent = text;
+    if (text) setTimeout(() => { if (messageEl.textContent === text) messageEl.textContent=''; }, 1800);
+  }
+
+  function startGame(newMode){
+    mode = newMode;
+    modeDailyBtn.classList.toggle('active', mode === 'daily');
+    modePracticeBtn.classList.toggle('active', mode === 'practice');
+    grid = Array.from({length:ROWS}, () => Array(COLS).fill(''));
+    curRow = 0; curCol = 0; over = false;
+    keyStates = {};
+    shareRow.style.display = 'none';
+    buildBoard();
+    buildKeyboard();
+    messageEl.textContent = '';
+
+    if (mode === 'daily'){
+      targetWord = getDailyWord();
+      const saved = loadJSON('wordstreak_daily_'+todayKey(), null);
+      const streakData = loadJSON('wordstreak_streak', { streak:0, best:0, lastWin:null });
+      streakValEl.textContent = streakData.streak;
+      bestValEl.textContent = streakData.best;
+      if (saved){
+        restoreState(saved);
+      }
+    } else {
+      targetWord = getRandomWord();
+      const streakData = loadJSON('wordstreak_streak', { streak:0, best:0, lastWin:null });
+      streakValEl.textContent = streakData.streak;
+      bestValEl.textContent = streakData.best;
+    }
+  }
+
+  function restoreState(saved){
+    saved.guesses.forEach((g, r) => {
+      for (let c=0;c<COLS;c++){
+        grid[r][c] = g[c];
+        const tile = document.getElementById('tile-'+r+'-'+c);
+        tile.textContent = g[c];
+        tile.classList.add('filled');
+      }
+      colorRow(r, g, false);
+    });
+    curRow = saved.guesses.length;
+    over = saved.over;
+    if (over){
+      showEndMessage(saved.won);
+      shareRow.style.display = 'flex';
+      setupShare(saved.guesses, saved.won);
+    }
+  }
+
+  function handleKey(k){
+    if (over) return;
+    if (k === 'BACK'){
+      if (curCol > 0){
+        curCol--;
+        grid[curRow][curCol] = '';
+        const tile = document.getElementById('tile-'+curRow+'-'+curCol);
+        tile.textContent = '';
+        tile.classList.remove('filled');
+      }
+      return;
+    }
+    if (k === 'ENTER'){
+      if (curCol < COLS){ setMessage('Not enough letters'); return; }
+      submitGuess();
+      return;
+    }
+    if (curCol < COLS && /^[a-z]$/.test(k)){
+      grid[curRow][curCol] = k;
+      const tile = document.getElementById('tile-'+curRow+'-'+curCol);
+      tile.textContent = k;
+      tile.classList.add('filled', 'pop');
+      setTimeout(() => tile.classList.remove('pop'), 150);
+      curCol++;
+    }
+  }
+
+  function submitGuess(){
+    const guess = grid[curRow].join('');
+    colorRow(curRow, guess.split(''), true);
+
+    if (guess === targetWord){
+      over = true;
+      handleWin();
+      return;
+    }
+    curRow++;
+    curCol = 0;
+    if (curRow === ROWS){
+      over = true;
+      handleLoss();
+    }
+    if (mode === 'daily') saveDailyState();
+  }
+
+  function colorRow(r, letters, updateKeys){
+    const targetArr = targetWord.split('');
+    const result = Array(COLS).fill('absent');
+    const used = Array(COLS).fill(false);
+
+    for (let i=0;i<COLS;i++){
+      if (letters[i] === targetArr[i]){
+        result[i] = 'correct';
+        used[i] = true;
+      }
+    }
+    for (let i=0;i<COLS;i++){
+      if (result[i] === 'correct') continue;
+      const idx = targetArr.findIndex((ch,j) => ch === letters[i] && !used[j]);
+      if (idx !== -1){
+        result[i] = 'present';
+        used[idx] = true;
+      }
+    }
+
+    for (let i=0;i<COLS;i++){
+      const tile = document.getElementById('tile-'+r+'-'+i);
+      tile.classList.add(result[i]);
+      if (updateKeys){
+        const rank = { absent:0, present:1, correct:2 };
+        const cur = keyStates[letters[i]] || 'absent';
+        if (rank[result[i]] > rank[cur]){
+          keyStates[letters[i]] = result[i];
+          const keyBtn = keyboardEl.querySelector('[data-key="'+letters[i]+'"]');
+          if (keyBtn){
+            keyBtn.classList.remove('correct','present','absent');
+            keyBtn.classList.add(result[i]);
+          }
+        }
+      }
+    }
+  }
+
+  function handleWin(){
+    showEndMessage(true);
+    shareRow.style.display = 'flex';
+    const guesses = grid.slice(0, curRow+1).map(r => r.join(''));
+    setupShare(guesses, true);
+    if (mode === 'daily'){
+      const streakData = loadJSON('wordstreak_streak', { streak:0, best:0, lastWin:null });
+      const today = todayKey();
+      if (streakData.lastWin !== today){
+        streakData.streak++;
+        streakData.best = Math.max(streakData.best, streakData.streak);
+        streakData.lastWin = today;
+        saveJSON('wordstreak_streak', streakData);
+      }
+      streakValEl.textContent = streakData.streak;
+      bestValEl.textContent = streakData.best;
+      saveDailyState();
+    }
+  }
+
+  function handleLoss(){
+    showEndMessage(false);
+    shareRow.style.display = 'flex';
+    const guesses = grid.slice(0, curRow).map(r => r.join(''));
+    setupShare(guesses, false);
+    if (mode === 'daily'){
+      const streakData = loadJSON('wordstreak_streak', { streak:0, best:0, lastWin:null });
+      streakData.streak = 0;
+      saveJSON('wordstreak_streak', streakData);
+      streakValEl.textContent = 0;
+      saveDailyState();
+    }
+  }
+
+  function showEndMessage(won){
+    setTimeout(() => {
+      messageEl.textContent = won ? 'Nice! You got it in ' + curRow + '/' + ROWS : 'The word was ' + targetWord.toUpperCase();
+    }, 300);
+  }
+
+  function saveDailyState(){
+    const guesses = grid.slice(0, curRow + (over && curRow < ROWS ? 1 : 0)).map(r => r.join(''));
+    const actualGuesses = grid.filter(r => r.every(c => c !== '')).map(r => r.join(''));
+    saveJSON('wordstreak_daily_'+todayKey(), { guesses: actualGuesses, over, won: actualGuesses.includes(targetWord) });
+  }
+
+  function setupShare(guesses, won){
+    let grid_emoji = guesses.map(g => {
+      const letters = g.split('');
+      const targetArr = targetWord.split('');
+      const result = Array(COLS).fill('⬜');
+      const used = Array(COLS).fill(false);
+      for (let i=0;i<COLS;i++){
+        if (letters[i] === targetArr[i]){ result[i]='🟩'; used[i]=true; }
+      }
+      for (let i=0;i<COLS;i++){
+        if (result[i]==='🟩') continue;
+        const idx = targetArr.findIndex((ch,j)=>ch===letters[i] && !used[j]);
+        if (idx!==-1){ result[i]='🟨'; used[idx]=true; }
+      }
+      return result.join('');
+    }).join('\n');
+
+    const scoreText = won ? guesses.length + '/6' : 'X/6';
+    const shareText = 'Word Streak ' + scoreText + '\n\n' + grid_emoji + '\n\nPlay at ' + window.location.href;
+
+    document.getElementById('shareWA').href = "https://wa.me/?text=" + encodeURIComponent(shareText);
+    document.getElementById('shareFB').href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(window.location.href);
+    document.getElementById('shareRD').href = "https://reddit.com/submit?url=" + encodeURIComponent(window.location.href) + "&title=" + encodeURIComponent('Word Streak ' + scoreText);
+
+    function copyShare(btn){
+      try {
+        navigator.clipboard.writeText(shareText).then(() => {
+          const old = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = old; }, 1500);
+        });
+      } catch(e){ window.prompt('Copy this:', shareText); }
+    }
+    document.getElementById('shareIG').onclick = () => {
+      if (navigator.share){ navigator.share({ text: shareText }).catch(()=>{}); }
+      else { copyShare(document.getElementById('shareIG')); window.alert('Copied! Paste it in your Instagram story.'); }
+    };
+    document.getElementById('shareCopy').onclick = () => copyShare(document.getElementById('shareCopy'));
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleKey('ENTER');
+    else if (e.key === 'Backspace') handleKey('BACK');
+    else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toLowerCase());
+  });
+
+  modeDailyBtn.addEventListener('click', () => startGame('daily'));
+  modePracticeBtn.addEventListener('click', () => startGame('practice'));
+
+  startGame('daily');
+})();
+</script>
+</body>
+</html>

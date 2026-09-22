@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Fruit Slice Bright — Free Online Fruit Slicing Game</title>
+<meta name="description" content="Play Fruit Slice Bright, a free online fruit slicing game. Swipe to slice flying fruit, chain combos, and avoid the bombs.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --board-top: #2a1810; --board-bottom: #1a0f0a;
+    --bomb: #2a2a3a; --trail: #ffffff;
+    --accent: #a86bff; --accent-dark: #8347e0;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 460px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,34px); margin:0; }
+  h1 span { background: linear-gradient(90deg, #ff5c8a, #ffcc29 50%, #22d38a); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 44ch; }
+
+  .scores { display:flex; gap:8px; }
+  .score-box { background: var(--panel); border-radius: 12px; padding: 7px 10px; text-align:center; min-width:48px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .score-box .label { font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600; }
+  .score-box .value { font-family:'Baloo 2',sans-serif; font-size:16px; font-weight:700; }
+
+  .hint-row { color:var(--muted); font-size:13.5px; margin: 10px 0 12px; text-align:center; }
+
+  .board-shell {
+    position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3/4.2; max-width: 100%;
+    touch-action: none; user-select: none; box-shadow: 0 4px 20px rgba(30,30,60,0.2);
+  }
+  canvas { width:100%; height:100%; display:block; }
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(15,8,5,0.85);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; text-align:center; padding:20px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:24px; }
+  .overlay p { color:#f5e5dc; margin:0; font-size:14px; max-width:30ch; }
+  .overlay button { background:white; color:var(--accent-dark); border:none; padding:10px 22px; border-radius:10px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <div>
+      <h1><span>Fruit</span> Slice</h1>
+      <p class="tagline">Swipe to slice the flying fruit. Chain combos for bonus points — never touch the bombs.</p>
+    </div>
+    <div class="scores">
+      <div class="score-box"><div class="label">Score</div><div class="value" id="score">0</div></div>
+      <div class="score-box"><div class="label">Lives</div><div class="value" id="lives">❤️❤️❤️</div></div>
+      <div class="score-box"><div class="label">Best</div><div class="value" id="best">0</div></div>
+    </div>
+  </header>
+
+  <div class="hint-row" id="hint">Swipe across fruit to slice it.</div>
+
+  <div class="board-shell" id="board">
+    <canvas id="canvas"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Fruit Slice</h2>
+      <p id="overlaySub">Swipe across the fruit to slice it. Slicing several in one swipe scores a combo bonus. Never slice a bomb.</p>
+      <button id="overlayBtn">Start</button>
+    </div>
+  </div>
+
+  <section class="info">
+    <h2>How to play Fruit Slice</h2>
+    <p>Fruit launches up from the bottom of the screen in gentle arcs. Swipe your finger or mouse across a piece of fruit to slice it in half for points. Slice several fruits in one continuous swipe to trigger a combo bonus worth extra points. Letting three fruits fall unsliced ends the round — and slicing a bomb ends it instantly, no matter how many lives you have left.</p>
+  </section>
+
+  <section class="info">
+    <h2>Tips for bigger combos</h2>
+    <p>Watch the pattern fruit launches in rather than reacting to each piece individually — after a few throws you can often predict where the next batch will peak and plan a single sweeping swipe through several at once. Long, fast swipes register combos more reliably than short taps, since the game checks your whole swipe path for fruit it crosses. When a bomb appears near a cluster of fruit, it's almost always safer to slice around it in a separate motion than to risk a combo swipe through the group.</p>
+  </section>
+
+  <section class="info">
+    <h2>Frequently asked questions</h2>
+    <p><strong>What happens if I slice a bomb?</strong> The round ends immediately, regardless of how many lives or how high a score you have.</p>
+    <p><strong>How are combos scored?</strong> Each fruit sliced within the same continuous swipe adds to that swipe's combo count, and the bonus grows with each additional fruit in the chain.</p>
+    <p><strong>Does the game get faster over time?</strong> Yes — fruit launches more frequently and bombs appear more often the longer you survive.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best score saved only on this device</footer>
+</div>
+
+<div class="share-row">
+  <span class="share-label">Challenge a friend:</span>
+  <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+  <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+  <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+</div>
+<script>
+(function(){
+  var pageUrl = window.location.href;
+  var shareText = "Can you beat my Fruit Slice score? Try it here:";
+  var wa=document.getElementById('shareWA'),fb=document.getElementById('shareFB'),rd=document.getElementById('shareRD'),ig=document.getElementById('shareIG'),cp=document.getElementById('shareCopy');
+  if(wa)wa.href="https://wa.me/?text="+encodeURIComponent(shareText+" "+pageUrl);
+  if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(pageUrl);
+  if(rd)rd.href="https://reddit.com/submit?url="+encodeURIComponent(pageUrl)+"&title="+encodeURIComponent(shareText);
+  function copyLink(btn){ try{ navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500);}); }catch(e){ window.prompt('Copy this link:', pageUrl);} }
+  if(ig)ig.addEventListener('click',function(){ if(navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+  if(cp)cp.addEventListener('click',function(){ copyLink(cp); });
+})();
+</script>
+
+<script>
+(function(){
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const boardEl = document.getElementById('board');
+  const scoreEl = document.getElementById('score');
+  const livesEl = document.getElementById('lives');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+
+  let W,H,dpr;
+  function resize(){
+    const rect = boardEl.getBoundingClientRect();
+    dpr = window.devicePixelRatio||1;
+    W = rect.width; H = rect.height;
+    canvas.width = W*dpr; canvas.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+
+  const FRUITS = [
+    { emoji:'🍉', color:'#ff5c8a' }, { emoji:'🍊', color:'#ff8b3d' }, { emoji:'🍋', color:'#ffcc29' },
+    { emoji:'🥝', color:'#22d38a' }, { emoji:'🍇', color:'#a86bff' }, { emoji:'🍎', color:'#ff3d6e' }
+  ];
+
+  const GRAVITY = 900;
+  let items, particles, trail, score, best, lives, over, started, elapsed, spawnTimer;
+
+  function loadBest(){ try { const v = localStorage.getItem('fruitslice_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
+  function saveBest(v){ try { localStorage.setItem('fruitslice_best', String(v)); } catch(e){} }
+
+  function newGame(){
+    items = []; particles = []; trail = [];
+    score = 0; lives = 3; over = false; started = false; elapsed = 0; spawnTimer = 0;
+    best = loadBest();
+    scoreEl.textContent = 0;
+    livesEl.textContent = '❤️❤️❤️';
+    bestEl.textContent = best;
+    overlayText.textContent = 'Fruit Slice';
+    overlaySub.textContent = 'Swipe across the fruit to slice it. Slicing several in one swipe scores a combo bonus. Never slice a bomb.';
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+  }
+
+  function spawnItem(){
+    const df = Math.min(1, elapsed/45);
+    const isBomb = Math.random() < 0.12 + df*0.06;
+    const x = W*0.15 + Math.random()*W*0.7;
+    const vx = (W/2 - x)/W * 120 + (Math.random()-0.5)*80;
+    const vy = -(720 + Math.random()*160 + df*80);
+    if (isBomb){
+      items.push({ x, y:H+20, vx, vy, r:Math.min(W,H)*0.045, type:'bomb', sliced:false, rot:0, vrot:(Math.random()-0.5)*2 });
+    } else {
+      const f = FRUITS[Math.floor(Math.random()*FRUITS.length)];
+      items.push({ x, y:H+20, vx, vy, r:Math.min(W,H)*0.05, type:'fruit', emoji:f.emoji, color:f.color, sliced:false, rot:0, vrot:(Math.random()-0.5)*3, missed:false });
+    }
+  }
+
+  function spawnParticles(x,y,color,count){
+    for (let i=0;i<count;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = 60+Math.random()*160;
+      particles.push({ x,y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, life:0.5, color });
+    }
+  }
+
+  function loseLife(){
+    lives--;
+    livesEl.textContent = '❤️'.repeat(Math.max(0,lives));
+    if (lives<=0) endGame(false);
+  }
+
+  function endGame(bombHit){
+    if (over) return;
+    over = true;
+    if (score>best){ best=score; bestEl.textContent=best; saveBest(best); }
+    overlayText.textContent = bombHit ? 'Boom!' : 'Out of Lives';
+    overlaySub.textContent = 'Final score: ' + score + (score>=best?' — new best!':' · Best: '+best);
+    overlayBtn.textContent = 'Play Again';
+    setTimeout(()=>overlay.classList.add('show'), 300);
+  }
+
+  function update(dt){
+    if (!started || over) return;
+    elapsed += dt;
+
+    spawnTimer += dt*1000;
+    const spawnInterval = Math.max(420, 1000 - elapsed*8);
+    if (spawnTimer > spawnInterval){ spawnTimer=0; spawnItem(); if (Math.random()<0.3) spawnItem(); }
+
+    items.forEach(it => {
+      it.vy += GRAVITY*dt;
+      it.x += it.vx*dt;
+      it.y += it.vy*dt;
+      it.rot += it.vrot*dt;
+    });
+
+    for (let i=items.length-1;i>=0;i--){
+      const it = items[i];
+      if (it.y - it.r > H+40){
+        if (it.type==='fruit' && !it.sliced){ loseLife(); }
+        items.splice(i,1);
+      }
+    }
+
+    particles.forEach(p => { p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=300*dt; p.life-=dt; });
+    particles = particles.filter(p=>p.life>0);
+
+    trail.forEach(t => t.life -= dt*3);
+    trail = trail.filter(t => t.life>0);
+  }
+
+  function segCircleHit(x1,y1,x2,y2,cx,cy,r){
+    const dx=x2-x1, dy=y2-y1;
+    const len2 = dx*dx+dy*dy;
+    if (len2===0) return Math.hypot(cx-x1,cy-y1) < r;
+    let t = ((cx-x1)*dx + (cy-y1)*dy)/len2;
+    t = Math.max(0, Math.min(1, t));
+    const px = x1+t*dx, py = y1+t*dy;
+    return Math.hypot(cx-px, cy-py) < r;
+  }
+
+  function checkSlice(x1,y1,x2,y2){
+    let sliceCount = 0;
+    for (let i=items.length-1;i>=0;i--){
+      const it = items[i];
+      if (it.sliced) continue;
+      if (segCircleHit(x1,y1,x2,y2, it.x, it.y, it.r)){
+        if (it.type==='bomb'){
+          spawnParticles(it.x, it.y, '#333', 16);
+          endGame(true);
+          return;
+        }
+        it.sliced = true;
+        spawnParticles(it.x, it.y, it.color, 14);
+        sliceCount++;
+        items.splice(i,1);
+      }
+    }
+    if (sliceCount>0){
+      swipeCombo += sliceCount;
+      const bonus = sliceCount>1 ? sliceCount*15 : 10;
+      score += bonus;
+      scoreEl.textContent = score;
+      if (swipeCombo>=3){
+        comboPopup = { text: 'Combo x'+swipeCombo+'!', x:x2, y:y2, life:1 };
+      }
+    }
+  }
+
+  let swipeCombo = 0;
+  let comboPopup = null;
+
+  function draw(){
+    const grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0, getComputedStyle(document.documentElement).getPropertyValue('--board-top'));
+    grad.addColorStop(1, getComputedStyle(document.documentElement).getPropertyValue('--board-bottom'));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W,H);
+
+    items.forEach(it => {
+      ctx.save();
+      ctx.translate(it.x, it.y);
+      ctx.rotate(it.rot);
+      if (it.type==='bomb'){
+        ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bomb');
+        ctx.beginPath(); ctx.arc(0,0,it.r,0,Math.PI*2); ctx.fill();
+        ctx.font = (it.r*1.3)+'px serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('💣', 0, 2);
+      } else {
+        ctx.font = (it.r*1.7)+'px serif';
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(it.emoji, 0, 0);
+      }
+      ctx.restore();
+    });
+
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0,p.life/0.5);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    if (trail.length>1){
+      ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(trail[0].x, trail[0].y);
+      for (let i=1;i<trail.length;i++) ctx.lineTo(trail[i].x, trail[i].y);
+      ctx.stroke();
+    }
+
+    if (comboPopup){
+      ctx.globalAlpha = Math.max(0,comboPopup.life);
+      ctx.fillStyle = '#ffcc29';
+      ctx.font = 'bold 20px Baloo 2, sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText(comboPopup.text, comboPopup.x, comboPopup.y-20*(1-comboPopup.life));
+      ctx.globalAlpha = 1;
+      comboPopup.life -= 0.02;
+      if (comboPopup.life<=0) comboPopup=null;
+    }
+  }
+
+  function frame(ts){
+    if (!frame.last) frame.last = ts;
+    const dt = Math.min(0.032,(ts-frame.last)/1000);
+    frame.last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  let pointerActive = false, lastPt = null;
+
+  boardEl.addEventListener('pointerdown', (e) => {
+    if (over){ newGame(); return; }
+    if (!started){ started=true; overlay.classList.remove('show'); }
+    pointerActive = true;
+    swipeCombo = 0;
+    const rect = boardEl.getBoundingClientRect();
+    lastPt = { x:e.clientX-rect.left, y:e.clientY-rect.top };
+    trail.push({...lastPt, life:1});
+  });
+  window.addEventListener('pointermove', (e) => {
+    if (!pointerActive) return;
+    const rect = boardEl.getBoundingClientRect();
+    const pt = { x:e.clientX-rect.left, y:e.clientY-rect.top };
+    if (lastPt){
+      checkSlice(lastPt.x, lastPt.y, pt.x, pt.y);
+    }
+    trail.push({...pt, life:1});
+    if (trail.length>20) trail.shift();
+    lastPt = pt;
+  });
+  window.addEventListener('pointerup', () => { pointerActive=false; lastPt=null; swipeCombo=0; });
+
+  overlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (over){ newGame(); }
+    else { started=true; overlay.classList.remove('show'); }
+  });
+
+  resize();
+  newGame();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

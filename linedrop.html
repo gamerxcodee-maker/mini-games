@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Line Drop Bright — Free Online Classic Falling Blocks Game</title>
+<meta name="description" content="Play Line Drop Bright, a free online falling-block puzzle. Rotate and stack all seven piece shapes, clear full lines, and level up as the speed increases.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb;
+    --panel: #ffffff;
+    --ink: #1f2340;
+    --muted: #6b7094;
+    --well-bg: #1b1e3a;
+    --cell-line: rgba(255,255,255,0.05);
+    --accent: #a86bff;
+    --accent-dark: #8347e0;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 420px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(22px,6vw,32px); margin:0; }
+  h1 span {
+    background: linear-gradient(90deg, #00d1e0, #a86bff 60%, #ff5c8a);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 13.5px; max-width: 40ch; }
+
+  .scores { display:flex; gap:6px; flex-wrap: wrap; }
+  .score-box { background: var(--panel); border-radius: 12px; padding: 6px 9px; text-align:center; min-width:44px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .score-box .label { font-size:9px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.05em; }
+  .score-box .value { font-family:'Baloo 2',sans-serif; font-size:15px; font-weight:700; }
+
+  .layout { display:flex; gap:10px; align-items:flex-start; }
+  .board-shell {
+    position: relative; border-radius: 14px; overflow: hidden; aspect-ratio: 6/12; flex: 1;
+    touch-action: none; user-select: none; box-shadow: 0 4px 20px rgba(30,30,60,0.18);
+  }
+  canvas { width:100%; height:100%; display:block; }
+
+  .side { display:flex; flex-direction:column; gap:10px; width: 78px; }
+  .next-box { background: var(--panel); border-radius: 12px; padding: 8px; text-align:center; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .next-box .label { font-size:10px; color:var(--muted); font-weight:700; margin-bottom:6px; }
+  .next-canvas-wrap { width: 100%; aspect-ratio: 1/1; }
+
+  .controls { display:grid; grid-template-columns: repeat(3, 1fr); gap:6px; margin-top: 14px; }
+  .ctrl-btn {
+    background: var(--panel); border:none; border-radius:12px; padding: 14px 0;
+    font-size: 20px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); cursor:pointer; color: var(--ink);
+  }
+  .ctrl-btn:active { transform: scale(0.94); }
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(15,10,35,0.82);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:10px; text-align:center; padding:16px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:22px; }
+  .overlay p { color:#e4e5f7; margin:0; font-size:13px; max-width:28ch; }
+  .overlay button {
+    background:white; color:var(--accent-dark); border:none; padding:9px 18px; border-radius:10px;
+    font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; font-size: 13px;
+  }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:26px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; }
+  .share-btn.fb { background:#1877F2; }
+  .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); }
+  .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <div>
+      <h1><span>Line</span> Drop</h1>
+      <p class="tagline">Rotate and stack the falling pieces. Fill a full row to clear it before the well fills up.</p>
+    </div>
+    <div class="scores">
+      <div class="score-box"><div class="label">Score</div><div class="value" id="score">0</div></div>
+      <div class="score-box"><div class="label">Lines</div><div class="value" id="lines">0</div></div>
+      <div class="score-box"><div class="label">Lvl</div><div class="value" id="level">1</div></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <div class="board-shell" id="board">
+      <canvas id="canvas"></canvas>
+      <div class="overlay" id="overlay">
+        <h2 id="overlayText">Line Drop</h2>
+        <p id="overlaySub">Move, rotate and drop each piece. Clear full rows to score — speed increases every 10 lines.</p>
+        <button id="overlayBtn">Start</button>
+      </div>
+    </div>
+    <div class="side">
+      <div class="next-box">
+        <div class="label">NEXT</div>
+        <div class="next-canvas-wrap"><canvas id="nextCanvas" style="width:100%;height:100%;display:block;"></canvas></div>
+      </div>
+      <div class="score-box" style="width:100%;"><div class="label">Best</div><div class="value" id="best">0</div></div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="leftBtn">◀</button>
+    <button class="ctrl-btn" id="rotateBtn">⟳</button>
+    <button class="ctrl-btn" id="rightBtn">▶</button>
+    <button class="ctrl-btn" id="softBtn">▼ Soft</button>
+    <button class="ctrl-btn" id="hardBtn" style="grid-column: 2 / span 2;">⬇ Hard Drop</button>
+  </div>
+
+  <div class="share-row">
+    <span class="share-label">Challenge a friend:</span>
+    <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+    <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+    <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+    <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+    <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+  </div>
+  <script>
+  (function(){
+    var pageUrl = window.location.href;
+    var h1 = document.querySelector('h1');
+    var gameName = (h1 ? h1.innerText.replace(/\s+/g,' ').trim() : document.title);
+    var shareText = "Can you beat my score in " + gameName + "? Try it here:";
+    var wa = document.getElementById('shareWA');
+    var fb = document.getElementById('shareFB');
+    var rd = document.getElementById('shareRD');
+    var ig = document.getElementById('shareIG');
+    var cp = document.getElementById('shareCopy');
+    if (wa) wa.href = "https://wa.me/?text=" + encodeURIComponent(shareText + " " + pageUrl);
+    if (fb) fb.href = "https://www.facebook.com/sharer/sharer.php?u=" + encodeURIComponent(pageUrl);
+    if (rd) rd.href = "https://reddit.com/submit?url=" + encodeURIComponent(pageUrl) + "&title=" + encodeURIComponent(shareText);
+    function copyLink(btn){
+      try {
+        navigator.clipboard.writeText(pageUrl).then(function(){
+          var old = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(function(){ btn.textContent = old; }, 1500);
+        });
+      } catch(e){
+        window.prompt('Copy this link:', pageUrl);
+      }
+    }
+    if (ig) ig.addEventListener('click', function(){
+      if (navigator.share){
+        navigator.share({ title: gameName, text: shareText, url: pageUrl }).catch(function(){});
+      } else {
+        copyLink(ig);
+        window.alert('Link copied! Paste it in your Instagram story or bio.');
+      }
+    });
+    if (cp) cp.addEventListener('click', function(){ copyLink(cp); });
+  })();
+  </script>
+
+  <section class="info">
+    <h2>How to play Line Drop</h2>
+    <p>A piece made of four connected blocks falls from the top of the well. Move it left or right, rotate it, and either let it fall naturally or drop it faster. When an entire horizontal row is completely filled with blocks, that row clears and everything above shifts down.</p>
+  </section>
+
+  <section class="info">
+    <h2>Levels and scoring</h2>
+    <p>Clearing multiple rows with a single piece scores far more than clearing them one at a time — a four-line clear is worth the most. Every ten lines you clear, the level goes up and pieces fall faster. The round ends when a new piece has nowhere to appear at the top of the well.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best score saved only on this device</footer>
+</div>
+
+<script>
+(function(){
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const nextCanvas = document.getElementById('nextCanvas');
+  const nctx = nextCanvas.getContext('2d');
+  const boardEl = document.getElementById('board');
+  const scoreEl = document.getElementById('score');
+  const linesEl = document.getElementById('lines');
+  const levelEl = document.getElementById('level');
+  const bestEl = document.getElementById('best');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+  const leftBtn = document.getElementById('leftBtn');
+  const rightBtn = document.getElementById('rightBtn');
+  const rotateBtn = document.getElementById('rotateBtn');
+  const softBtn = document.getElementById('softBtn');
+  const hardBtn = document.getElementById('hardBtn');
+
+  const COLS = 6, ROWS = 14;
+  const COLOR_HEX = ['#00d1e0', '#a86bff', '#22d38a', '#ffcc29', '#ff8b3d', '#ff5c8a', '#3d7bff'];
+
+  const SHAPES = [
+    [ [[1,0],[1,1],[1,2],[1,3]], [[0,2],[1,2],[2,2],[3,2]], [[1,0],[1,1],[1,2],[1,3]], [[0,2],[1,2],[2,2],[3,2]] ],
+    [ [[0,0],[0,1],[1,0],[1,1]], [[0,0],[0,1],[1,0],[1,1]], [[0,0],[0,1],[1,0],[1,1]], [[0,0],[0,1],[1,0],[1,1]] ],
+    [ [[0,1],[1,0],[1,1],[1,2]], [[0,1],[1,1],[1,2],[2,1]], [[1,0],[1,1],[1,2],[2,1]], [[0,1],[1,0],[1,1],[2,1]] ],
+    [ [[0,1],[0,2],[1,0],[1,1]], [[0,1],[1,1],[1,2],[2,2]], [[0,1],[0,2],[1,0],[1,1]], [[0,1],[1,1],[1,2],[2,2]] ],
+    [ [[0,0],[0,1],[1,1],[1,2]], [[0,2],[1,1],[1,2],[2,1]], [[0,0],[0,1],[1,1],[1,2]], [[0,2],[1,1],[1,2],[2,1]] ],
+    [ [[0,0],[1,0],[1,1],[1,2]], [[0,1],[0,2],[1,1],[2,1]], [[1,0],[1,1],[1,2],[2,2]], [[0,1],[1,1],[2,0],[2,1]] ],
+    [ [[0,2],[1,0],[1,1],[1,2]], [[0,1],[1,1],[2,1],[2,2]], [[1,0],[1,1],[1,2],[2,0]], [[0,0],[0,1],[1,1],[2,1]] ]
+  ];
+
+  let W,H,dpr,cellSize, nW,nH,ndpr;
+  function resize(){
+    const rect = boardEl.getBoundingClientRect();
+    dpr = window.devicePixelRatio||1;
+    W = rect.width; H = rect.height;
+    canvas.width = W*dpr; canvas.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    cellSize = W/COLS;
+
+    const nrect = nextCanvas.getBoundingClientRect();
+    ndpr = window.devicePixelRatio||1;
+    nW = nrect.width; nH = nrect.height;
+    nextCanvas.width = nW*ndpr; nextCanvas.height = nH*ndpr;
+    nctx.setTransform(ndpr,0,0,ndpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+
+  let grid, piece, nextPiece, score, lines, level, best, over, started, dropTimer, dropInterval, softDrop, particles, locking;
+
+  function loadBest(){ try { const b = localStorage.getItem('linedrop_best'); return b?parseInt(b,10):0; } catch(e){ return 0; } }
+  function saveBest(v){ try { localStorage.setItem('linedrop_best', String(v)); } catch(e){} }
+
+  function emptyGrid(){ return Array.from({length:ROWS}, () => Array(COLS).fill(-1)); }
+  function randColorIdx(){ return Math.floor(Math.random()*COLOR_HEX.length); }
+
+  function randomPiece(){
+    return { type: Math.floor(Math.random()*SHAPES.length), rot: 0, row: 0, col: 1, colorIdx: randColorIdx() };
+  }
+
+  function pieceCells(p){
+    return SHAPES[p.type][p.rot].map(([r,c]) => ({ r: p.row+r, c: p.col+c }));
+  }
+
+  function cellFree(r,c){
+    if (r<0) return true;
+    if (r>=ROWS||c<0||c>=COLS) return false;
+    return grid[r][c] === -1;
+  }
+  function canPlace(p){
+    return pieceCells(p).every(cell => cellFree(cell.r, cell.c));
+  }
+
+  function newGame(){
+    grid = emptyGrid();
+    score = 0; lines = 0; level = 1; over = false; started = false; softDrop = false; locking = false;
+    particles = [];
+    best = loadBest();
+    scoreEl.textContent = 0; linesEl.textContent = 0; levelEl.textContent = 1;
+    bestEl.textContent = best;
+    dropInterval = 750;
+    dropTimer = 0;
+    nextPiece = randomPiece();
+    spawnPiece();
+    overlayText.textContent = 'Line Drop';
+    overlaySub.textContent = 'Move, rotate and drop each piece. Clear full rows to score — speed increases every 10 lines.';
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+  }
+
+  function spawnPiece(){
+    piece = nextPiece;
+    piece.row = 0; piece.col = 1;
+    nextPiece = randomPiece();
+    if (!canPlace(piece)){
+      over = true;
+      overlayText.textContent = 'Well Full!';
+      overlaySub.textContent = 'Final score: ' + score + (score >= best ? ' — new best!' : ' · Best: ' + best);
+      overlayBtn.textContent = 'Play Again';
+      overlay.classList.add('show');
+    }
+  }
+
+  function tryMove(dc){
+    if (over || !started || locking) return;
+    const np = { ...piece, col: piece.col+dc };
+    if (canPlace(np)) piece = np;
+  }
+  function tryRotate(){
+    if (over || !started || locking) return;
+    const np = { ...piece, rot: (piece.rot+1)%4 };
+    if (canPlace(np)){ piece = np; return; }
+    const kick1 = { ...np, col: np.col+1 };
+    if (canPlace(kick1)){ piece = kick1; return; }
+    const kick2 = { ...np, col: np.col-1 };
+    if (canPlace(kick2)){ piece = kick2; return; }
+    const kick3 = { ...np, col: np.col-2 };
+    if (canPlace(kick3)){ piece = kick3; return; }
+  }
+
+  function lockPiece(){
+    locking = true;
+    pieceCells(piece).forEach(cell => {
+      if (cell.r>=0 && cell.r<ROWS) grid[cell.r][cell.c] = piece.colorIdx;
+    });
+
+    const fullRows = [];
+    for (let r=0;r<ROWS;r++){ if (grid[r].every(v=>v!==-1)) fullRows.push(r); }
+
+    if (fullRows.length){
+      fullRows.forEach(r => {
+        for (let c=0;c<COLS;c++){
+          particles.push({
+            x: c*cellSize+cellSize/2, y: r*cellSize+cellSize/2,
+            vx: (Math.random()-0.5)*160, vy: (Math.random()-0.5)*160-60,
+            life: 0.5, color: COLOR_HEX[grid[r][c]], size: 3+Math.random()*3
+          });
+        }
+      });
+      const newGrid = grid.filter((row,r) => !fullRows.includes(r));
+      while (newGrid.length < ROWS) newGrid.unshift(Array(COLS).fill(-1));
+      grid = newGrid;
+
+      lines += fullRows.length;
+      linesEl.textContent = lines;
+      const lineScores = {1:100, 2:300, 3:500, 4:800};
+      const pts = (lineScores[fullRows.length]||800) * level;
+      score += pts;
+      scoreEl.textContent = score;
+      if (score > best){ best = score; bestEl.textContent = best; saveBest(best); }
+
+      const newLevel = Math.floor(lines/10)+1;
+      if (newLevel !== level){
+        level = newLevel;
+        levelEl.textContent = level;
+        dropInterval = Math.max(120, 750 - (level-1)*60);
+      }
+    }
+
+    locking = false;
+    spawnPiece();
+  }
+
+  function hardDrop(){
+    if (over || !started || locking) return;
+    let dist = 0;
+    while (true){
+      const np = { ...piece, row: piece.row+1 };
+      if (canPlace(np)){ piece = np; dist++; } else break;
+    }
+    score += dist*2;
+    scoreEl.textContent = score;
+    lockPiece();
+  }
+
+  function update(dt){
+    if (!started) return;
+    if (!over && !locking){
+      dropTimer += dt*1000;
+      const interval = softDrop ? Math.min(55, dropInterval) : dropInterval;
+      if (dropTimer > interval){
+        dropTimer = 0;
+        const np = { ...piece, row: piece.row+1 };
+        if (canPlace(np)) piece = np;
+        else lockPiece();
+      }
+    }
+    particles.forEach(p => { p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=300*dt; p.life-=dt; });
+    particles = particles.filter(p=>p.life>0);
+  }
+
+  function drawBlock(context, x, y, size){
+    context.fillRect(x+1, y+1, size-2, size-2);
+    context.fillStyle = 'rgba(255,255,255,0.22)';
+    context.fillRect(x+1, y+1, size-2, size*0.28);
+  }
+
+  function draw(){
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--well-bg').trim();
+    ctx.fillRect(0,0,W,H);
+
+    ctx.strokeStyle = getComputedStyle(document.documentElement).getPropertyValue('--cell-line').trim();
+    for (let c=1;c<COLS;c++){ ctx.beginPath(); ctx.moveTo(c*cellSize,0); ctx.lineTo(c*cellSize,H); ctx.stroke(); }
+    for (let r=1;r<ROWS;r++){ ctx.beginPath(); ctx.moveTo(0,r*cellSize); ctx.lineTo(W,r*cellSize); ctx.stroke(); }
+
+    for (let r=0;r<ROWS;r++){
+      for (let c=0;c<COLS;c++){
+        if (grid[r][c]!==-1){
+          ctx.fillStyle = COLOR_HEX[grid[r][c]];
+          drawBlock(ctx, c*cellSize, r*cellSize, cellSize);
+        }
+      }
+    }
+
+    if (started && !over && piece){
+      ctx.fillStyle = COLOR_HEX[piece.colorIdx];
+      pieceCells(piece).forEach(cell => {
+        if (cell.r < 0) return;
+        drawBlock(ctx, cell.c*cellSize, cell.r*cellSize, cellSize);
+      });
+    }
+
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0, p.life/0.5);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.size, 0, Math.PI*2);
+      ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    nctx.clearRect(0,0,nW,nH);
+    if (started && nextPiece){
+      const shape = SHAPES[nextPiece.type][0];
+      let maxR=0, maxC=0;
+      shape.forEach(([r,c]) => { maxR=Math.max(maxR,r); maxC=Math.max(maxC,c); });
+      const ns = Math.min(nW/(maxC+1), nH/(maxR+1)) * 0.8;
+      const totalW = (maxC+1)*ns, totalH = (maxR+1)*ns;
+      const ox = (nW-totalW)/2, oy = (nH-totalH)/2;
+      nctx.fillStyle = COLOR_HEX[nextPiece.colorIdx];
+      shape.forEach(([r,c]) => { drawBlock(nctx, ox+c*ns, oy+r*ns, ns); });
+    }
+  }
+
+  function frame(ts){
+    if (!frame.last) frame.last = ts;
+    const dt = Math.min(0.032, (ts-frame.last)/1000);
+    frame.last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (!started || over) return;
+    if (e.key==='ArrowLeft') tryMove(-1);
+    else if (e.key==='ArrowRight') tryMove(1);
+    else if (e.key==='ArrowUp') tryRotate();
+    else if (e.key==='ArrowDown') softDrop = true;
+    else if (e.code==='Space'){ e.preventDefault(); hardDrop(); }
+  });
+  document.addEventListener('keyup', (e) => { if (e.key==='ArrowDown') softDrop=false; });
+
+  leftBtn.addEventListener('click', () => tryMove(-1));
+  rightBtn.addEventListener('click', () => tryMove(1));
+  rotateBtn.addEventListener('click', tryRotate);
+  softBtn.addEventListener('pointerdown', () => softDrop = true);
+  softBtn.addEventListener('pointerup', () => softDrop = false);
+  softBtn.addEventListener('pointerleave', () => softDrop = false);
+  hardBtn.addEventListener('click', hardDrop);
+
+  boardEl.addEventListener('pointerdown', () => {
+    if (over){ newGame(); return; }
+    if (!started){ started = true; overlay.classList.remove('show'); }
+  });
+  overlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (over){ newGame(); } else { started = true; overlay.classList.remove('show'); }
+  });
+
+  resize();
+  newGame();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

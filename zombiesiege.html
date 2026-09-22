@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Zombie Siege Bright — Free Online Survival Shooter Game</title>
+<meta name="description" content="Play Zombie Siege Bright, a free online top-down survival shooter. Move to dodge the horde while your character auto-fires at the nearest zombie — survive as long as you can.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f6fb; --panel: #ffffff; --ink: #1f2340; --muted: #6b7094;
+    --arena-top: #24361f; --arena-bottom: #182615;
+    --player: #00d1e0; --bullet: #ffcc29; --zombie1: #22d38a; --zombie2: #ff8b3d; --zombie3: #ff3d6e;
+    --accent: #a86bff; --accent-dark: #8347e0; --hp-bg: rgba(255,255,255,0.15); --hp-fill: #22d38a;
+  }
+  :root:not([data-theme="light"]) {
+    @media (prefers-color-scheme: dark) { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  }
+  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; }
+  * { box-sizing: border-box; }
+  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);
+    min-height: 100%;
+  }
+  .wrap { max-width: 460px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  header.top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  h1 { font-family:'Baloo 2',sans-serif; font-weight:800; font-size:clamp(24px,6vw,34px); margin:0; }
+  h1 span { background: linear-gradient(90deg, var(--zombie1), var(--player) 70%); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 14px; max-width: 44ch; }
+
+  .scores { display:flex; gap:8px; }
+  .score-box { background: var(--panel); border-radius: 12px; padding: 7px 10px; text-align:center; min-width:48px; box-shadow: 0 2px 8px rgba(30,30,60,0.08); }
+  .score-box .label { font-size:9.5px; text-transform:uppercase; letter-spacing:0.05em; color:var(--muted); font-weight:600; }
+  .score-box .value { font-family:'Baloo 2',sans-serif; font-size:16px; font-weight:700; }
+
+  .hp-row { display:flex; align-items:center; gap:8px; margin: 10px 0 12px; }
+  .hp-bar { flex:1; height: 12px; background: var(--hp-bg); border-radius: 999px; overflow:hidden; }
+  .hp-fill { height:100%; background: var(--hp-fill); width:100%; transition: width 0.2s ease; }
+  .hp-label { font-size: 11px; color: var(--muted); font-weight: 700; white-space: nowrap; }
+
+  .board-shell {
+    position: relative; border-radius: 18px; overflow: hidden; aspect-ratio: 3/4.2; max-width: 100%;
+    touch-action: none; user-select: none; box-shadow: 0 4px 20px rgba(30,30,60,0.2);
+  }
+  canvas { width:100%; height:100%; display:block; }
+
+  .overlay {
+    position: absolute; inset:0; background: rgba(8,15,8,0.85);
+    display:none; flex-direction:column; align-items:center; justify-content:center;
+    gap:12px; text-align:center; padding:20px;
+  }
+  .overlay.show { display:flex; }
+  .overlay h2 { font-family:'Baloo 2',sans-serif; color:white; margin:0; font-size:24px; }
+  .overlay p { color:#dcf5dc; margin:0; font-size:14px; max-width:30ch; }
+  .overlay button { background:white; color:var(--accent-dark); border:none; padding:10px 22px; border-radius:10px; font-weight:700; cursor:pointer; font-family:'Inter',sans-serif; }
+
+  .info { margin-top: 28px; background: var(--panel); border-radius: 16px; padding: 22px 24px; box-shadow: 0 2px 10px rgba(30,30,60,0.06); }
+  .info h2 { font-family:'Baloo 2',sans-serif; font-size:19px; margin:0 0 8px; }
+  .info p { color: var(--muted); line-height:1.6; font-size:14.5px; }
+  .info + .info { margin-top: 14px; }
+
+  .share-row { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin: 18px 0 6px; }
+  .share-label { font-size: 13px; color: var(--muted); font-weight: 600; margin-right: 2px; }
+  .share-btn { border:none; cursor:pointer; text-decoration:none; font-family:'Inter',sans-serif; font-weight:700; font-size:12px; padding:8px 12px; border-radius:999px; color:#fff; display:inline-flex; align-items:center; gap:5px; }
+  .share-btn.wa { background:#25D366; } .share-btn.fb { background:#1877F2; } .share-btn.rd { background:#FF4500; }
+  .share-btn.ig { background:linear-gradient(135deg,#f58529,#dd2a7b,#8134af,#515bd4); } .share-btn.cp { background:#6b7094; }
+  .share-btn:active { transform: scale(0.96); }
+
+  footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
+</style>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-VCXTW15M2M');
+  </script>
+</head>
+<body>
+<div class="wrap">
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:var(--muted);font-size:13px;font-weight:600;margin-bottom:14px;">← All Games</a>
+
+  <header class="top">
+    <div>
+      <h1><span>Zombie</span> Siege</h1>
+      <p class="tagline">Drag to move. Your character auto-fires at the nearest zombie — just focus on staying alive.</p>
+    </div>
+    <div class="scores">
+      <div class="score-box"><div class="label">Score</div><div class="value" id="score">0</div></div>
+      <div class="score-box"><div class="label">Wave</div><div class="value" id="wave">1</div></div>
+      <div class="score-box"><div class="label">Best</div><div class="value" id="best">0</div></div>
+    </div>
+  </header>
+
+  <div class="hp-row">
+    <span class="hp-label">HP</span>
+    <div class="hp-bar"><div class="hp-fill" id="hpFill"></div></div>
+  </div>
+
+  <div class="board-shell" id="board">
+    <canvas id="canvas"></canvas>
+    <div class="overlay" id="overlay">
+      <h2 id="overlayText">Zombie Siege</h2>
+      <p id="overlaySub">Drag to move around the arena. You fire automatically at the nearest zombie — survive as long as you can.</p>
+      <button id="overlayBtn">Start</button>
+    </div>
+  </div>
+
+  <section class="info">
+    <h2>How to play Zombie Siege</h2>
+    <p>Drag anywhere on the arena to move your character — you fire automatically at whichever zombie is closest, so there's no separate aim button. Zombies spawn from the edges and shuffle toward you from every direction, faster and in bigger bursts the longer you survive. Getting touched by a zombie costs health; run out of health and the siege ends. Six kinds of power-ups occasionally drop — walk over them to collect.</p>
+  </section>
+
+  <section class="info">
+    <h2>Power-ups</h2>
+    <p><strong>Medkit</strong> restores health. <strong>Weapon</strong> permanently speeds up your fire rate. <strong>Speed</strong> boosts your movement for a few seconds. <strong>Multi-Shot</strong> fires a three-way spread instead of a single shot. <strong>Piercing</strong> lets your shots punch through multiple zombies in a line. <strong>Shield</strong> makes you fully immune to damage for a few seconds — save it for when the horde is thickest.</p>
+  </section>
+
+  <section class="info">
+    <h2>Tips for surviving longer waves</h2>
+    <p>Keep moving in loops rather than standing still — since you auto-fire at the nearest threat, constant movement naturally spreads damage across the whole horde instead of one cluster overwhelming you. Lead zombies away from clusters before turning to fight, effectively thinning them out one or two at a time. Save Shield power-ups for burst-spawn waves rather than using them immediately — that's when they save the most health.</p>
+  </section>
+
+  <section class="info">
+    <h2>Frequently asked questions</h2>
+    <p><strong>Do I aim manually?</strong> No — your character always fires at the nearest zombie automatically, so movement is your only real decision.</p>
+    <p><strong>What are the different zombie types?</strong> Green zombies are standard, orange ones move faster but have less health, and red ones are slower but take more hits to bring down.</p>
+    <p><strong>Does the game get harder over time?</strong> Yes — waves increase roughly every 16 seconds, zombies move faster the longer you survive, and from wave 3 onward extra zombies burst-spawn together.</p>
+  </section>
+
+  <footer class="credit">Original build · runs entirely in your browser · best score saved only on this device</footer>
+</div>
+
+<div class="share-row">
+  <span class="share-label">Challenge a friend:</span>
+  <a class="share-btn wa" id="shareWA" href="#" target="_blank" rel="noopener">WhatsApp</a>
+  <a class="share-btn fb" id="shareFB" href="#" target="_blank" rel="noopener">Facebook</a>
+  <a class="share-btn rd" id="shareRD" href="#" target="_blank" rel="noopener">Reddit</a>
+  <button class="share-btn ig" id="shareIG" type="button">Instagram</button>
+  <button class="share-btn cp" id="shareCopy" type="button">Copy Link</button>
+</div>
+<script>
+(function(){
+  var pageUrl = window.location.href;
+  var shareText = "Can you survive longer than me in Zombie Siege? Try it here:";
+  var wa=document.getElementById('shareWA'),fb=document.getElementById('shareFB'),rd=document.getElementById('shareRD'),ig=document.getElementById('shareIG'),cp=document.getElementById('shareCopy');
+  if(wa)wa.href="https://wa.me/?text="+encodeURIComponent(shareText+" "+pageUrl);
+  if(fb)fb.href="https://www.facebook.com/sharer/sharer.php?u="+encodeURIComponent(pageUrl);
+  if(rd)rd.href="https://reddit.com/submit?url="+encodeURIComponent(pageUrl)+"&title="+encodeURIComponent(shareText);
+  function copyLink(btn){ try{ navigator.clipboard.writeText(pageUrl).then(function(){ var old=btn.textContent; btn.textContent='Copied!'; setTimeout(function(){btn.textContent=old;},1500);}); }catch(e){ window.prompt('Copy this link:', pageUrl);} }
+  if(ig)ig.addEventListener('click',function(){ if(navigator.share){ navigator.share({text:shareText,url:pageUrl}).catch(function(){}); } else { copyLink(ig); window.alert('Link copied! Paste it in your Instagram story or bio.'); } });
+  if(cp)cp.addEventListener('click',function(){ copyLink(cp); });
+})();
+</script>
+
+<script>
+(function(){
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const boardEl = document.getElementById('board');
+  const scoreEl = document.getElementById('score');
+  const waveEl = document.getElementById('wave');
+  const bestEl = document.getElementById('best');
+  const hpFill = document.getElementById('hpFill');
+  const overlay = document.getElementById('overlay');
+  const overlayText = document.getElementById('overlayText');
+  const overlaySub = document.getElementById('overlaySub');
+  const overlayBtn = document.getElementById('overlayBtn');
+
+  let W,H,dpr;
+  function resize(){
+    const rect = boardEl.getBoundingClientRect();
+    dpr = window.devicePixelRatio||1;
+    W = rect.width; H = rect.height;
+    canvas.width = W*dpr; canvas.height = H*dpr;
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  window.addEventListener('resize', resize);
+  function getCss(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+  let player, targetPos, bullets, zombies, pickups, particles;
+  let score, best, hp, maxHp, wave, over, started, dragging, elapsed, spawnTimer, fireTimer, fireInterval, invincible;
+  let powerState;
+
+  function loadBest(){ try { const v = localStorage.getItem('zombiesiege_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
+  function saveBest(v){ try { localStorage.setItem('zombiesiege_best', String(v)); } catch(e){} }
+
+  function newGame(){
+    player = { x: 0, y: 0, r: Math.min(W,H)*0.04 };
+    targetPos = null;
+    bullets = []; zombies = []; pickups = []; particles = [];
+    score = 0; maxHp = 100; hp = 100; wave = 1; over = false; started = false;
+    elapsed = 0; spawnTimer = 0; fireTimer = 0; fireInterval = 0.55; invincible = 0;
+    powerState = { speed: 0, multi: 0, pierce: 0, shield: 0 };
+    best = loadBest();
+    scoreEl.textContent = 0; waveEl.textContent = 1; bestEl.textContent = best;
+    hpFill.style.width = '100%';
+    overlayText.textContent = 'Zombie Siege';
+    overlaySub.textContent = 'Drag to move around the arena. You fire automatically at the nearest zombie — survive as long as you can.';
+    overlayBtn.textContent = 'Start';
+    overlay.classList.add('show');
+  }
+
+  function placePlayerCenter(){ player.x = W/2; player.y = H/2; }
+
+  function spawnZombie(){
+    const edge = Math.floor(Math.random()*4);
+    let x,y;
+    if (edge===0){ x=Math.random()*W; y=-20; }
+    else if (edge===1){ x=Math.random()*W; y=H+20; }
+    else if (edge===2){ x=-20; y=Math.random()*H; }
+    else { x=W+20; y=Math.random()*H; }
+
+    const df = Math.min(1, elapsed/60);
+    const roll = Math.random();
+    let type='normal', hpVal=1, speed=50, r=Math.min(W,H)*0.035, color=getCss('--zombie1');
+    if (roll < 0.2+df*0.15){ type='fast'; hpVal=1; speed=95; r*=0.85; color=getCss('--zombie2'); }
+    else if (roll < 0.4+df*0.1){ type='tank'; hpVal=3; speed=32; r*=1.25; color=getCss('--zombie3'); }
+    zombies.push({ x,y, r, speed: speed+df*20, hp:hpVal, maxHp:hpVal, color, type });
+  }
+
+  function spawnPickup(x,y){
+    const types = ['health','weapon','speed','multi','pierce','shield'];
+    const type = types[Math.floor(Math.random()*types.length)];
+    pickups.push({ x,y,type });
+  }
+
+  function nearestZombie(){
+    let best=null, bestD=Infinity;
+    zombies.forEach(z => {
+      const d = Math.hypot(z.x-player.x, z.y-player.y);
+      if (d<bestD){ bestD=d; best=z; }
+    });
+    return best;
+  }
+
+  function fireAt(z){
+    const d = Math.hypot(z.x-player.x, z.y-player.y) || 1;
+    const speed = 420;
+    const baseAngle = Math.atan2(z.y-player.y, z.x-player.x);
+    const pierce = powerState.pierce > 0;
+    const angles = powerState.multi > 0 ? [baseAngle-0.28, baseAngle, baseAngle+0.28] : [baseAngle];
+    angles.forEach(a => {
+      bullets.push({ x:player.x, y:player.y, vx:Math.cos(a)*speed, vy:Math.sin(a)*speed, life:1.4, pierce, hitSet: new Set() });
+    });
+  }
+
+  function spawnParticles(x,y,color,count){
+    for (let i=0;i<count;i++){
+      const a = Math.random()*Math.PI*2;
+      const sp = 50+Math.random()*120;
+      particles.push({ x,y, vx:Math.cos(a)*sp, vy:Math.sin(a)*sp, life:0.4, color });
+    }
+  }
+
+  function takeDamage(amount){
+    if (invincible>0 || powerState.shield>0) return;
+    hp = Math.max(0, hp-amount);
+    hpFill.style.width = (hp/maxHp*100)+'%';
+    invincible = 0.6;
+    spawnParticles(player.x, player.y, getCss('--player'), 10);
+    if (hp<=0){
+      over = true;
+      if (score>best){ best=score; bestEl.textContent=best; saveBest(best); }
+      overlayText.textContent = 'Overrun!';
+      overlaySub.textContent = 'Final score: ' + score + ' · Wave ' + wave + (score>=best?' — new best!':'');
+      overlayBtn.textContent = 'Play Again';
+      setTimeout(()=>overlay.classList.add('show'), 300);
+    }
+  }
+
+  function update(dt){
+    if (!started || over) return;
+    elapsed += dt;
+
+    const newWave = Math.floor(elapsed/16)+1;
+    if (newWave !== wave){
+      wave = newWave; waveEl.textContent = wave;
+      if (wave >= 3){
+        const burst = Math.min(4, Math.floor(wave/2));
+        for (let i=0;i<burst;i++) spawnZombie();
+      }
+    }
+
+    if (invincible>0) invincible -= dt;
+    ['speed','multi','pierce','shield'].forEach(k => { if (powerState[k]>0) powerState[k] -= dt; });
+
+    if (targetPos){
+      const dx = targetPos.x-player.x, dy = targetPos.y-player.y;
+      const d = Math.hypot(dx,dy);
+      if (d>3){
+        const speed = powerState.speed>0 ? 300 : 190;
+        player.x += dx/d*Math.min(speed*dt, d);
+        player.y += dy/d*Math.min(speed*dt, d);
+      }
+    }
+    player.x = Math.max(player.r, Math.min(W-player.r, player.x));
+    player.y = Math.max(player.r, Math.min(H-player.r, player.y));
+
+    fireTimer += dt;
+    const activeFireInterval = powerState.multi>0 ? fireInterval*0.85 : fireInterval;
+    if (fireTimer > activeFireInterval){
+      const target = nearestZombie();
+      if (target){ fireTimer=0; fireAt(target); }
+    }
+
+    spawnTimer += dt*1000;
+    const spawnInterval = Math.max(160, 1300 - elapsed*22);
+    if (spawnTimer > spawnInterval){ spawnTimer=0; spawnZombie(); }
+
+    zombies.forEach(z => {
+      const dx = player.x-z.x, dy = player.y-z.y;
+      const d = Math.hypot(dx,dy)||1;
+      const df2 = Math.min(1.6, elapsed/45);
+      z.x += dx/d*(z.speed + df2*35)*dt;
+      z.y += dy/d*(z.speed + df2*35)*dt;
+    });
+
+    bullets.forEach(b => { b.x+=b.vx*dt; b.y+=b.vy*dt; b.life-=dt; });
+    bullets = bullets.filter(b => b.life>0);
+
+    for (let i=bullets.length-1;i>=0;i--){
+      const b = bullets[i];
+      for (let j=zombies.length-1;j>=0;j--){
+        const z = zombies[j];
+        if (b.hitSet && b.hitSet.has(z)) continue;
+        if (Math.hypot(b.x-z.x,b.y-z.y) < z.r+4){
+          z.hp--;
+          if (b.pierce){ b.hitSet.add(z); } else { bullets.splice(i,1); }
+          if (z.hp<=0){
+            spawnParticles(z.x,z.y,z.color,12);
+            score += z.type==='tank'?30:z.type==='fast'?15:10;
+            scoreEl.textContent = score;
+            if (Math.random()<0.16) spawnPickup(z.x,z.y);
+            zombies.splice(j,1);
+          }
+          if (!b.pierce) break;
+        }
+      }
+    }
+
+    for (let j=zombies.length-1;j>=0;j--){
+      const z = zombies[j];
+      if (Math.hypot(player.x-z.x, player.y-z.y) < player.r+z.r*0.7){
+        takeDamage(10);
+        spawnParticles(z.x,z.y,z.color,6);
+        zombies.splice(j,1);
+      }
+    }
+
+    for (let i=pickups.length-1;i>=0;i--){
+      const p = pickups[i];
+      if (Math.hypot(player.x-p.x, player.y-p.y) < player.r+10){
+        if (p.type==='health'){ hp=Math.min(maxHp,hp+25); hpFill.style.width=(hp/maxHp*100)+'%'; }
+        else if (p.type==='weapon'){ fireInterval = Math.max(0.22, fireInterval-0.05); }
+        else if (p.type==='speed'){ powerState.speed = 6; }
+        else if (p.type==='multi'){ powerState.multi = 7; }
+        else if (p.type==='pierce'){ powerState.pierce = 7; }
+        else if (p.type==='shield'){ powerState.shield = 5; }
+        pickups.splice(i,1);
+      }
+    }
+
+    particles.forEach(p => { p.x+=p.vx*dt; p.y+=p.vy*dt; p.life-=dt; });
+    particles = particles.filter(p=>p.life>0);
+  }
+
+  function draw(){
+    const grad = ctx.createLinearGradient(0,0,0,H);
+    grad.addColorStop(0, getCss('--arena-top'));
+    grad.addColorStop(1, getCss('--arena-bottom'));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W,H);
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+    for (let x=0;x<W;x+=40){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+    for (let y=0;y<H;y+=40){ ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+    pickups.forEach(p => {
+      const colorMap = { health: getCss('--hp-fill'), weapon: getCss('--bullet'), speed: getCss('--player'), multi: getCss('--zombie2'), pierce: getCss('--zombie3'), shield: '#ffffff' };
+      const iconMap = { health:'+', weapon:'⚡', speed:'»', multi:'M', pierce:'P', shield:'🛡' };
+      ctx.fillStyle = colorMap[p.type] || '#fff';
+      ctx.beginPath(); ctx.arc(p.x,p.y,9,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = '#0b1508';
+      ctx.font='bold 9px Inter, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(iconMap[p.type]||'?', p.x, p.y+1);
+    });
+
+    zombies.forEach(z => {
+      ctx.fillStyle = z.color;
+      ctx.beginPath(); ctx.arc(z.x,z.y,z.r,0,Math.PI*2); ctx.fill();
+      if (z.maxHp>1){
+        ctx.fillStyle='rgba(0,0,0,0.4)';
+        ctx.fillRect(z.x-z.r, z.y-z.r-8, z.r*2, 4);
+        ctx.fillStyle='#fff';
+        ctx.fillRect(z.x-z.r, z.y-z.r-8, z.r*2*(z.hp/z.maxHp), 4);
+      }
+    });
+
+    ctx.fillStyle = getCss('--bullet');
+    bullets.forEach(b => { ctx.beginPath(); ctx.arc(b.x,b.y,3.5,0,Math.PI*2); ctx.fill(); });
+
+    particles.forEach(p => {
+      ctx.globalAlpha = Math.max(0,p.life/0.4);
+      ctx.fillStyle = p.color;
+      ctx.beginPath(); ctx.arc(p.x,p.y,3,0,Math.PI*2); ctx.fill();
+    });
+    ctx.globalAlpha = 1;
+
+    if (started && !over){
+      ctx.save();
+      if (invincible>0 && Math.floor(invincible*12)%2===0) ctx.globalAlpha=0.4;
+      ctx.fillStyle = getCss('--player');
+      ctx.beginPath(); ctx.arc(player.x,player.y,player.r,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,0.4)';
+      ctx.beginPath(); ctx.arc(player.x-player.r*0.3,player.y-player.r*0.3,player.r*0.3,0,Math.PI*2); ctx.fill();
+      if (powerState.shield>0){
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath(); ctx.arc(player.x,player.y,player.r*1.6,0,Math.PI*2); ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function frame(ts){
+    if (!frame.last) frame.last = ts;
+    const dt = Math.min(0.032,(ts-frame.last)/1000);
+    frame.last = ts;
+    update(dt);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  function setTarget(clientX, clientY){
+    const rect = boardEl.getBoundingClientRect();
+    targetPos = { x: clientX-rect.left, y: clientY-rect.top };
+  }
+
+  boardEl.addEventListener('pointerdown', (e) => {
+    if (over){ newGame(); return; }
+    if (!started){ started=true; overlay.classList.remove('show'); placePlayerCenter(); }
+    dragging = true;
+    setTarget(e.clientX, e.clientY);
+  });
+  window.addEventListener('pointermove', (e) => { if (dragging) setTarget(e.clientX, e.clientY); });
+  window.addEventListener('pointerup', () => { dragging=false; });
+
+  overlayBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    if (over){ newGame(); }
+    else { started=true; overlay.classList.remove('show'); placePlayerCenter(); }
+  });
+
+  resize();
+  newGame();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

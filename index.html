@@ -3,395 +3,259 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Bright Arcade — Free Online Browser Games, No Download Needed</title>
-<meta name="description" content="Bright Arcade is a free collection of original browser games — 2048, Snake, Tic Tac Toe, Memory Match, Flappy Dash, Turbo Dash and Mirror Flap. No downloads, no sign-up, play instantly.">
+<title>Bright Arcade — Free Online Games, No Download</title>
+<meta name="description" content="Play free online games on Bright Arcade: puzzle, 2 player, action, brain and board games. No download, no login — works on phone and PC.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #f4f6fb;
-    --panel: #ffffff;
-    --ink: #1f2340;
-    --muted: #6b7094;
-    --border: #e4e7f5;
+:root{
+  --bg:#E8EEFF; --ink:#1B1F3B; --muted:#5A6185; --tile:#FFFFFF; --chip:#FFFFFF;
+  --chip-on:#1B1F3B; --chip-on-ink:#FFFFFF; --sun:#FFC83D; --ring:#3D5AFE;
+  --shadow:0 3px 0 rgba(27,31,59,.12);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#141833; --ink:#F2F4FF; --muted:#A9AFD6; --tile:#20264A; --chip:#20264A;
+    --chip-on:#FFC83D; --chip-on-ink:#141833; --shadow:0 3px 0 rgba(0,0,0,.35);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#141833; --ink:#F2F4FF; --muted:#A9AFD6; --tile:#20264A; --chip:#20264A;
+  --chip-on:#FFC83D; --chip-on-ink:#141833; --shadow:0 3px 0 rgba(0,0,0,.35);
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img,svg{max-width:100%}
 
-    --c1: #00d1e0;
-    --c2: #a86bff;
-    --c3: #22d38a;
-    --c4: #ffcc29;
-    --c5: #ff8b3d;
-    --c6: #ff5c8a;
-    --c7: #3d7bff;
-  }
-  :root:not([data-theme="light"]) {
-    @media (prefers-color-scheme: dark) {
-      --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --border: #2c2f52;
-    }
-  }
-  :root[data-theme="dark"] { --bg: #14162a; --panel: #1d2040; --ink: #f1f2fb; --muted: #a6a9ce; --border: #2c2f52; }
+/* Top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:var(--bg);padding:12px 16px 10px}
+.bar{max-width:1280px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none;flex-shrink:0}
+.logo-mark{width:40px;height:40px;border-radius:12px;background:var(--sun);display:grid;place-items:center;box-shadow:var(--shadow);transform:rotate(-6deg)}
+.logo-text{font-family:Fredoka,Nunito,sans-serif;font-weight:700;font-size:22px;letter-spacing:-.3px;line-height:1}
+.search{flex:1;max-width:420px;margin-left:auto;position:relative}
+.search input{width:100%;border:0;border-radius:999px;background:var(--tile);color:var(--ink);font:700 15px Nunito,sans-serif;padding:11px 16px 11px 42px;box-shadow:var(--shadow)}
+.search input::placeholder{color:var(--muted);font-weight:500}
+.search svg{position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:.6}
+.chips{max-width:1280px;margin:10px auto 0;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips::-webkit-scrollbar{display:none}
+.chip{border:0;background:var(--chip);color:var(--ink);font:800 14px Nunito,sans-serif;padding:8px 14px;border-radius:999px;cursor:pointer;white-space:nowrap;box-shadow:var(--shadow);display:flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--chip-on);color:var(--chip-on-ink)}
+:focus-visible{outline:3px solid var(--ring);outline-offset:2px}
 
-  * { box-sizing: border-box; }
-  html { scroll-padding-top: env(safe-area-inset-top, 0px); }
-  body {
-    margin: 0; background: var(--bg); color: var(--ink);
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    min-height: 100%;
-  }
-  a { color: inherit; }
+main{max-width:1280px;margin:0 auto;padding:6px 16px 40px}
+h2{font-family:Fredoka,Nunito,sans-serif;font-weight:600;font-size:20px;margin:18px 4px 10px}
 
-  .site-header {
-    display: flex; align-items: center; justify-content: space-between;
-    max-width: 1000px; margin: 0 auto; padding: 22px 20px 0;
-  }
-  .brand { display: flex; align-items: center; gap: 8px; font-family: 'Baloo 2', sans-serif; font-weight: 800; font-size: 20px; }
-  .brand .dot { width: 10px; height: 10px; border-radius: 50%; background: linear-gradient(135deg, var(--c1), var(--c2)); }
-  .site-nav { display: flex; gap: 18px; font-size: 14px; font-weight: 600; color: var(--muted); }
-  .site-nav a { text-decoration: none; }
-  .site-nav a:hover { color: var(--ink); }
+/* Grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));grid-auto-flow:dense;gap:12px}
+.tile{position:relative;aspect-ratio:1;border-radius:18px;overflow:hidden;text-decoration:none;box-shadow:var(--shadow);transition:transform .15s ease;display:block;background:var(--tile)}
+.tile.big{grid-column:span 2;grid-row:span 2;border-radius:24px}
+.tile svg.art{width:100%;height:100%;display:block}
+.tile .name{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 8px;font:800 13px Nunito,sans-serif;color:#fff;background:linear-gradient(transparent,rgba(0,0,0,.6));opacity:0;transform:translateY(6px);transition:opacity .15s,transform .15s}
+.tile.big .name{font-size:17px;padding:28px 14px 12px}
+.tile:hover,.tile:focus-visible{transform:translateY(-3px) scale(1.03)}
+.tile:hover .name,.tile:focus-visible .name{opacity:1;transform:none}
+@media (hover:none){.tile .name{opacity:1;transform:none}}
+.badge{position:absolute;top:8px;left:8px;font:800 11px Nunito,sans-serif;padding:3px 8px;border-radius:999px;background:#fff;color:#1B1F3B}
+.badge.hot{background:#FF4D6D;color:#fff}
+.row{display:flex;gap:12px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px}
+.row::-webkit-scrollbar{display:none}
+.row .tile{width:96px;flex-shrink:0}
+.empty{color:var(--muted);font-weight:700;padding:30px 4px;text-align:center}
 
-  .hero {
-    max-width: 1000px; margin: 0 auto; padding: 54px 20px 30px;
-    text-align: left;
-  }
-  .hero h1 {
-    font-family: 'Baloo 2', sans-serif;
-    font-weight: 800;
-    font-size: clamp(32px, 6vw, 54px);
-    line-height: 1.08;
-    margin: 0 0 14px;
-    max-width: 16ch;
-  }
-  .hero h1 .grad {
-    background: linear-gradient(90deg, var(--c1), var(--c2) 45%, var(--c6));
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-  }
-  .hero p { color: var(--muted); font-size: 17px; max-width: 56ch; line-height: 1.6; margin: 0 0 22px; }
-  .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
-  .btn-primary {
-    background: var(--ink); color: var(--bg); text-decoration: none;
-    padding: 12px 22px; border-radius: 12px; font-weight: 700; font-size: 15px;
-    font-family: 'Inter', sans-serif;
-  }
-  .btn-secondary {
-    border: 1px solid var(--border); text-decoration: none; color: var(--ink);
-    padding: 12px 22px; border-radius: 12px; font-weight: 700; font-size: 15px;
-  }
+/* About */
+.about{margin-top:36px;background:var(--tile);border-radius:24px;padding:22px 22px 8px;box-shadow:var(--shadow)}
+.about h1{font-family:Fredoka,Nunito,sans-serif;font-weight:600;font-size:22px;margin:0 0 8px}
+.about p{color:var(--muted);line-height:1.6;max-width:70ch;margin:0 0 14px}
+footer{max-width:1280px;margin:0 auto;padding:10px 16px 30px;display:flex;flex-wrap:wrap;gap:18px;font-weight:700;color:var(--muted)}
+footer a{text-decoration:none}
+footer a:hover{color:var(--ink)}
 
-  .strip {
-    max-width: 1000px; margin: 30px auto 0; padding: 0 20px;
-    display: flex; gap: 28px; flex-wrap: wrap;
-    color: var(--muted); font-size: 14px;
-  }
-  .strip span { font-weight: 700; color: var(--ink); }
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:#1B1F3B;color:#fff;font-weight:800;padding:12px 18px;border-radius:14px;opacity:0;transition:.2s;pointer-events:none;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
 
-  .games-section { max-width: 1000px; margin: 0 auto; padding: 56px 20px 20px; }
-  .games-section h2 {
-    font-family: 'Baloo 2', sans-serif; font-size: clamp(24px, 4vw, 32px); margin: 0 0 6px;
-  }
-  .games-section > p { color: var(--muted); margin: 0 0 28px; font-size: 15px; max-width: 56ch; }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-    gap: 16px;
-  }
-  .card {
-    background: var(--panel);
-    border-radius: 16px;
-    padding: 20px;
-    text-decoration: none;
-    color: var(--ink);
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    border-top: 4px solid var(--accent, var(--c1));
-    box-shadow: 0 2px 10px rgba(30,30,60,0.06);
-    transition: transform 0.12s ease;
-  }
-  .card:hover { transform: translateY(-3px); }
-  .card .icon { font-size: 30px; }
-  .card h3 { font-family: 'Baloo 2', sans-serif; font-size: 19px; margin: 0; }
-  .card p { color: var(--muted); font-size: 13.5px; line-height: 1.5; margin: 0; flex: 1; }
-  .card .play { font-size: 13px; font-weight: 700; color: var(--ink); }
-
-  .info-section { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
-  .info-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-top: 20px; }
-  .info-grid h3 { font-family: 'Baloo 2', sans-serif; font-size: 18px; margin: 0 0 8px; }
-  .info-grid p { color: var(--muted); font-size: 14.5px; line-height: 1.6; margin: 0; }
-  .info-section h2 { font-family: 'Baloo 2', sans-serif; font-size: clamp(22px, 3.6vw, 28px); margin: 0; }
-  .info-section > p.lead { color: var(--muted); font-size: 15px; max-width: 62ch; margin: 10px 0 0; line-height: 1.6; }
-
-  footer.site-footer {
-    border-top: 1px solid var(--border);
-    margin-top: 50px;
-    padding: 26px 20px 40px;
-  }
-  .footer-inner {
-    max-width: 1000px; margin: 0 auto;
-    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
-  }
-  .footer-links { display: flex; gap: 18px; font-size: 13.5px; color: var(--muted); }
-  .footer-links a { text-decoration: none; }
-  .footer-links a:hover { color: var(--ink); }
-  .footer-note { color: var(--muted); font-size: 13px; }
+@media (max-width:560px){
+  .logo-text{display:none}
+  .grid{grid-template-columns:repeat(3,1fr);gap:10px}
+  .tile{border-radius:16px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
-  <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-VCXTW15M2M"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
-    gtag('config', 'G-VCXTW15M2M');
-  </script>
 </head>
 <body>
 
-  <header class="site-header">
-    <div class="brand"><span class="dot"></span> Bright Arcade</div>
-    <nav class="site-nav">
-      <a href="#games">Games</a>
-      <a href="about.html">About</a>
-      <a href="contact.html">Contact</a>
-    </nav>
-  </header>
+<header class="top">
+  <div class="bar">
+    <a class="logo" href="index.html" aria-label="Bright Arcade home">
+      <span class="logo-mark"><svg width="24" height="24" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="11" rx="5" fill="#1B1F3B"/><rect x="6" y="11.5" width="5" height="2" rx="1" fill="#FFC83D"/><rect x="7.5" y="10" width="2" height="5" rx="1" fill="#FFC83D"/><circle cx="16" cy="11" r="1.4" fill="#FF4D6D"/><circle cx="18" cy="13.6" r="1.4" fill="#3DDC97"/></svg></span>
+      <span class="logo-text">Bright Arcade</span>
+    </a>
+    <label class="search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+      <input id="q" type="search" placeholder="Search games" aria-label="Search games">
+    </label>
+  </div>
+  <nav class="chips" id="chips" aria-label="Categories"></nav>
+</header>
 
-  <section class="hero">
-    <h1>Free games.<br><span class="grad">Zero downloads.</span></h1>
-    <p>Bright Arcade is a small, growing collection of browser games — a few reworked classics and a couple of genuinely original ideas — built to load in under a second and play on anything with a screen.</p>
-    <div class="hero-actions">
-      <a class="btn-primary" href="#games">Browse the games</a>
-      <a class="btn-secondary" href="about.html">About this site</a>
-    </div>
-    <div class="strip">
-      <div><span id="gameCount">0</span> games</div>
-      <div><span>0</span> installs</div>
-      <div><span>0</span> accounts needed</div>
-      <div><span>100%</span> free</div>
-    </div>
+<main>
+  <section id="recentWrap" hidden>
+    <h2>Recently played</h2>
+    <div class="row" id="recent"></div>
   </section>
 
-  <section class="games-section" id="games">
-    <h2>Pick a game</h2>
-    <p>Every game runs entirely in your browser. Tap in, play a round, and come back whenever you've got a minute to kill.</p>
+  <h2 id="gridTitle">All games</h2>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden>No game matches that search. Try "puzzle" or "2 player".</p>
 
-    <div class="grid">
-      <a class="card" style="--accent: var(--c4)" href="2048.html">
-        <div class="icon">🎮</div>
-        <h3>2048 Bright</h3>
-        <p>The classic number-merge puzzle, rebuilt with a bold, high-contrast colour palette so every tile is instantly readable.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c3)" href="snake.html">
-        <div class="icon">🐍</div>
-        <h3>Snake Bright</h3>
-        <p>Guide your snake around the board, eat, grow, and try not to run into your own tail as things speed up.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c5)" href="tictactoe.html">
-        <div class="icon">❌</div>
-        <h3>Tic Tac Toe Bright</h3>
-        <p>Play a friend on the same screen, or challenge a computer opponent that actually plays to win.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c2)" href="memorymatch.html">
-        <div class="icon">🧠</div>
-        <h3>Memory Match Bright</h3>
-        <p>Flip cards, find every pair, and try to beat your best move count across three difficulty levels.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c7)" href="flappydash.html">
-        <div class="icon">🐤</div>
-        <h3>Flappy Dash Bright</h3>
-        <p>Tap to flap and thread the gaps between pipes. One touch to start, one touch to try again.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c6)" href="turbodash.html">
-        <div class="icon">🏎️</div>
-        <h3>Turbo Dash Bright</h3>
-        <p>Switch lanes to dodge barriers and grab coins while the road keeps getting faster underneath you.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c1)" href="mirrorflap.html">
-        <div class="icon">🌗</div>
-        <h3>Mirror Flap Bright</h3>
-        <p>One tap controls two mirrored orbs at once — one falls, one floats. An original twist on the tap-to-fly formula.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c3)" href="wordstreak.html">
-        <div class="icon">🔤</div>
-        <h3>Word Streak Bright</h3>
-        <p>Guess the five-letter word in six tries. A new word every day, plus unlimited practice mode.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c2)" href="sudoku.html">
-        <div class="icon">🔢</div>
-        <h3>Sudoku Bright</h3>
-        <p>A fresh, uniquely-solvable puzzle every time, with notes mode, hints, and three difficulty levels.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c5)" href="stacktower.html">
-        <div class="icon">🧱</div>
-        <h3>Stack Tower Bright</h3>
-        <p>Tap to drop each block and line up a perfect stack. One miss and the tower gets thinner — how high can you build?</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c6)" href="linedrop.html">
-        <div class="icon">🧊</div>
-        <h3>Line Drop Bright</h3>
-        <p>The classic falling-blocks puzzle. Rotate all seven piece shapes, clear full rows, and level up as it speeds up.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c6)" href="minesweeper.html">
-        <div class="icon">💣</div>
-        <h3>Minesweeper Bright</h3>
-        <p>The classic mine-flagging puzzle, with a guaranteed-safe first click and three difficulty levels.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c5)" href="rockpaperscissors.html">
-        <div class="icon">✂️</div>
-        <h3>Rock Paper Scissors Bright</h3>
-        <p>Best of 5 — play the computer, pass the device to a friend, or connect online with a room code.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c4)" href="checkers.html">
-        <div class="icon">⚫</div>
-        <h3>Checkers Bright</h3>
-        <p>Jump your way across the board and crown your kings. Play the computer, a friend, or online.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c1)" href="airhockey.html">
-        <div class="icon">🏒</div>
-        <h3>Air Hockey Bright</h3>
-        <p>Real-time physics — drag your mallet to strike the puck. Play the computer, a friend, or online.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c4)" href="chess.html">
-        <div class="icon">♟️</div>
-        <h3>Chess Bright</h3>
-        <p>Full standard rules — castling, en passant, promotion. Play the computer, a friend, or online.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c3)" href="typingtest.html">
-        <div class="icon">⌨️</div>
-        <h3>Typing Speed Test</h3>
-        <p>Measure your words-per-minute and accuracy with Easy, Medium and Hard passages.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c5)" href="whackamole.html">
-        <div class="icon">🐹</div>
-        <h3>Whack-a-Mole Bright</h3>
-        <p>Tap moles before they vanish, grab golden bonuses, and avoid the bombs. 30 seconds on the clock.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c2)" href="slidingpuzzle.html">
-        <div class="icon">🔢</div>
-        <h3>Sliding Puzzle Bright</h3>
-        <p>The classic 15-puzzle and 8-puzzle. Slide tiles back into order and beat your best move count.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c6)" href="solitaire.html">
-        <div class="icon">🃏</div>
-        <h3>Solitaire Bright</h3>
-        <p>Classic Klondike Solitaire — tap to select and move cards, with auto-complete once you're in the clear.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c1)" href="bubbleshooter.html">
-        <div class="icon">🫧</div>
-        <h3>Bubble Shooter Bright</h3>
-        <p>Aim and shoot to match 3+ bubbles of the same colour and clear the board before it fills up.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c2)" href="galaxyshooter.html">
-        <div class="icon">🚀</div>
-        <h3>Galaxy Shooter Bright</h3>
-        <p>Drag to dodge, auto-fire blasts enemies. Grab power-ups and survive as long as you can.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c3)" href="zombiesiege.html">
-        <div class="icon">🧟</div>
-        <h3>Zombie Siege Bright</h3>
-        <p>Drag to move, auto-fire at the nearest zombie. Survive endless waves and grab power-ups.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c4)" href="platformjumper.html">
-        <div class="icon">⬆️</div>
-        <h3>Platform Jumper Bright</h3>
-        <p>Bounce upward automatically — drag to steer. Climb as high as you can, springs and all.</p>
-        <div class="play">Play now →</div>
-      </a>
-
-      <a class="card" style="--accent: var(--c5)" href="fruitslice.html">
-        <div class="icon">🍉</div>
-        <h3>Fruit Slice Bright</h3>
-        <p>Swipe to slice flying fruit, chain combos for bonus points, and never touch the bombs.</p>
-        <div class="play">Play now →</div>
-      </a>
-    </div>
+  <section class="about">
+    <h1>Free online games on Bright Arcade</h1>
+    <p>Bright Arcade is a collection of free browser games you can play instantly on your phone, tablet or computer. There's nothing to download and no account to make — pick a game and start playing.</p>
+    <p>Play classic puzzles like 2048, Sudoku and Minesweeper, challenge a friend in 2 player games like Tic Tac Toe, Checkers, Chess and Air Hockey, or test your reflexes in Flappy Dash, Whack-a-Mole and Zombie Siege. New games are added every week.</p>
   </section>
+</main>
 
-  <section class="info-section">
-    <h2>Why play on Bright Arcade</h2>
-    <p class="lead">Every game here is built the same way: fast to load, simple to pick up, and free to play for as long as you want, on desktop or mobile.</p>
-    <div class="info-grid">
-      <div>
-        <h3>No installs, no accounts</h3>
-        <p>There's nothing to download and nothing to sign up for. Open a game and you're playing within a second or two, even on a slow connection.</p>
-      </div>
-      <div>
-        <h3>Works on any device</h3>
-        <p>Every game is built to fit a phone screen just as well as a desktop monitor, with touch controls on mobile and keyboard controls on desktop.</p>
-      </div>
-      <div>
-        <h3>Original where it counts</h3>
-        <p>Alongside familiar formats like 2048 and Snake, Bright Arcade includes original ideas like Mirror Flap — games you won't find built quite the same way anywhere else.</p>
-      </div>
-      <div>
-        <h3>New games over time</h3>
-        <p>This is a growing collection. More games get added as they're finished, so it's worth checking back if you've cleared everything here.</p>
-      </div>
-    </div>
-  </section>
+<footer>
+  <a href="about.html">About</a>
+  <a href="contact.html">Contact</a>
+  <a href="privacy.html">Privacy policy</a>
+  <span>© 2026 Bright Arcade</span>
+</footer>
 
-  <footer class="site-footer">
-    <div class="footer-inner">
-      <div class="footer-note">© <span id="year"></span> Bright Arcade. All games built in-house.</div>
-      <div class="footer-links">
-        <a href="about.html">About</a>
-        <a href="privacy.html">Privacy Policy</a>
-        <a href="contact.html">Contact</a>
-      </div>
-    </div>
-  </footer>
+<div class="toast" id="toast" role="status"></div>
 
-  <script>
-    document.getElementById('year').textContent = new Date().getFullYear();
-    document.getElementById('gameCount').textContent = document.querySelectorAll('.grid .card').length;
-  </script>
+<script>
+/* ---------- Game list: add new games here ---------- */
+const GAMES = [
+  {id:"2048", name:"2048", url:"2048.html", cats:["puzzle","brain","classic"], c:["#FFB347","#FF7A59"], big:true, badge:"hot"},
+  {id:"tictactoe", name:"Tic Tac Toe", url:"tictactoe.html", cats:["2player","classic","board"], c:["#6C8CFF","#4A5BFF"], big:true, badge:"hot"},
+  {id:"snake", name:"Snake", url:"snake.html", cats:["action","classic"], c:["#5EE08F","#1FAF6A"]},
+  {id:"chess", name:"Chess", url:"chess.html", cats:["2player","board","brain"], c:["#A58BFF","#6A4DE8"]},
+  {id:"minesweeper", name:"Minesweeper", url:"minesweeper.html", cats:["puzzle","brain","classic"], c:["#9FB4C7","#5E7891"]},
+  {id:"zombiesiege", name:"Zombie Siege", url:"zombiesiege.html", cats:["action"], c:["#8BD35C","#3F7F2A"], big:true, badge:"new"},
+  {id:"sudoku", name:"Sudoku", url:"sudoku.html", cats:["puzzle","brain"], c:["#FFE36E","#FFB800"]},
+  {id:"flappydash", name:"Flappy Dash", url:"flappydash.html", cats:["action"], c:["#6FD6FF","#2CA7E0"]},
+  {id:"checkers", name:"Checkers", url:"checkers.html", cats:["2player","board","classic"], c:["#FF8A8A","#E84545"]},
+  {id:"whackamole", name:"Whack-a-Mole", url:"whackamole.html", cats:["action"], c:["#B6E36B","#6FB23A"], badge:"new"},
+  {id:"memorymatch", name:"Memory Match", url:"memorymatch.html", cats:["brain","puzzle"], c:["#FF9ED2","#E0559B"]},
+  {id:"airhockey", name:"Air Hockey", url:"airhockey.html", cats:["2player","action"], c:["#7EE8E0","#2BB5AB"]},
+  {id:"platformjumper", name:"Platform Jumper", url:"platformjumper.html", cats:["action"], c:["#FFD27A","#FF9F43"], badge:"new"},
+  {id:"typingtest", name:"Typing Speed Test", url:"typingtest.html", cats:["brain"], c:["#C9D3E6","#8A99B8"]},
+  {id:"stacktower", name:"Stack Tower", url:"stacktower.html", cats:["action"], c:["#FFA3A3","#FF6B8B"]},
+  {id:"linedrop", name:"Line Drop", url:"linedrop.html", cats:["puzzle","classic"], c:["#7C83FF","#3B3FD9"]},
+  {id:"wordstreak", name:"Word Streak", url:"wordstreak.html", cats:["brain","puzzle"], c:["#67E3A8","#18A874"]},
+  {id:"rockpaperscissors", name:"Rock Paper Scissors", url:"rockpaperscissors.html", cats:["2player","classic"], c:["#FFC37A","#F08C2E"]},
+  {id:"turbodash", name:"Turbo Dash", url:"turbodash.html", cats:["action"], c:["#FF7AA2","#D6336C"]},
+  {id:"mirrorflap", name:"Mirror Flap", url:"mirrorflap.html", cats:["action"], c:["#B794FF","#43C6FF"]},
+];
+
+const CATS = [
+  {id:"all", label:"All"},
+  {id:"2player", label:"2 Player"},
+  {id:"puzzle", label:"Puzzle"},
+  {id:"action", label:"Action"},
+  {id:"brain", label:"Brain"},
+  {id:"board", label:"Board"},
+  {id:"classic", label:"Classic"},
+];
+
+/* ---------- Thumbnail art (100x100 SVG) ---------- */
+const W="#FFFFFF", D="#1B1F3B";
+const ART = {
+  "2048":`<rect x="18" y="18" width="30" height="30" rx="6" fill="${W}" opacity=".9"/><rect x="52" y="18" width="30" height="30" rx="6" fill="${W}" opacity=".55"/><rect x="18" y="52" width="30" height="30" rx="6" fill="${W}" opacity=".55"/><rect x="52" y="52" width="30" height="30" rx="6" fill="${D}"/><text x="33" y="39" font-size="16" text-anchor="middle" font-family="Fredoka,sans-serif" font-weight="700" fill="#FF7A59">2</text><text x="67" y="73" font-size="11" text-anchor="middle" font-family="Fredoka,sans-serif" font-weight="700" fill="#FFC83D">2048</text>`,
+  tictactoe:`<path d="M40 20v60M60 20v60M20 40h60M20 60h60" stroke="${W}" stroke-width="5" stroke-linecap="round" opacity=".6"/><path d="M24 24l12 12M36 24L24 36M64 64l12 12M76 64 64 76" stroke="${W}" stroke-width="6" stroke-linecap="round"/><circle cx="70" cy="30" r="7" fill="none" stroke="#FFC83D" stroke-width="6"/><circle cx="50" cy="50" r="7" fill="none" stroke="#FFC83D" stroke-width="6"/>`,
+  snake:`<path d="M22 70c10 0 10-20 20-20s10 20 20 20 10-30 16-30" fill="none" stroke="${W}" stroke-width="11" stroke-linecap="round"/><circle cx="78" cy="38" r="9" fill="${W}"/><circle cx="81" cy="35" r="2.4" fill="${D}"/><circle cx="30" cy="30" r="6" fill="#FF4D6D"/>`,
+  chess:`<path d="M38 80h24l-3-8H41z" fill="${W}"/><path d="M42 72c2-10 0-18-4-24 8 2 14-2 16-10 6 6 8 16 4 22l-2 12z" fill="${W}"/><circle cx="49" cy="46" r="2" fill="${D}"/><rect x="34" y="80" width="32" height="6" rx="3" fill="${W}"/>`,
+  minesweeper:`<g stroke="${D}" stroke-width="5" stroke-linecap="round"><path d="M50 26v48M26 50h48M33 33l34 34M67 33 33 67"/></g><circle cx="50" cy="50" r="15" fill="${D}"/><circle cx="45" cy="45" r="4" fill="${W}"/><path d="M68 18v18" stroke="${W}" stroke-width="3"/><path d="M68 18l12 5-12 5z" fill="#FF4D6D"/>`,
+  zombiesiege:`<rect x="28" y="24" width="44" height="46" rx="12" fill="#B8F08A"/><circle cx="41" cy="43" r="6" fill="${W}"/><circle cx="59" cy="45" r="4" fill="${W}"/><circle cx="41" cy="43" r="2.5" fill="#E84545"/><circle cx="59" cy="45" r="2" fill="#E84545"/><path d="M38 60h24" stroke="${D}" stroke-width="4" stroke-linecap="round"/><path d="M43 58v5M50 58v5M57 58v5" stroke="${D}" stroke-width="2"/><path d="M28 34l-6-6M72 30l8-4" stroke="#B8F08A" stroke-width="5" stroke-linecap="round"/>`,
+  sudoku:`<rect x="20" y="20" width="60" height="60" rx="8" fill="${W}"/><path d="M40 20v60M60 20v60M20 40h60M20 60h60" stroke="#FFB800" stroke-width="2"/><g font-family="Fredoka,sans-serif" font-weight="700" font-size="13" fill="${D}" text-anchor="middle"><text x="30" y="35">5</text><text x="70" y="35">3</text><text x="50" y="55">9</text><text x="30" y="75">1</text><text x="70" y="75">7</text></g>`,
+  flappydash:`<rect x="66" y="0" width="16" height="36" fill="#3DDC97"/><rect x="66" y="64" width="16" height="36" fill="#3DDC97"/><rect x="63" y="30" width="22" height="8" rx="2" fill="#2FB57C"/><rect x="63" y="62" width="22" height="8" rx="2" fill="#2FB57C"/><circle cx="38" cy="50" r="14" fill="#FFC83D"/><circle cx="43" cy="45" r="4" fill="${W}"/><circle cx="44" cy="45" r="2" fill="${D}"/><path d="M50 52l8 2-8 3z" fill="#FF7A59"/><ellipse cx="32" cy="54" rx="7" ry="4" fill="${W}"/>`,
+  checkers:`<rect x="18" y="18" width="64" height="64" rx="8" fill="${W}" opacity=".35"/><g fill="${D}" opacity=".35"><rect x="18" y="18" width="16" height="16"/><rect x="50" y="18" width="16" height="16"/><rect x="34" y="34" width="16" height="16"/><rect x="66" y="34" width="16" height="16"/><rect x="18" y="50" width="16" height="16"/><rect x="50" y="50" width="16" height="16"/><rect x="34" y="66" width="16" height="16"/><rect x="66" y="66" width="16" height="16"/></g><circle cx="42" cy="42" r="7" fill="${D}"/><circle cx="58" cy="58" r="7" fill="${W}"/><circle cx="26" cy="58" r="7" fill="${W}"/>`,
+  whackamole:`<ellipse cx="50" cy="74" rx="30" ry="9" fill="${D}" opacity=".6"/><path d="M32 74c0-24 8-36 18-36s18 12 18 36z" fill="#A1683A"/><circle cx="44" cy="52" r="3" fill="${D}"/><circle cx="56" cy="52" r="3" fill="${D}"/><ellipse cx="50" cy="60" rx="5" ry="3.5" fill="#FF9ED2"/><rect x="60" y="14" width="24" height="12" rx="4" fill="#E84545" transform="rotate(20 72 20)"/><rect x="64" y="24" width="5" height="22" rx="2" fill="#8A5A2B" transform="rotate(20 66 35)"/>`,
+  memorymatch:`<rect x="20" y="26" width="28" height="40" rx="6" fill="${W}" transform="rotate(-10 34 46)"/><rect x="52" y="30" width="28" height="40" rx="6" fill="${D}" transform="rotate(8 66 50)"/><path d="M34 41c-3-5-10-2-8 3l8 8 8-8c2-5-5-8-8-3z" fill="#E0559B" transform="rotate(-10 34 46)"/><path d="M60 46l6 6M72 46l-6 6" stroke="#FF9ED2" stroke-width="3" stroke-linecap="round" transform="rotate(8 66 50)"/>`,
+  airhockey:`<rect x="16" y="20" width="68" height="60" rx="14" fill="${W}" opacity=".35"/><path d="M50 20v60" stroke="${W}" stroke-width="3" stroke-dasharray="4 4"/><circle cx="50" cy="50" r="10" fill="none" stroke="${W}" stroke-width="3"/><circle cx="30" cy="50" r="10" fill="#FF4D6D"/><circle cx="30" cy="50" r="4" fill="#C9184A"/><circle cx="72" cy="40" r="10" fill="#3D5AFE"/><circle cx="72" cy="40" r="4" fill="#1B2DB8"/><circle cx="52" cy="62" r="5" fill="${D}"/>`,
+  platformjumper:`<rect x="16" y="74" width="30" height="7" rx="3.5" fill="#3DDC97"/><rect x="54" y="52" width="30" height="7" rx="3.5" fill="#3DDC97"/><rect x="24" y="28" width="26" height="7" rx="3.5" fill="#6FD6FF"/><rect x="60" y="30" width="16" height="18" rx="7" fill="#7C4DFF"/><circle cx="65" cy="37" r="2.2" fill="${W}"/><circle cx="71" cy="37" r="2.2" fill="${W}"/><path d="M58 50l-4 4M78 50l4 4" stroke="#7C4DFF" stroke-width="3" stroke-linecap="round"/>`,
+  typingtest:`<rect x="14" y="36" width="72" height="36" rx="8" fill="${W}"/><g fill="#C9D3E6"><rect x="20" y="42" width="9" height="8" rx="2"/><rect x="32" y="42" width="9" height="8" rx="2"/><rect x="44" y="42" width="9" height="8" rx="2"/><rect x="56" y="42" width="9" height="8" rx="2"/><rect x="68" y="42" width="12" height="8" rx="2"/><rect x="24" y="54" width="9" height="8" rx="2"/><rect x="36" y="54" width="9" height="8" rx="2"/><rect x="60" y="54" width="9" height="8" rx="2"/></g><rect x="48" y="54" width="9" height="8" rx="2" fill="#3D5AFE"/><rect x="32" y="64" width="36" height="5" rx="2" fill="#C9D3E6"/><path d="M30 24h40" stroke="${W}" stroke-width="5" stroke-linecap="round"/><path d="M72 20v10" stroke="#FFC83D" stroke-width="3"/>`,
+  stacktower:`<rect x="30" y="70" width="40" height="11" rx="3" fill="${W}"/><rect x="33" y="58" width="36" height="11" rx="3" fill="#FFE36E"/><rect x="31" y="46" width="34" height="11" rx="3" fill="${W}" opacity=".85"/><rect x="36" y="34" width="30" height="11" rx="3" fill="#FFE36E"/><rect x="52" y="18" width="30" height="11" rx="3" fill="${W}"/><path d="M48 23h-8" stroke="${W}" stroke-width="3" stroke-linecap="round" opacity=".7"/>`,
+  linedrop:`<g stroke="rgba(0,0,0,.15)" stroke-width="1.5"><rect x="22" y="66" width="14" height="14" rx="2" fill="#FFC83D"/><rect x="36" y="66" width="14" height="14" rx="2" fill="#FFC83D"/><rect x="50" y="66" width="14" height="14" rx="2" fill="#3DDC97"/><rect x="64" y="66" width="14" height="14" rx="2" fill="#3DDC97"/><rect x="22" y="52" width="14" height="14" rx="2" fill="#FFC83D"/><rect x="64" y="52" width="14" height="14" rx="2" fill="#3DDC97"/><rect x="36" y="20" width="14" height="14" rx="2" fill="#FF4D6D"/><rect x="50" y="20" width="14" height="14" rx="2" fill="#FF4D6D"/><rect x="50" y="34" width="14" height="14" rx="2" fill="#FF4D6D"/><rect x="64" y="34" width="14" height="14" rx="2" fill="#FF4D6D"/></g>`,
+  wordstreak:`<g font-family="Fredoka,sans-serif" font-weight="700" font-size="16" text-anchor="middle"><rect x="14" y="38" width="17" height="22" rx="4" fill="${W}"/><rect x="33" y="38" width="17" height="22" rx="4" fill="#FFC83D"/><rect x="52" y="38" width="17" height="22" rx="4" fill="${W}"/><rect x="71" y="38" width="17" height="22" rx="4" fill="${D}"/><text x="22.5" y="55" fill="#18A874">W</text><text x="41.5" y="55" fill="${D}">O</text><text x="60.5" y="55" fill="#18A874">R</text><text x="79.5" y="55" fill="${W}">D</text></g>`,
+  rockpaperscissors:`<circle cx="30" cy="36" r="12" fill="#8A7765"/><circle cx="26" cy="32" r="3" fill="#A8968A"/><rect x="54" y="20" width="26" height="32" rx="3" fill="${W}" transform="rotate(10 67 36)"/><path d="M58 30h16M58 36h16M58 42h12" stroke="#FFC37A" stroke-width="2" transform="rotate(10 67 36)"/><g transform="translate(38 58)"><circle cx="6" cy="18" r="6" fill="none" stroke="${D}" stroke-width="3.5"/><circle cx="20" cy="18" r="6" fill="none" stroke="${D}" stroke-width="3.5"/><path d="M9 13 24 0M17 13 2 0" stroke="${W}" stroke-width="4" stroke-linecap="round"/></g>`,
+  turbodash:`<path d="M30 0v100M70 0v100" stroke="${W}" stroke-width="3" opacity=".4"/><path d="M50 8v14M50 34v14M50 60v14M50 86v14" stroke="${W}" stroke-width="3" opacity=".7"/><rect x="36" y="46" width="28" height="42" rx="9" fill="#FFC83D"/><rect x="40" y="54" width="20" height="10" rx="3" fill="${D}"/><rect x="33" y="52" width="4" height="10" rx="2" fill="${D}"/><rect x="63" y="52" width="4" height="10" rx="2" fill="${D}"/><rect x="33" y="74" width="4" height="10" rx="2" fill="${D}"/><rect x="63" y="74" width="4" height="10" rx="2" fill="${D}"/><path d="M42 94v6M58 94v6" stroke="#FF7A59" stroke-width="3" stroke-linecap="round"/>`,
+  mirrorflap:`<path d="M50 10v80" stroke="${W}" stroke-width="2" stroke-dasharray="4 5"/><circle cx="30" cy="40" r="11" fill="#FFC83D"/><circle cx="34" cy="37" r="2.3" fill="${D}"/><path d="M40 41l6 1.5-6 2.5z" fill="#FF7A59"/><circle cx="70" cy="60" r="11" fill="#FFC83D"/><circle cx="66" cy="57" r="2.3" fill="${D}"/><path d="M60 61l-6 1.5 6 2.5z" fill="#FF7A59"/>`
+};
+
+function thumb(g){
+  const gid = "g_"+g.id;
+  return `<svg class="art" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${g.c[0]}"/><stop offset="1" stop-color="${g.c[1]}"/></linearGradient></defs><rect width="100" height="100" fill="url(#${gid})"/>${ART[g.id]||""}</svg>`;
+}
+function tileHTML(g, opts={}){
+  const big = opts.noBig ? "" : (g.big ? " big" : "");
+  const badge = (!opts.noBadge && g.badge) ? `<span class="badge ${g.badge}">${g.badge==="hot"?"Hot":"New"}</span>` : "";
+  return `<a class="tile${big}" href="${g.url}" data-id="${g.id}" aria-label="Play ${g.name}">${thumb(g)}${badge}<span class="name">${g.name}</span></a>`;
+}
+
+/* ---------- State ---------- */
+let cat = "all", query = "";
+const $ = s => document.querySelector(s);
+
+function getRecent(){ try{ return JSON.parse(localStorage.getItem("ba_recent")||"[]"); }catch(e){ return []; } }
+function addRecent(id){
+  try{
+    const r = getRecent().filter(x=>x!==id); r.unshift(id);
+    localStorage.setItem("ba_recent", JSON.stringify(r.slice(0,10)));
+  }catch(e){}
+}
+
+function renderChips(){
+  $("#chips").innerHTML = CATS.map(c=>`<button class="chip" data-cat="${c.id}" aria-pressed="${c.id===cat}">${c.label}</button>`).join("");
+}
+function renderRecent(){
+  const ids = getRecent().filter(id=>GAMES.some(g=>g.id===id));
+  $("#recentWrap").hidden = ids.length===0;
+  $("#recent").innerHTML = ids.map(id=>tileHTML(GAMES.find(g=>g.id===id),{noBig:true,noBadge:true})).join("");
+}
+function renderGrid(){
+  const q = query.trim().toLowerCase();
+  const list = GAMES.filter(g=>{
+    const inCat = cat==="all" || g.cats.includes(cat);
+    const inQ = !q || g.name.toLowerCase().includes(q) || g.cats.some(c=>CATS.find(x=>x.id===c).label.toLowerCase().includes(q));
+    return inCat && inQ;
+  });
+  const filtered = cat!=="all" || q;
+  $("#gridTitle").textContent = q ? `Results for "${query.trim()}"` : (cat==="all" ? "All games" : CATS.find(c=>c.id===cat).label+" games");
+  $("#grid").innerHTML = list.map(g=>tileHTML(g,{noBig:filtered && list.length<6})).join("");
+  $("#empty").hidden = list.length>0;
+}
+
+/* ---------- Events ---------- */
+$("#chips").addEventListener("click", e=>{
+  const b = e.target.closest(".chip"); if(!b) return;
+  cat = b.dataset.cat; renderChips(); renderGrid();
+});
+$("#q").addEventListener("input", e=>{ query = e.target.value; renderGrid(); });
+
+const isDemo = /claude/i.test(location.hostname);
+let toastTimer;
+function toast(msg){
+  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove("show"), 2200);
+}
+document.addEventListener("click", e=>{
+  const a = e.target.closest(".tile"); if(!a) return;
+  addRecent(a.dataset.id);
+  if(isDemo){
+    e.preventDefault(); renderRecent();
+    toast(a.getAttribute("aria-label").replace("Play ","")+" — demo mein game nahi khulega, GitHub pe khulega");
+  }
+});
+
+renderChips(); renderRecent(); renderGrid();
+</script>
 </body>
 </html>

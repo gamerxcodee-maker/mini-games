@@ -10,6 +10,7 @@ Free browser games at https://brightarcade.in/. Buildless HTML, CSS and JavaScri
 - `assets/site.css`, `assets/site.js`: shared discovery styles, privacy controls and opt-in Google Analytics.
 - `privacy.html`, `about.html`, `contact.html`: site information.
 - `sitemap.xml`, `robots.txt`, `ads.txt`: discovery and publisher configuration.
+- `404.html`: non-indexable recovery page for missing URLs; intentionally excluded from the sitemap.
 
 Every HTML page declares its canonical production URL and AdSense verification account `ca-pub-4926802783588277`. No AdSense serving script is loaded. Verification does not mean the site is approved.
 
@@ -26,3 +27,7 @@ Analytics is off by default. Visitors can opt in or withdraw through Privacy cho
 ## Maintaining the directory
 
 When adding a game, update the homepage `GAMES` array, static directory, relevant category pages, related-game links and sitemap. New pages need a unique title/description, canonical URL, shared assets and privacy controls. Test touch controls as well as keyboard input. Do not add copied guides or unsupported feature claims.
+
+## Checks
+
+Run `node scripts/run-checks.cjs` before publishing, or `npm run check` if npm is available. No dependency installation is needed: the checks use Node's built-in modules. They validate pages, local links, metadata, the sitemap, privacy controls and selected game regressions, including typing timing, word streaks, score records, Turbo Dash bonuses and Memory Match resets. Browser QA is still required for visual layout and interactions. These checks do not claim to exhaustively test every game or online multiplayer.

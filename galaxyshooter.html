@@ -172,6 +172,8 @@
   let score, best, lives, over, started, dragging, elapsed, spawnTimer, fireTimer, invincible;
   let powerupState;
 
+  let runBestAtStart = 0;
+
   function loadBest(){ try { const v = localStorage.getItem('galaxyshooter_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
   function saveBest(v){ try { localStorage.setItem('galaxyshooter_best', String(v)); } catch(e){} }
 
@@ -183,6 +185,7 @@
   }
 
   function newGame(){
+    runBestAtStart = loadBest();
     ship = { x: W/2, y: H*0.86, r: Math.min(W,H)*0.045 };
     bullets = []; enemyBullets = []; enemies = []; powerups = []; particles = [];
     score = 0; lives = 3; over = false; started = false; elapsed = 0;
@@ -251,7 +254,7 @@
       over = true;
       if (score > best){ best=score; bestEl.textContent=best; saveBest(best); }
       overlayText.textContent = 'Ship Destroyed';
-      overlaySub.textContent = 'Final score: ' + score + (score>=best?' — new best!':'');
+      overlaySub.textContent = 'Final score: ' + score + (score > runBestAtStart?' — new best!':'');
       overlayBtn.textContent = 'Play Again';
       setTimeout(()=>overlay.classList.add('show'), 300);
     }

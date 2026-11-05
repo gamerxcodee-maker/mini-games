@@ -175,10 +175,13 @@
   const GRAVITY = 900;
   let items, particles, trail, score, best, lives, over, started, elapsed, spawnTimer;
 
+  let runBestAtStart = 0;
+
   function loadBest(){ try { const v = localStorage.getItem('fruitslice_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
   function saveBest(v){ try { localStorage.setItem('fruitslice_best', String(v)); } catch(e){} }
 
   function newGame(){
+    runBestAtStart = loadBest();
     items = []; particles = []; trail = [];
     score = 0; lives = 3; over = false; started = false; elapsed = 0; spawnTimer = 0;
     best = loadBest();
@@ -224,7 +227,7 @@
     over = true;
     if (score>best){ best=score; bestEl.textContent=best; saveBest(best); }
     overlayText.textContent = bombHit ? 'Boom!' : 'Out of Lives';
-    overlaySub.textContent = 'Final score: ' + score + (score>=best?' — new best!':' · Best: '+best);
+    overlaySub.textContent = 'Final score: ' + score + (score > runBestAtStart?' — new best!':' · Best: '+best);
     overlayBtn.textContent = 'Play Again';
     setTimeout(()=>overlay.classList.add('show'), 300);
   }

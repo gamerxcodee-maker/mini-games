@@ -173,6 +173,8 @@
   let holes = [];
   let score, best, timeLeft, started, over, spawnTimeout, gameTimerInt, elapsed;
 
+  let runBestAtStart = 0;
+
   function loadBest(){ try { const v = localStorage.getItem('whackamole_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
   function saveBest(v){ try { localStorage.setItem('whackamole_best', String(v)); } catch(e){} }
 
@@ -195,6 +197,7 @@
   }
 
   function newGame(){
+    runBestAtStart = loadBest();
     score = 0; timeLeft = 30; started = false; over = false; elapsed = 0;
     best = loadBest();
     scoreEl.textContent = 0;
@@ -290,7 +293,7 @@
     holes.forEach((h,i) => hideCritter(i));
     if (score > best){ best = score; bestEl.textContent = best; saveBest(best); }
     overlayText.textContent = "Time's Up!";
-    overlaySub.textContent = 'Final score: ' + score + (score >= best ? ' — new best!' : ' · Best: ' + best);
+    overlaySub.textContent = 'Final score: ' + score + (score > runBestAtStart ? ' — new best!' : ' · Best: ' + best);
     overlayBtn.textContent = 'Play Again';
     overlay.classList.add('show');
   }

@@ -219,10 +219,13 @@
 
   let blockH, stack, current, debris, score, best, over, started, speed, combo, anchorY, tState;
 
+  let runBestAtStart = 0;
+
   function loadBest(){ try { const b = localStorage.getItem('stacktower_best'); return b?parseInt(b,10):0; } catch(e){ return 0; } }
   function saveBest(v){ try { localStorage.setItem('stacktower_best', String(v)); } catch(e){} }
 
   function newGame(){
+    runBestAtStart = loadBest();
     blockH = H * BLOCK_H_RATIO;
     anchorY = H*0.62;
     const startW = W*0.5;
@@ -300,7 +303,7 @@
     over = true;
     debris.push({ x: fallenBlock.x, w: fallenBlock.w, y: anchorY-blockH, vy: -60, vx: (Math.random()-0.5)*100, rot:0, vr:(Math.random()-0.5)*0.1, colorIdx: fallenBlock.colorIdx, life: 2 });
     overlayText.textContent = 'Tower Collapsed!';
-    overlaySub.textContent = 'Height: ' + score + (score >= best ? ' — new best!' : ' · Best: ' + best);
+    overlaySub.textContent = 'Height: ' + score + (score > runBestAtStart ? ' — new best!' : ' · Best: ' + best);
     overlayBtn.textContent = 'Try Again';
     setTimeout(() => overlay.classList.add('show'), 450);
   }
@@ -376,6 +379,8 @@
     drop();
   });
   document.addEventListener('keydown', (e) => {
+    if (document.querySelector('dialog[open]') || e.target.closest?.('input,textarea,select,a,[contenteditable="true"]') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if ((e.code === 'Space' || e.key === 'Enter') && e.target.closest?.('button')) return;
     if (e.code === 'Space'){
       e.preventDefault();
       if (over){ newGame(); } else { drop(); }

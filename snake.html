@@ -373,6 +373,8 @@
 
   let snake, dir, nextDir, food, score, best, over, tickMs, loopHandle;
 
+  let runBestAtStart = 0;
+
   function loadBest(){
     try {
       const b = localStorage.getItem('brightsnake_best');
@@ -406,6 +408,7 @@
   }
 
   function newGame(){
+    runBestAtStart = loadBest();
     snake = [{x:9,y:10},{x:8,y:10},{x:7,y:10}];
     dir = {x:1,y:0};
     nextDir = {x:1,y:0};
@@ -453,12 +456,12 @@
     bestEl.textContent = best;
     saveBest(best);
     overlayText.textContent = 'Game Over';
-    overlaySub.textContent = 'Score: ' + score + (score >= best && score > 0 ? ' — new best!' : '');
+    overlaySub.textContent = 'Score: ' + score + (score > runBestAtStart && score > 0 ? ' — new best!' : '');
     overlay.classList.add('show');
   }
 
   function draw(){
-    if (!cellSize) return;
+    if (!cellSize || !food || !snake) return;
     ctx.clearRect(0,0,canvas.width, canvas.height);
 
     ctx.fillStyle = 'rgba(255,255,255,0.03)';
@@ -594,6 +597,8 @@
   }
 
   document.addEventListener('keydown', (e) => {
+    if (document.querySelector('dialog[open]') || e.target.closest?.('input,textarea,select,a,[contenteditable="true"]') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if ((e.code === 'Space' || e.key === 'Enter') && e.target.closest?.('button')) return;
     const map = {
       ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0],
       w:[0,-1], s:[0,1], a:[-1,0], d:[1,0]

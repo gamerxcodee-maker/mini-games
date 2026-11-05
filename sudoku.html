@@ -527,6 +527,8 @@
   modeBtns.forEach(btn => btn.addEventListener('click', () => newGame(btn.dataset.diff)));
 
   document.addEventListener('keydown', (e) => {
+    if (document.querySelector('dialog[open]') || e.target.closest?.('input,textarea,select,a,[contenteditable="true"]') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if ((e.code === 'Space' || e.key === 'Enter') && e.target.closest?.('button')) return;
     if (/^[1-9]$/.test(e.key)) placeNumber(parseInt(e.key,10));
     if (e.key === 'Backspace' || e.key === 'Delete') eraseCell();
   });

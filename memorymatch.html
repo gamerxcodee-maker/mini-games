@@ -82,7 +82,9 @@
   .board.medium { grid-template-columns: repeat(4, 1fr); }
   .board.hard { grid-template-columns: repeat(4, 1fr); }
 
+  .card:focus-visible { outline:3px solid var(--accent-dark); outline-offset:3px; }
   .card {
+    padding:0; border:0; background:transparent; color:inherit; width:100%; font:inherit;
     position: relative;
     aspect-ratio: 1 / 1;
     cursor: pointer;
@@ -223,7 +225,7 @@
 
   <section class="info">
     <h2>How to play Memory Match</h2>
-    <p>Tap any two cards to flip them over. If the symbols match, they stay face-up. If they don't, they flip back and it's the next attempt. Clear the whole board by matching every pair — try to do it in as few moves as possible.</p>
+    <p>Tap, click, or use Tab and Enter to flip two cards. The completion timer starts with your first flip. If the symbols match, they stay face-up. If they don't, they flip back and it's the next attempt. Clear the whole board by matching every pair — try to do it in as few moves as possible.</p>
   </section>
 
   <section class="info">
@@ -269,6 +271,7 @@
 
   let level = 'medium';
   let cards, flipped, matchedCount, moves, timerInterval, seconds, locked;
+  let mismatchTimer = null, startedAt = null;
 
   function loadBest(lvl){
     try {
@@ -290,10 +293,11 @@
 
   function startTimer(){
     seconds = 0;
+    startedAt = Date.now();
     timerEl.textContent = '0:00';
     clearInterval(timerInterval);
     timerInterval = setInterval(() => {
-      seconds++;
+      seconds = Math.floor((Date.now() - startedAt) / 1000);
       const m = Math.floor(seconds/60);
       const s = seconds % 60;
       timerEl.textContent = m + ':' + String(s).padStart(2,'0');
@@ -301,6 +305,12 @@
   }
 
   function newGame(){
+    clearTimeout(mismatchTimer);
+    mismatchTimer = null;
+    clearInterval(timerInterval);
+    startedAt = null;
+    seconds = 0;
+    timerEl.textContent = '0:00';
     const { cols, pairs } = LEVELS[level];
     boardEl.className = 'board ' + level;
     boardEl.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
@@ -318,20 +328,22 @@
 
     boardEl.innerHTML = '';
     cards.forEach((sym, i) => {
-      const card = document.createElement('div');
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.setAttribute('aria-label', 'Card '+(i+1)+', face down');
+      card.setAttribute('aria-pressed', 'false');
       card.className = 'card';
       card.dataset.i = i;
       card.dataset.sym = sym;
       card.innerHTML = `
         <div class="card-inner">
-          <div class="face back">❔</div>
-          <div class="face front">${sym}</div>
+          <div class="face back" aria-hidden="true">❔</div>
+          <div class="face front" aria-hidden="true">${sym}</div>
         </div>`;
       card.addEventListener('click', () => onCardClick(card));
       boardEl.appendChild(card);
     });
 
-    startTimer();
   }
 
   function onCardClick(card){
@@ -339,7 +351,10 @@
     if (card.classList.contains('flipped') || card.classList.contains('matched')) return;
     if (flipped.length === 2) return;
 
+    if (startedAt === null) startTimer();
     card.classList.add('flipped');
+    card.setAttribute('aria-pressed', 'true');
+    card.setAttribute('aria-label', 'Card '+(Number(card.dataset.i)+1)+', '+card.dataset.sym);
     flipped.push(card);
 
     if (flipped.length === 2){
@@ -349,6 +364,9 @@
       if (a.dataset.sym === b.dataset.sym){
         a.classList.add('matched');
         b.classList.add('matched');
+        a.disabled = true; b.disabled = true;
+        a.setAttribute('aria-label', a.getAttribute('aria-label')+', matched');
+        b.setAttribute('aria-label', b.getAttribute('aria-label')+', matched');
         flipped = [];
         matchedCount++;
         if (matchedCount === LEVELS[level].pairs){
@@ -356,9 +374,14 @@
         }
       } else {
         locked = true;
-        setTimeout(() => {
+        mismatchTimer = setTimeout(() => {
           a.classList.remove('flipped');
           b.classList.remove('flipped');
+          for (const hidden of [a,b]){
+            hidden.setAttribute('aria-pressed', 'false');
+            hidden.setAttribute('aria-label', 'Card '+(Number(hidden.dataset.i)+1)+', face down');
+          }
+          mismatchTimer = null;
           flipped = [];
           locked = false;
         }, 700);

@@ -172,6 +172,8 @@
 
   let player, platforms, cameraTop, startY, minY, score, best, over, started, pointerDown, targetX, particles;
 
+  let runBestAtStart = 0;
+
   function loadBest(){ try { const v = localStorage.getItem('platformjumper_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
   function saveBest(v){ try { localStorage.setItem('platformjumper_best', String(v)); } catch(e){} }
 
@@ -195,6 +197,7 @@
   }
 
   function newGame(){
+    runBestAtStart = loadBest();
     startY = 0;
     player = { x: W/2, y: startY, vy: JUMP_V*0.6, r: Math.min(W,H)*0.035 };
     platforms = [];
@@ -300,7 +303,7 @@
     over = true;
     if (score>best){ best=score; bestEl.textContent=best; saveBest(best); }
     overlayText.textContent = 'Fell Down!';
-    overlaySub.textContent = 'Height: ' + score + (score>=best?' — new best!':' · Best: '+best);
+    overlaySub.textContent = 'Height: ' + score + (score > runBestAtStart?' — new best!':' · Best: '+best);
     overlayBtn.textContent = 'Play Again';
     setTimeout(()=>overlay.classList.add('show'), 300);
   }

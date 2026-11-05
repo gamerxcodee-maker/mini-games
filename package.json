@@ -1,0 +1,7 @@
+{
+  "name": "bright-arcade",
+  "private": true,
+  "scripts": {
+    "check": "node scripts/run-checks.cjs"
+  }
+}

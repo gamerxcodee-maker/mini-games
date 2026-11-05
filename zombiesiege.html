@@ -184,10 +184,13 @@
   let score, best, hp, maxHp, wave, over, started, dragging, elapsed, spawnTimer, fireTimer, fireInterval, invincible;
   let powerState;
 
+  let runBestAtStart = 0;
+
   function loadBest(){ try { const v = localStorage.getItem('zombiesiege_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
   function saveBest(v){ try { localStorage.setItem('zombiesiege_best', String(v)); } catch(e){} }
 
   function newGame(){
+    runBestAtStart = loadBest();
     player = { x: 0, y: 0, r: Math.min(W,H)*0.04 };
     targetPos = null;
     bullets = []; zombies = []; pickups = []; particles = [];
@@ -265,7 +268,7 @@
       over = true;
       if (score>best){ best=score; bestEl.textContent=best; saveBest(best); }
       overlayText.textContent = 'Overrun!';
-      overlaySub.textContent = 'Final score: ' + score + ' · Wave ' + wave + (score>=best?' — new best!':'');
+      overlaySub.textContent = 'Final score: ' + score + ' · Wave ' + wave + (score > runBestAtStart?' — new best!':'');
       overlayBtn.textContent = 'Play Again';
       setTimeout(()=>overlay.classList.add('show'), 300);
     }

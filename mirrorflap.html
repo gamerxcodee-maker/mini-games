@@ -234,10 +234,13 @@
 
   let ballA, ballB, pipes, score, best, over, started, spawnTimer, spawnInterval, elapsed, particles, localFixedX;
 
+  let runBestAtStart = 0;
+
   function loadBest(){ try { const b = localStorage.getItem('mirrorflap_best'); return b?parseInt(b,10):0; } catch(e){ return 0; } }
   function saveBest(v){ try { localStorage.setItem('mirrorflap_best', String(v)); } catch(e){} }
 
   function newGame(){
+    runBestAtStart = loadBest();
     localFixedX = halfW*0.42;
     ballA = { y: H*0.4, vy: 0, r: Math.min(halfW,H)*0.05 };
     ballB = { y: H*0.6, vy: 0, r: Math.min(halfW,H)*0.05 };
@@ -340,7 +343,7 @@
     spawnParticles(localFixedX, ballA.y, getCss('--ballA'), 14);
     spawnParticles(halfW+localFixedX, ballB.y, getCss('--ballB'), 14);
     overlayText.textContent = 'Both Down!';
-    overlaySub.textContent = 'Score: ' + score + (score >= best ? ' — new best!' : ' · Best: ' + best);
+    overlaySub.textContent = 'Score: ' + score + (score > runBestAtStart ? ' — new best!' : ' · Best: ' + best);
     overlayBtn.textContent = 'Try Again';
     overlay.classList.add('show');
   }
@@ -412,6 +415,8 @@
     flap();
   });
   document.addEventListener('keydown', (e) => {
+    if (document.querySelector('dialog[open]') || e.target.closest?.('input,textarea,select,a,[contenteditable="true"]') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if ((e.code === 'Space' || e.key === 'Enter') && e.target.closest?.('button')) return;
     if (e.code === 'Space'){
       e.preventDefault();
       if (over){ newGame(); } else { flap(); }

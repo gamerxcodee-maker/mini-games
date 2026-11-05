@@ -187,6 +187,8 @@
     gameOverRow = Math.floor((shooterY - gridTop) / rowH) - 1;
   }
 
+  let runBestAtStart = 0;
+
   function loadBest(){ try { const v = localStorage.getItem('bubbleshooter_best'); return v?parseInt(v,10):0; } catch(e){ return 0; } }
   function saveBest(v){ try { localStorage.setItem('bubbleshooter_best', String(v)); } catch(e){} }
 
@@ -226,6 +228,7 @@
   }
 
   function newGame(){
+    runBestAtStart = loadBest();
     initGrid();
     score = 0; over = false; started = false; particles = [];
     best = loadBest();
@@ -394,13 +397,13 @@
     if (maxRow === -1){
       over = true;
       overlayText.textContent = 'Board Cleared! 🎉';
-      overlaySub.textContent = 'Final score: ' + score + (score>=best?' — new best!':'');
+      overlaySub.textContent = 'Final score: ' + score + (score > runBestAtStart?' — new best!':'');
       overlayBtn.textContent = 'Play Again';
       setTimeout(()=>overlay.classList.add('show'), 300);
     } else if (maxRow >= gameOverRow){
       over = true;
       overlayText.textContent = 'Game Over';
-      overlaySub.textContent = 'The stack reached the bottom. Score: ' + score + (score>=best?' — new best!':'');
+      overlaySub.textContent = 'The stack reached the bottom. Score: ' + score + (score > runBestAtStart?' — new best!':'');
       overlayBtn.textContent = 'Play Again';
       setTimeout(()=>overlay.classList.add('show'), 300);
     }

@@ -138,9 +138,9 @@
     <button class="mode-btn" id="modePractice">Practice</button>
   </div>
 
-  <div class="message" id="message"></div>
+  <div class="message" id="message" role="status" aria-live="polite"></div>
 
-  <div class="board" id="board"></div>
+  <div class="board" id="board" tabindex="0" role="region" aria-label="Word Streak puzzle board"></div>
 
   <div class="keyboard" id="keyboard"></div>
 
@@ -155,12 +155,12 @@
 
   <section class="info">
     <h2>How to play Word Streak</h2>
-    <p>You have six tries to guess a hidden five-letter word. After each guess, each letter's tile changes colour: green means that letter is in the word and in the right spot, yellow means it's in the word but in the wrong spot, and grey means it isn't in the word at all. Use the on-screen keyboard, or just type and press Enter on desktop.</p>
+    <p>You have six tries to guess a hidden five-letter word. Green means a correct letter in the right spot; yellow means a matching letter in a different spot. Grey means there is no remaining matching occurrence for that tile, so an extra repeated letter can be grey even if another copy is green. Use the on-screen keyboard, or focus the board, type and press Enter on desktop. This lightweight version accepts any five-letter combination; it does not validate guesses against a dictionary.</p>
   </section>
 
   <section class="info">
     <h2>Daily vs Practice</h2>
-    <p>Daily mode gives everyone the same word each day, and solving it keeps your streak alive — miss a day and the streak resets. Practice mode gives you a fresh random word every time you want to play, with no effect on your streak, so you can warm up or play as many rounds as you like.</p>
+    <p>Daily mode chooses a word from your device’s local calendar date. Consecutive daily wins build your streak; a skipped day or daily loss breaks it. Wins and progress are stored on this browser. Practice chooses a random word each time you select it and does not add wins to your daily streak.</p>
   </section>
 
   
@@ -171,7 +171,7 @@
 
   <section class="info">
     <h2>Frequently asked questions</h2>
-    <p><strong>Is the daily word the same for everyone?</strong> Yes — the daily word is generated from the current date, so everyone playing Word Streak on the same day gets the same word.</p>
+    <p><strong>Is the daily word the same for everyone?</strong> Players using the same local calendar date get the same daily word. Players in different time zones may already be on different dates.</p>
     <p><strong>What happens if I miss a day?</strong> Your streak resets to zero the next time you play if you don't solve that day's word.</p>
     <p><strong>Can I keep playing after solving the daily word?</strong> Yes — switch to Practice mode for unlimited random words that don't affect your streak.</p>
   </section>
@@ -212,11 +212,26 @@
   const shareRow = document.getElementById('shareRow');
 
   const ROWS = 6, COLS = 5;
-  let grid, curRow, curCol, targetWord, over, mode, keyStates;
+  let grid, curRow, curCol, targetWord, over, mode, keyStates, activeDayKey;
 
   function todayKey(){
     const d = new Date();
     return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+  }
+
+  function yesterdayKey(){
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    return d.getFullYear() + '-' + (d.getMonth()+1) + '-' + d.getDate();
+  }
+
+  function currentStreak(){
+    const data = loadJSON('wordstreak_streak', { streak:0, best:0, lastWin:null });
+    if (data.lastWin !== todayKey() && data.lastWin !== yesterdayKey()){
+      data.streak = 0;
+      saveJSON('wordstreak_streak', data);
+    }
+    return data;
   }
 
   function hashStr(s){
@@ -249,6 +264,7 @@
         const tile = document.createElement('div');
         tile.className = 'tile';
         tile.id = 'tile-'+r+'-'+c;
+        tile.setAttribute('aria-label', 'Row '+(r+1)+', letter '+(c+1)+', empty');
         row.appendChild(tile);
       }
       boardEl.appendChild(row);
@@ -271,6 +287,7 @@
         btn.className = 'key' + (k.length > 1 ? ' wide' : '');
         btn.textContent = k === 'BACK' ? '⌫' : (k === 'ENTER' ? 'Enter' : k);
         btn.dataset.key = k;
+        btn.setAttribute('aria-label', k === 'BACK' ? 'Delete letter' : (k === 'ENTER' ? 'Submit guess' : k.toUpperCase()));
         btn.addEventListener('click', () => handleKey(k));
         krow.appendChild(btn);
       });
@@ -285,6 +302,7 @@
 
   function startGame(newMode){
     mode = newMode;
+    activeDayKey = mode === 'daily' ? todayKey() : null;
     modeDailyBtn.classList.toggle('active', mode === 'daily');
     modePracticeBtn.classList.toggle('active', mode === 'practice');
     grid = Array.from({length:ROWS}, () => Array(COLS).fill(''));
@@ -297,16 +315,16 @@
 
     if (mode === 'daily'){
       targetWord = getDailyWord();
-      const saved = loadJSON('wordstreak_daily_'+todayKey(), null);
-      const streakData = loadJSON('wordstreak_streak', { streak:0, best:0, lastWin:null });
+      const saved = loadJSON('wordstreak_daily_'+activeDayKey, null);
+      const streakData = currentStreak();
       streakValEl.textContent = streakData.streak;
       bestValEl.textContent = streakData.best;
-      if (saved){
+      if (saved && Array.isArray(saved.guesses) && saved.guesses.length <= ROWS && saved.guesses.every(g => typeof g === 'string' && /^[a-z]{5}$/.test(g))){
         restoreState(saved);
       }
     } else {
       targetWord = getRandomWord();
-      const streakData = loadJSON('wordstreak_streak', { streak:0, best:0, lastWin:null });
+      const streakData = currentStreak();
       streakValEl.textContent = streakData.streak;
       bestValEl.textContent = streakData.best;
     }
@@ -320,7 +338,7 @@
         tile.textContent = g[c];
         tile.classList.add('filled');
       }
-      colorRow(r, g, false);
+      colorRow(r, g, true);
     });
     curRow = saved.guesses.length;
     over = saved.over;
@@ -332,6 +350,11 @@
   }
 
   function handleKey(k){
+    if (mode === 'daily' && activeDayKey !== todayKey()){
+      startGame('daily');
+      setMessage('A new daily puzzle is ready for your local date.');
+      return;
+    }
     if (over) return;
     if (k === 'BACK'){
       if (curCol > 0){
@@ -339,6 +362,7 @@
         grid[curRow][curCol] = '';
         const tile = document.getElementById('tile-'+curRow+'-'+curCol);
         tile.textContent = '';
+        tile.setAttribute('aria-label', 'Row '+(curRow+1)+', letter '+(curCol+1)+', empty');
         tile.classList.remove('filled');
       }
       return;
@@ -352,6 +376,7 @@
       grid[curRow][curCol] = k;
       const tile = document.getElementById('tile-'+curRow+'-'+curCol);
       tile.textContent = k;
+      tile.setAttribute('aria-label', 'Row '+(curRow+1)+', letter '+(curCol+1)+', '+k.toUpperCase());
       tile.classList.add('filled', 'pop');
       setTimeout(() => tile.classList.remove('pop'), 150);
       curCol++;
@@ -399,10 +424,11 @@
     for (let i=0;i<COLS;i++){
       const tile = document.getElementById('tile-'+r+'-'+i);
       tile.classList.add(result[i]);
+      tile.setAttribute('aria-label', 'Row '+(r+1)+', letter '+(i+1)+', '+letters[i].toUpperCase()+', '+result[i]);
       if (updateKeys){
         const rank = { absent:0, present:1, correct:2 };
-        const cur = keyStates[letters[i]] || 'absent';
-        if (rank[result[i]] > rank[cur]){
+        const cur = keyStates[letters[i]];
+        if (cur === undefined || rank[result[i]] > rank[cur]){
           keyStates[letters[i]] = result[i];
           const keyBtn = keyboardEl.querySelector('[data-key="'+letters[i]+'"]');
           if (keyBtn){
@@ -420,10 +446,10 @@
     const guesses = grid.slice(0, curRow+1).map(r => r.join(''));
     setupShare(guesses, true);
     if (mode === 'daily'){
-      const streakData = loadJSON('wordstreak_streak', { streak:0, best:0, lastWin:null });
-      const today = todayKey();
+      const streakData = currentStreak();
+      const today = activeDayKey;
       if (streakData.lastWin !== today){
-        streakData.streak++;
+        streakData.streak = streakData.lastWin === yesterdayKey() ? streakData.streak + 1 : 1;
         streakData.best = Math.max(streakData.best, streakData.streak);
         streakData.lastWin = today;
         saveJSON('wordstreak_streak', streakData);
@@ -449,15 +475,13 @@
   }
 
   function showEndMessage(won){
-    setTimeout(() => {
-      messageEl.textContent = won ? 'Nice! You got it in ' + curRow + '/' + ROWS : 'The word was ' + targetWord.toUpperCase();
-    }, 300);
+    const count = grid.filter(row => row.every(letter => letter !== '')).length;
+    messageEl.textContent = won ? 'Nice! You got it in ' + count + '/' + ROWS : 'The word was ' + targetWord.toUpperCase();
   }
 
   function saveDailyState(){
-    const guesses = grid.slice(0, curRow + (over && curRow < ROWS ? 1 : 0)).map(r => r.join(''));
     const actualGuesses = grid.filter(r => r.every(c => c !== '')).map(r => r.join(''));
-    saveJSON('wordstreak_daily_'+todayKey(), { guesses: actualGuesses, over, won: actualGuesses.includes(targetWord) });
+    saveJSON('wordstreak_daily_'+activeDayKey, { guesses: actualGuesses, over, won: actualGuesses.includes(targetWord) });
   }
 
   function setupShare(guesses, won){
@@ -501,13 +525,15 @@
   }
 
   document.addEventListener('keydown', (e) => {
+    if (document.querySelector('dialog[open]') || e.target.closest('input,textarea,select,a,button:not(.key),[contenteditable="true"]') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === 'Enter' || e.key === 'Backspace' || /^[a-zA-Z]$/.test(e.key)) e.preventDefault();
     if (e.key === 'Enter') handleKey('ENTER');
     else if (e.key === 'Backspace') handleKey('BACK');
     else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toLowerCase());
   });
 
-  modeDailyBtn.addEventListener('click', () => startGame('daily'));
-  modePracticeBtn.addEventListener('click', () => startGame('practice'));
+  modeDailyBtn.addEventListener('click', () => { startGame('daily'); boardEl.focus(); });
+  modePracticeBtn.addEventListener('click', () => { startGame('practice'); boardEl.focus(); });
 
   startGame('daily');
 })();

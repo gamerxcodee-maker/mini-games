@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Flappy Dash Bright — Free Online Flappy Bird Style Game</title>
-<meta name="description" content="Play Flappy Dash Bright, a free online flappy-style tap game. Guide the bird through the gaps and beat your best score, on desktop or mobile.">
+<title>Flappy Dash — Play Free Online | Bright Arcade</title>
+<meta name="description" content="Play Flappy Dash free in your browser. Tap, click or press Space to fly through pipe gaps, score points and beat your saved best. No download or sign-up.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -100,7 +100,7 @@
   .share-btn:active { transform: scale(0.96); }
 </style>
 <link rel="canonical" href="https://brightarcade.in/flappydash.html">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Bright Arcade"><meta property="og:title" content="Flappy Dash Bright — Free Online Flappy Bird Style Game"><meta property="og:description" content="Play Flappy Dash Bright, a free online flappy-style tap game. Guide the bird through the gaps and beat your best score, on desktop or mobile."><meta property="og:url" content="https://brightarcade.in/flappydash.html"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="assets/site.css"><script defer src="assets/site.js"></script>
+<meta property="og:type" content="website"><meta property="og:site_name" content="Bright Arcade"><meta property="og:title" content="Flappy Dash — Play Free Online | Bright Arcade"><meta property="og:description" content="Play Flappy Dash free in your browser. Tap, click or press Space to fly through pipe gaps, score points and beat your saved best. No download or sign-up."><meta property="og:url" content="https://brightarcade.in/flappydash.html"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="assets/site.css"><script defer src="assets/site.js"></script>
 <meta name="google-adsense-account" content="ca-pub-4926802783588277">
 </head>
 <body>
@@ -120,7 +120,7 @@
 
   <div class="hint-row" id="hint">Tap the board, click, or press Space to start and flap.</div>
 
-  <div class="board-shell" id="board">
+  <div class="board-shell" id="board" tabindex="0" role="region" aria-label="Flappy Dash play area" aria-describedby="hint">
     <canvas id="canvas"></canvas>
     <div class="overlay" id="overlay">
       <h2 id="overlayText">Ready?</h2>
@@ -176,12 +176,12 @@
 
   <section class="info">
     <h2>How to play Flappy Dash</h2>
-    <p>Tap the screen, click with your mouse, or press the space bar to make the bird flap upward. Gravity pulls it back down constantly, so you need a steady rhythm of taps to stay level. Fly through the gap in each pair of pipes to score a point — touching a pipe or the ground ends the run.</p>
+    <p>Tap or click inside the game board, or press Space, to make the bird flap upward. Gravity pulls it back down between flaps. Each pair of pipes you pass adds one point. Touching a pipe, the ground or the top edge ends the run. You can start without a download or account.</p>
   </section>
 
   <section class="info">
-    <h2>Tips for a higher score</h2>
-    <p>Small, frequent taps give you more control than a few big ones. Try to keep the bird near the vertical centre of each gap rather than diving in from the edge, since that gives you more room to react to the next pipe.</p>
+    <h2>Controls, scoring and restarting</h2>
+    <p>Use individual taps, mouse clicks or Space presses to flap; holding Space does not produce extra flaps. Try Again opens a fresh ready screen, then Start begins the next run. Your Best score is saved in this browser and remains when a run ends. Clearing the site’s browser data can remove that saved score.</p>
   </section>
 
   
@@ -192,8 +192,8 @@
 
   <section class="info">
     <h2>Frequently asked questions</h2>
-    <p><strong>Does the game get faster the longer I survive?</strong> Yes — pipes scroll a little faster and gaps get slightly tighter as your score climbs.</p>
-    <p><strong>What ends a run?</strong> Touching a pipe or the ground ends the run immediately, and your score is compared against your saved best.</p>
+    <p><strong>Does the game get faster the longer I survive?</strong> No. This version uses a fixed pipe speed and gap size. The gap’s vertical position changes randomly, so each run still requires fresh timing.</p>
+    <p><strong>What ends a run?</strong> Touching a pipe, the ground or the top edge ends the run immediately. A new-best message appears only when you exceed your previous best score.</p>
     <p><strong>Can I play with a keyboard?</strong> Yes — press Space to flap on desktop, or tap the screen on mobile.</p>
   </section>
 
@@ -321,11 +321,12 @@
 
   function endGame(){
     state = 'over';
+    const isNewBest = score > best;
     best = Math.max(best, score);
     bestEl.textContent = best;
     saveBest(best);
     overlayText.textContent = 'Game Over';
-    overlaySub.textContent = 'Score: ' + score + (score >= best && score > 0 ? ' — new best!' : '');
+    overlaySub.textContent = 'Score: ' + score + (isNewBest ? ' — new best!' : '');
     overlayBtn.textContent = 'Try Again';
     overlay.classList.add('show');
   }
@@ -394,9 +395,18 @@
     requestAnimationFrame(frame);
   }
 
-  boardEl.addEventListener('pointerdown', (e) => { e.preventDefault(); flap(); });
+  boardEl.addEventListener('pointerdown', (e) => {
+    if (e.target.closest('button')) return;
+    e.preventDefault();
+    boardEl.focus();
+    flap();
+  });
   document.addEventListener('keydown', (e) => {
-    if (e.code === 'Space'){ e.preventDefault(); flap(); }
+    if (document.querySelector('dialog[open]') || e.target.closest('input,textarea,select,button,a,[contenteditable="true"]')) return;
+    if (e.code === 'Space'){
+      e.preventDefault();
+      if (!e.repeat) flap();
+    }
   });
   overlayBtn.addEventListener('click', (e) => { e.stopPropagation(); flap(); });
 

@@ -6,6 +6,7 @@ Free browser games at https://brightarcade.in/. Buildless HTML, CSS and JavaScri
 
 - `index.html`: searchable game grid and static directory for all 25 games.
 - `*-games.html`: six browseable category collections.
+- `2048-strategy.html`, `typing-practice.html`: worked examples and practice guides linked from the relevant games and collections.
 - `assets/site.css`, `assets/site.js`: shared discovery styles, privacy controls and opt-in Google Analytics.
 - `privacy.html`, `about.html`, `contact.html`: site information.
 - `sitemap.xml`, `robots.txt`, `ads.txt`: discovery and publisher configuration.

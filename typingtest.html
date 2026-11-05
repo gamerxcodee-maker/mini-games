@@ -102,7 +102,7 @@
 
   <div class="stats">
     <div class="stat-box"><div class="label">Time</div><div class="value" id="timeVal">60</div></div>
-    <div class="stat-box"><div class="label">WPM</div><div class="value" id="wpmVal">0</div></div>
+    <div class="stat-box"><div class="label">Gross WPM</div><div class="value" id="wpmVal">0</div></div>
     <div class="stat-box"><div class="label">Accuracy</div><div class="value" id="accVal">100%</div></div>
     <div class="stat-box"><div class="label">Best WPM</div><div class="value" id="bestVal">0</div></div>
   </div>
@@ -111,7 +111,7 @@
 
   <div class="text-panel" id="textPanel" tabindex="0">
     <span id="textDisplay"></span>
-    <input type="text" class="hidden-input" id="hiddenInput" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+    <input type="text" class="hidden-input" id="hiddenInput" aria-label="Type the passage here" aria-describedby="startHint" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
   </div>
 
   <div class="result-card" id="resultCard">
@@ -145,7 +145,7 @@
 
   <section class="info">
     <h2>Frequently asked questions</h2>
-    <p><strong>How is WPM calculated?</strong> Words per minute is calculated as (characters typed ÷ 5) ÷ minutes elapsed, the standard formula used by most typing tests.</p>
+    <p><strong>How is WPM calculated?</strong> Gross WPM is (characters currently entered ÷ 5) ÷ minutes elapsed. Errors are not subtracted from this speed, so read it alongside accuracy.</p>
     <p><strong>What counts as an error?</strong> Any character that doesn't match the target passage at that position counts as an error, shown highlighted in red as you type.</p>
     <p><strong>Do harder passages affect my WPM?</strong> They can — Hard passages include numbers and punctuation that naturally slow most typists down, so comparing WPM across difficulties isn't quite apples-to-apples.</p>
   </section>
@@ -205,7 +205,7 @@
       "Remote work has changed how many companies think about offices, commutes, and even hiring — some teams now span several countries, meeting only through video calls and shared documents."
     ],
     hard: [
-      "By 2024, roughly 63% of surveyed developers reported using at least one AI-assisted tool weekly; adoption varied significantly (from 41% to 78%) depending on company size, region, and prior tooling maturity.",
+      "At 09:45, the sample order contained 12 blue folders, 8 green notebooks, and 3 spare pens; the delivery note read: check every item, record the total, then place the box on shelf B-17.",
       "The contract stipulated: \"Payment shall be rendered within 30 days of invoice, net of applicable taxes,\" a clause later disputed when the vendor's invoice #4471-B arrived nine days past the quarter's close.",
       "Quantum entanglement — often summarized (imprecisely) as 'spooky action at a distance' — doesn't actually transmit information faster than light; it correlates measurement outcomes across otherwise independent systems."
     ]
@@ -267,7 +267,7 @@
   function startTimer(){
     startTime = Date.now();
     timerInterval = setInterval(() => {
-      timeLeft--;
+      timeLeft = Math.max(0, Math.ceil(timeLimit - (Date.now() - startTime) / 1000));
       timeValEl.textContent = Math.max(0, timeLeft);
       updateLiveWpm();
       if (timeLeft <= 0){ finishTest('time'); }
@@ -324,6 +324,7 @@
   });
 
   textPanel.addEventListener('click', () => hiddenInput.focus());
+  textPanel.addEventListener('focus', () => hiddenInput.focus());
 
   restartBtn.addEventListener('click', resetTest);
   modeBtns.forEach(btn => btn.addEventListener('click', () => {
@@ -335,7 +336,7 @@
   resetTest();
 })();
 </script>
-<section class="ba-related" aria-label="Related games"><h2>Try another game</h2><div class="ba-cards"><a class="ba-card" href="2048.html"><strong>2048</strong><span>Play 2048 Bright, a free online number-merge puzzle with a bold, high-contrast colour palette. Swipe or use arrow keys to combine tiles and reach 2048.</span></a><a class="ba-card" href="chess.html"><strong>Chess</strong><span>Play Chess Bright free online. Full standard rules including castling, en passant and promotion. Challenge a friend on a different device, play locally, or face the computer.</span></a><a class="ba-card" href="minesweeper.html"><strong>Minesweeper</strong><span>Play Minesweeper Bright, a free online classic Minesweeper game. Flag the mines, clear every safe cell, with Easy, Medium and Hard difficulty and a safe first click.</span></a></div><nav class="ba-links" aria-label="Related collections"><a href="brain-games.html">Brain and Typing Games</a></nav></section><footer class="ba-footer"><nav aria-label="Site information"><a href="/">All games</a><a href="about.html">About</a><a href="contact.html">Contact</a><a href="privacy.html">Privacy policy</a><button type="button" data-privacy-open>Privacy choices</button></nav><p>© 2026 Bright Arcade · Free browser games</p></footer>
+<section class="ba-related" aria-label="Related games"><h2>Try another game</h2><div class="ba-cards"><a class="ba-card" href="2048.html"><strong>2048</strong><span>Play 2048 Bright, a free online number-merge puzzle with a bold, high-contrast colour palette. Swipe or use arrow keys to combine tiles and reach 2048.</span></a><a class="ba-card" href="chess.html"><strong>Chess</strong><span>Play Chess Bright free online. Full standard rules including castling, en passant and promotion. Challenge a friend on a different device, play locally, or face the computer.</span></a><a class="ba-card" href="minesweeper.html"><strong>Minesweeper</strong><span>Play Minesweeper Bright, a free online classic Minesweeper game. Flag the mines, clear every safe cell, with Easy, Medium and Hard difficulty and a safe first click.</span></a></div><nav class="ba-links" aria-label="Related collections"><a href="brain-games.html">Brain and Typing Games</a></nav></section><aside class="ba-related"><h2>Practice guide</h2><p><a href="typing-practice.html">Understand WPM and plan your typing practice</a></p></aside><footer class="ba-footer"><nav aria-label="Site information"><a href="/">All games</a><a href="about.html">About</a><a href="contact.html">Contact</a><a href="privacy.html">Privacy policy</a><button type="button" data-privacy-open>Privacy choices</button></nav><p>© 2026 Bright Arcade · Free browser games</p></footer>
 <dialog class="ba-privacy" id="ba-privacy" aria-labelledby="ba-privacy-title"><h2 id="ba-privacy-title">Your privacy choices</h2><p>Games work without analytics. Allow optional Google Analytics to help us understand which pages visitors use, or keep it off. You can change this choice here at any time.</p><p id="ba-consent-status"></p><p><a href="privacy.html">Read our privacy policy</a></p><div class="ba-privacy-actions"><button type="button" data-analytics-deny>Keep analytics off</button><button type="button" data-analytics-allow>Allow analytics</button><button type="button" data-privacy-close>Close</button></div></dialog>
 </body>
 </html>

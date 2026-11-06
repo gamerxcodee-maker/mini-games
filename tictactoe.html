@@ -245,11 +245,12 @@
   </div>
 
   <div class="online-panel" id="onlinePanel" style="display:none;">
-    <div class="online-status" id="onlineStatus">Create a room or enter a friend's code to connect.</div>
+    <div class="online-status" id="onlineStatus" role="status">Create a room or enter a friend's code to connect.</div>
+    <button class="new-game" id="leaveRoomBtn" hidden>Leave Room</button>
     <div class="online-actions" id="onlineActions">
       <button class="new-game" id="createRoomBtn">Create Room</button>
       <div class="join-row">
-        <input type="text" id="joinCodeInput" placeholder="Enter friend's code" maxlength="8">
+        <input type="text" id="joinCodeInput" aria-label="Friend's six-character room code" placeholder="Enter friend's code" maxlength="6" autocapitalize="characters" spellcheck="false">
         <button class="new-game" id="joinRoomBtn">Join</button>
       </div>
     </div>
@@ -343,7 +344,7 @@
 
   <section class="info">
     <h2>How the online room works</h2>
-    <p>The room uses WebRTC to connect your two browsers, with a public signalling service to help them find each other. No account is needed. Keep both game tabs open. Connections can fail because of a service outage, browser settings or network restrictions; check the room code, try again, or try a different network.</p>
+    <p>The room uses WebRTC to connect your two browsers, with a public signalling service to help them find each other. No account is needed. Keep both game tabs open. Use Leave Room to end a session. If a connection fails, create a new room and share its new six-character code; reconnecting starts a fresh match and resets scores. Connections can fail because of a service outage, browser settings or network restrictions. An abrupt network loss may take time to detect.</p>
   </section>
 
   
@@ -356,7 +357,7 @@
     <h2>Frequently asked questions</h2>
     <p><strong>Can Tic Tac Toe always end in a draw?</strong> Perfect play from both sides leads to a draw. This computer uses a simple strategy: take an immediate win, block an immediate loss, then prefer the centre and corners. It can miss forks and is beatable.</p>
     <p><strong>How can I avoid losing?</strong> Look for your own winning move first, then block an immediate threat. Watch for forks that create two winning lines at once; a centre or corner opening alone does not guarantee a draw.</p>
-    <p><strong>Does the online score reset between rounds?</strong> No — scores persist across rounds until you refresh the page or switch modes.</p>
+    <p><strong>Does the online score reset between rounds?</strong> Reset Round keeps the match scores. Refreshing, switching modes or connecting a new room starts a fresh match with zero scores.</p>
   </section>
 
   <footer class="credit">Original build · gameplay runs in your browser · scores reset when you refresh the page</footer>
@@ -412,6 +413,26 @@
   let scores = { x: 0, o: 0, draw: 0 };
 
   let onlineMode = false, peer = null, conn = null, myRole = null, onlineConnected = false;
+  let connectionTimer = null;
+  const leaveRoomBtn = document.getElementById('leaveRoomBtn');
+
+  function leaveRoom(message = 'Create or join a new room to begin a fresh match.'){
+    clearTimeout(connectionTimer);
+    connectionTimer = null;
+    const oldConn = conn, oldPeer = peer;
+    conn = null; peer = null; myRole = null; onlineConnected = false;
+    // Invalidate callbacks before closing: old rooms must never update a new one.
+    if (oldConn) oldConn.close();
+    if (oldPeer) oldPeer.destroy();
+    leaveRoomBtn.hidden = true;
+    onlineActions.style.display = 'flex';
+    roomInfo.style.display = 'none';
+    overlay.classList.remove('show');
+    onlineStatus.textContent = message;
+    if (onlineMode) statusText.textContent = 'Connect with a friend to begin';
+  }
+  leaveRoomBtn.addEventListener('click', () => leaveRoom('You left the room. Create or join a new room to play again.'));
+  window.addEventListener('pagehide', () => leaveRoom());
 
   function newRound(){
     clearTimeout(cpuTimer);
@@ -427,6 +448,7 @@
   function updateStatus(){
     if (over) return;
     if (onlineMode){
+      if (!onlineConnected){ statusText.textContent = 'Connect with a friend to begin'; return; }
       const label = turn === myRole ? 'Your turn' : "Opponent's turn";
       statusText.innerHTML = label + ' — <span class="' + turn + '">' + turn.toUpperCase() + '</span>';
     } else {
@@ -508,6 +530,7 @@
   }
 
   function onResetClick(){
+    if (onlineMode && !onlineConnected) return;
     newRound();
     if (onlineMode && conn && conn.open){ conn.send({ type: 'reset' }); }
   }
@@ -518,7 +541,7 @@
     const i = parseInt(cell.dataset.i, 10);
 
     if (onlineMode){
-      if (!onlineConnected || turn !== myRole || over) return;
+      if (!onlineConnected || !conn || !conn.open || turn !== myRole || over || board[i]) return;
       handleMove(i);
       if (conn && conn.open) conn.send({ type: 'move', index: i });
       return;
@@ -536,6 +559,7 @@
   }
 
   mode2p.addEventListener('click', () => {
+    leaveRoom();
     vsCpu = false; onlineMode = false;
     setActiveMode(mode2p);
     onlinePanel.style.display = 'none';
@@ -546,6 +570,7 @@
     newRound();
   });
   modeCpu.addEventListener('click', () => {
+    leaveRoom();
     vsCpu = true; onlineMode = false;
     setActiveMode(modeCpu);
     onlinePanel.style.display = 'none';
@@ -556,6 +581,7 @@
     newRound();
   });
   modeOnline.addEventListener('click', () => {
+    leaveRoom();
     clearTimeout(cpuTimer);
     cpuTimer = null;
     vsCpu = false; onlineMode = true;
@@ -565,9 +591,7 @@
     p2Label.textContent = 'Player O';
     scores = { x:0, o:0, draw:0 };
     p1Score.textContent = 0; p2Score.textContent = 0; drawScore.textContent = 0;
-    statusText.textContent = 'Connect with a friend to begin';
-    board = Array(9).fill(null);
-    cells.forEach(c => { c.textContent=''; c.className='cell'; });
+    newRound();
   });
 
   function genCode(){
@@ -577,69 +601,93 @@
     return s;
   }
 
-  function setupConnection(connection, asHost){
+  function setupConnection(connection, asHost, owner){
+    if (peer !== owner || conn){ connection.close(); return; }
     conn = connection;
-    setTimeout(() => {
-      if (!onlineConnected){
-        onlineStatus.textContent = "Still not connected. This can happen on some WiFi/mobile networks that block direct device connections — try switching one device to mobile data, or a different network.";
-      }
+    const current = () => onlineMode && peer === owner && conn === connection;
+    clearTimeout(connectionTimer);
+    connectionTimer = setTimeout(() => {
+      if (current() && !onlineConnected) leaveRoom('Connection timed out. Check the code or try another network, then create or join a new room.');
     }, 14000);
-
-    conn.on('open', () => {
+    connection.on('open', () => {
+      if (!current()) return;
+      clearTimeout(connectionTimer);
       onlineConnected = true;
       myRole = asHost ? 'x' : 'o';
+      scores = { x:0, o:0, draw:0 };
+      p1Score.textContent = 0; p2Score.textContent = 0; drawScore.textContent = 0;
       onlineStatus.textContent = 'Connected! You are playing as ' + myRole.toUpperCase() + '.';
       onlineActions.style.display = 'none';
       roomInfo.style.display = 'none';
       newRound();
     });
-    conn.on('data', (data) => {
-      if (data.type === 'move'){
+    connection.on('data', (data) => {
+      if (!current() || !onlineConnected || !data || typeof data !== 'object') return;
+      if (data.type === 'move' && turn !== myRole){
         handleMove(data.index);
       } else if (data.type === 'reset'){
         newRound();
       }
     });
-    conn.on('close', () => {
-      onlineConnected = false;
-      onlineStatus.textContent = 'Friend disconnected. Create or join a new room to keep playing.';
-      onlineActions.style.display = 'flex';
-      roomInfo.style.display = 'none';
+    connection.on('close', () => {
+      if (current()) leaveRoom('Friend disconnected. Create or join a new room to start a fresh match.');
     });
+    connection.on('error', () => {
+      if (current()) leaveRoom('Connection lost. Create or join a new room to play again.');
+    });
+  }
+
+  function startPeer(id){
+    leaveRoom();
+    if (typeof Peer !== 'function'){
+      onlineStatus.textContent = 'Online service could not load. Refresh to try again, or play 2 Players / vs Computer.';
+      return null;
+    }
+    let owner;
+    try { owner = id ? new Peer(id, PEER_CONFIG) : new Peer(PEER_CONFIG); }
+    catch { onlineStatus.textContent = 'Online service unavailable. Please try again later.'; return null; }
+    peer = owner;
+    leaveRoomBtn.hidden = false;
+    connectionTimer = setTimeout(() => {
+      if (peer === owner && !onlineConnected) leaveRoom('Connection timed out. Please create or join a new room.');
+    }, 14000);
+    owner.on('error', () => {
+      if (peer === owner) leaveRoom("Couldn't connect. Check the code and try creating or joining a new room.");
+    });
+    owner.on('disconnected', () => {
+      // An established data channel can keep working without the signalling server.
+      if (peer === owner && !onlineConnected) leaveRoom('Room service disconnected. Please create or join a new room.');
+    });
+    return owner;
   }
 
   createRoomBtn.addEventListener('click', () => {
     const code = genCode();
+    const owner = startPeer('bright-ttt-' + code);
+    if (!owner) return;
     onlineStatus.textContent = 'Setting up room...';
-    peer = new Peer('bright-ttt-' + code, PEER_CONFIG);
-    peer.on('open', () => {
+    owner.on('open', () => {
+      if (peer !== owner || !onlineMode) return;
+      clearTimeout(connectionTimer);
       roomCodeDisplay.textContent = code;
       roomInfo.style.display = 'flex';
       onlineStatus.textContent = 'Share this code — waiting for your friend to join...';
     });
-    peer.on('connection', (connection) => {
-      setupConnection(connection, true);
-    });
-    peer.on('error', (err) => {
-      onlineStatus.textContent = 'Connection error. Please try creating a new room.';
-    });
+    owner.on('connection', connection => setupConnection(connection, true, owner));
   });
 
   function joinWithCode(code){
     code = code.trim().toUpperCase();
-    if (!code) return;
+    if (!/^[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(code)){
+      onlineStatus.textContent = 'Enter the six-character code shown in your friend’s room.';
+      return;
+    }
+    const owner = startPeer();
+    if (!owner) return;
     onlineStatus.textContent = 'Connecting...';
-    peer = new Peer(PEER_CONFIG);
-    peer.on('open', () => {
-      const connection = peer.connect('bright-ttt-' + code);
-      connection.on('open', () => {});
-      connection.on('error', () => {
-        onlineStatus.textContent = "Couldn't connect. Check the code and try again.";
-      });
-      setupConnection(connection, false);
-    });
-    peer.on('error', () => {
-      onlineStatus.textContent = "Couldn't connect. Check the code and try again.";
+    owner.on('open', () => {
+      if (peer !== owner || !onlineMode) return;
+      setupConnection(owner.connect('bright-ttt-' + code), false, owner);
     });
   }
 

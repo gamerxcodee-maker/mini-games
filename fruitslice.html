@@ -97,25 +97,25 @@
     <canvas id="canvas"></canvas>
     <div class="overlay" id="overlay">
       <h2 id="overlayText">Fruit Slice</h2>
-      <p id="overlaySub">Swipe across the fruit to slice it. Slicing several in one swipe scores a combo bonus. Never slice a bomb.</p>
+      <p id="overlaySub">Swipe across the fruit to slice it. Cut fruit together for extra points. Never slice a bomb.</p>
       <button id="overlayBtn">Start</button>
     </div>
   </div>
 
   <section class="info">
     <h2>How to play Fruit Slice</h2>
-    <p>Fruit launches up from the bottom of the screen in gentle arcs. Swipe your finger or mouse across a piece of fruit to slice it in half for points. Slice several fruits in one continuous swipe to trigger a combo bonus worth extra points. Letting three fruits fall unsliced ends the round — and slicing a bomb ends it instantly, no matter how many lives you have left.</p>
+    <p>Fruit launches up from the bottom of the screen in gentle arcs. Swipe your finger or mouse across a piece of fruit to slice it in half for points. A swipe can track several fruit in its combo count. Catching multiple fruit together in one movement awards extra points; the counter itself does not multiply the score. Letting three fruits fall unsliced ends the round — and slicing a bomb ends it instantly, no matter how many lives you have left.</p>
   </section>
 
   <section class="info">
     <h2>Tips for bigger combos</h2>
-    <p>Watch the pattern fruit launches in rather than reacting to each piece individually — after a few throws you can often predict where the next batch will peak and plan a single sweeping swipe through several at once. Long, fast swipes register combos more reliably than short taps, since the game checks your whole swipe path for fruit it crosses. When a bomb appears near a cluster of fruit, it's almost always safer to slice around it in a separate motion than to risk a combo swipe through the group.</p>
+    <p>Watch the pattern fruit launches in rather than reacting to each piece individually — after a few throws you can often predict where the next batch will peak and plan a single sweeping swipe through several at once. The game checks the path between pointer positions. Plan a safe segment through nearby fruit, and release before moving past a bomb. When a bomb appears near a cluster of fruit, it's almost always safer to slice around it in a separate motion than to risk a combo swipe through the group.</p>
   </section>
 
   <section class="info">
     <h2>Frequently asked questions</h2>
     <p><strong>What happens if I slice a bomb?</strong> The round ends immediately, regardless of how many lives or how high a score you have.</p>
-    <p><strong>How are combos scored?</strong> Each fruit sliced within the same continuous swipe adds to that swipe's combo count, and the bonus grows with each additional fruit in the chain.</p>
+    <p><strong>How are combos scored?</strong> The swipe tracks a combo count. Score is awarded for each cutting movement: one fruit adds 10 points, while multiple fruit caught together by that movement add 15 points each. The displayed combo count is not a separate points multiplier.</p>
     <p><strong>Does the game get faster over time?</strong> Yes — fruit launches more frequently and bombs appear more often the longer you survive.</p>
   </section>
 
@@ -189,7 +189,7 @@
     livesEl.textContent = '❤️❤️❤️';
     bestEl.textContent = best;
     overlayText.textContent = 'Fruit Slice';
-    overlaySub.textContent = 'Swipe across the fruit to slice it. Slicing several in one swipe scores a combo bonus. Never slice a bomb.';
+    overlaySub.textContent = 'Swipe across the fruit to slice it. Cut fruit together for extra points. Never slice a bomb.';
     overlayBtn.textContent = 'Start';
     overlay.classList.add('show');
   }
@@ -401,6 +401,7 @@
   requestAnimationFrame(frame);
 })();
 </script>
+<section class="ba-practice" id="practice-guide" data-game-guide="fruitslice" aria-labelledby="practice-heading"><h2 id="practice-heading">Fruit Slice practice guide</h2><h3>Read the whole swipe path before moving</h3><p>Swipe through fruit with your finger or a held mouse pointer. The path between successive positions is checked, so a bomb between your starting and ending points is dangerous even if the pointer ends on clear space. Look at the path, not just the fruit you intend to hit. A shorter safe cut can be better than a long sweep across a mixed group of fruit and bombs.</p><h3>Two fruit with a bomb between them</h3><p>A fruit rises on the left, another on the right, and a bomb sits between them. A straight sweep joining the fruit crosses the bomb’s area and can end the run. Cut a safe fruit separately, release to reposition, then decide whether the other fruit still has a clear approach. If there is no safe route, missing fruit can be preferable to an immediate bomb collision.</p><h3>A focused practice session</h3><ol><li>Start by making single-fruit cuts and noticing when the pointer is actively slicing.</li><li>Practise releasing before moving across an unsafe part of the board.</li><li>When several fruit cluster together, predict a clear segment through them before attempting a multi-fruit cut.</li></ol><h3>What to keep in mind</h3><p>Three missed fruit end the run, while slicing a bomb ends it immediately. Cutting several fruit together in one movement can earn extra points. A swipe may contain several movements, so its displayed combo count is not a simple points multiplier. Avoid taking a risky cut just to extend that count.</p><nav class="ba-guide-directory" aria-label="Game guides"><a href="game-guides.html">All 25 game guides</a><a href="snake.html#practice-guide">Snake guide</a><a href="zombiesiege.html#practice-guide">Zombie Siege guide</a></nav></section>
 <section class="ba-related" aria-label="Related games"><h2>Try another game</h2><div class="ba-cards"><a class="ba-card" href="snake.html"><strong>Snake</strong><span>Play Snake Bright, a free online Snake game with smooth controls, mobile swipe support and a clean colourful design. No download needed.</span></a><a class="ba-card" href="zombiesiege.html"><strong>Zombie Siege</strong><span>Play Zombie Siege Bright, a free online top-down survival shooter. Move to dodge the horde while your character auto-fires at the nearest zombie — survive as long as you can.</span></a><a class="ba-card" href="flappydash.html"><strong>Flappy Dash</strong><span>Play Flappy Dash Bright, a free online flappy-style tap game. Guide the bird through the gaps and beat your best score, on desktop or mobile.</span></a></div><nav class="ba-links" aria-label="Related collections"><a href="action-games.html">Action Games</a></nav></section><footer class="ba-footer"><nav aria-label="Site information"><a href="/">All games</a><a href="about.html">About</a><a href="contact.html">Contact</a><a href="privacy.html">Privacy policy</a><button type="button" data-privacy-open>Privacy choices</button></nav><p>© 2026 Bright Arcade · Free browser games</p></footer>
 <dialog class="ba-privacy" id="ba-privacy" aria-labelledby="ba-privacy-title"><h2 id="ba-privacy-title">Your privacy choices</h2><p>Games work without analytics. Allow optional Google Analytics to help us understand which pages visitors use, or keep it off. You can change this choice here at any time.</p><p id="ba-consent-status"></p><p><a href="privacy.html">Read our privacy policy</a></p><div class="ba-privacy-actions"><button type="button" data-analytics-deny>Keep analytics off</button><button type="button" data-analytics-allow>Allow analytics</button><button type="button" data-privacy-close>Close</button></div></dialog>
 </body>

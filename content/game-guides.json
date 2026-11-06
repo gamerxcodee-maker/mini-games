@@ -1,0 +1,325 @@
+[
+  {
+    "id": "2048",
+    "guide": "2048-strategy.html",
+    "summary": "Use a corner anchor, understand one-merge-per-move examples, and keep space for the next tile."
+  },
+  {
+    "id": "tictactoe",
+    "summary": "Read immediate wins, blocks and forks before choosing your next square.",
+    "focus": "Check a winning line before building a new one",
+    "explain": "Each turn changes both players’ threats. First look for a move that wins immediately; next check whether the opponent can win on their next turn. Only then think about a longer plan. A centre or corner opening gives useful options, but it does not protect you from every fork. In a fork, one move creates two different winning lines, so blocking just one of them on the following turn is too late.",
+    "exampleTitle": "An immediate win takes priority",
+    "example": "Imagine X occupies the top-left and top-middle squares, while O occupies the centre and bottom-right. It is X’s turn. The empty top-right square completes X’s top row immediately. Extending a diagonal elsewhere would give away that winning chance. Read all rows, columns and both diagonals before deciding a position is only a defensive problem.",
+    "practice": [
+      "Play a local round and name every immediate winning square before each move.",
+      "On a second round, look for a square that would create two threats together.",
+      "Use Reset Round to try a different response to an opening; compare decisions rather than just the running match score."
+    ],
+    "watch": "The computer uses a simple win/block/centre/corner strategy and can miss forks. A good result against it does not establish perfect play. Online reconnection starts a fresh match; use the current room code and keep both game tabs open."
+  },
+  {
+    "id": "snake",
+    "summary": "Plan a route around your growing body and leave a way out after collecting food.",
+    "focus": "Plan the exit as well as the food route",
+    "explain": "Food is a destination, but the square after the food matters too. Before turning towards it, look at where your body will be when the head arrives. A short route through a narrow pocket can be worse than a longer route with space to turn. Use broad paths while the snake is short, then preserve connected open areas as its body grows. An edge can help organise a route, but following walls without checking your next corner can still trap you.",
+    "exampleTitle": "A tempting food square beside a wall",
+    "example": "Suppose food is one square from the right wall and your body blocks the route below it. Reaching the food from above may leave no useful downward exit. Before taking that turn, inspect whether you can continue along the wall and turn away safely. If the route would close around your own body, wait for space to open instead of treating the shortest path as automatically best.",
+    "practice": [
+      "Use arrows or WASD on a keyboard, or swipe on mobile, to make a wide loop before chasing tightly placed food.",
+      "Before each collection, name the next safe direction after eating.",
+      "After a collision, identify whether the cause was a late turn, wall approach or blocked exit."
+    ],
+    "watch": "Each food adds ten points and lengthens the snake. A longer snake needs more turning room. Your best score belongs to this browser; restarting a run does not create a shared or online leaderboard."
+  },
+  {
+    "id": "chess",
+    "summary": "Use checks, captures and threats to choose a move without overlooking your king.",
+    "focus": "Read forcing moves before quiet improvements",
+    "explain": "Tap a piece to inspect its legal destinations, then choose a square. Use the highlights as a legality aid and build a separate habit of asking what the opponent threatens. Checks, captures and direct attacks deserve attention before a slow development move. Develop pieces towards useful squares and make room for your king’s safety. A move can be legal and still lose a valuable piece, so the highlighted squares do not replace a tactical check.",
+    "exampleTitle": "A capture that needs a second look",
+    "example": "If a bishop appears able to capture an enemy rook, first check whether the move is legal and what protects that rook. Giving up a bishop for a rook may be a useful material exchange, but a legal capture can still abandon another piece needed for defence. A move that exposes your king to check is illegal. Inspect the resulting position and the opponent’s likely reply instead of choosing solely by the captured piece’s value.",
+    "practice": [
+      "Before every move, state whether your king is in check and what must be answered.",
+      "Pick one opening aim, such as developing both knights, while still responding to threats.",
+      "After an exchange, count which pieces each side actually lost and inspect the new open lines."
+    ],
+    "watch": "Castling, en passant and promotion are supported by this version. Promotion asks you to choose a piece. The lightweight computer is a practice opponent; this page does not provide a rating, tournament clock or guarantee that its moves are optimal."
+  },
+  {
+    "id": "minesweeper",
+    "summary": "Turn numbered clues into safe reveals, and distinguish proven mines from guessed flags.",
+    "focus": "Subtract known mines from each clue",
+    "explain": "A number counts mines in the touching squares, including diagonals. Read it together with the unrevealed neighbours, not in isolation. Flags are your annotations: a flag does not make a guess correct. If a later deduction depends on a flag that you only guessed, the deduction is uncertain too. Winning requires revealing all safe cells, so filling the board with flags is not the objective.",
+    "exampleTitle": "One mine left among two unknown cells",
+    "example": "A revealed 2 touches one mine you have established from other clues and two remaining hidden squares. Those two squares contain exactly one more mine; this clue alone cannot tell you which one. If a neighbouring 1 proves that one of the two is safe, the other must be the remaining mine. By contrast, a 1 with exactly one hidden neighbour identifies that neighbour as a mine directly.",
+    "practice": [
+      "Start on Easy and identify a clue with only one unknown neighbour.",
+      "Right-click to flag on desktop, or use Flag Mode on mobile; switch back before revealing safe squares.",
+      "When stuck, compare overlapping clues and explain which information each adds before guessing."
+    ],
+    "watch": "The first reveal is protected by placing mines afterwards and excluding its neighbouring area. Later choices can still lose. Some positions need a guess after available deductions are exhausted; a numbered clue does not always identify one unique safe move."
+  },
+  {
+    "id": "zombiesiege",
+    "summary": "Choose escape routes while automatic fire handles the nearest enemy.",
+    "focus": "Move towards open space before the horde closes it",
+    "explain": "Drag to steer your character; shots automatically target a nearby enemy. This makes movement your main decision. Read the space around the character and avoid arriving at an edge with enemies approaching from both directions. A broad curve can pull several pursuers behind you, while a sudden reversal can send you back through the group. Plan a new exit before the current route becomes a narrow corridor.",
+    "exampleTitle": "A pickup with enemies on the direct route",
+    "example": "A health pickup lies behind a cluster of zombies. Moving straight towards it can cost more health than it restores. First compare a curved route around the cluster with continuing into open space. If you are already enclosed, a distant pickup is not a safe escape plan. A nearby shield can help briefly, but its protection begins when you collect it and does not remove the need to steer away.",
+    "practice": [
+      "Spend an early run learning how quickly dragging changes the character’s route.",
+      "On the next run, watch the nearest escape space rather than only the nearest zombie.",
+      "After losing health, identify the turn that put you into contact and try a wider route next time."
+    ],
+    "watch": "Pickups activate on contact; there is no inventory button for saving a shield to use later. Health restores up to the maximum, weapon pickups improve fire rate during the run, and timed effects expire. More dangerous waves make a route that worked earlier less reliable."
+  },
+  {
+    "id": "sudoku",
+    "summary": "Use row, column and box constraints to justify entries before spending a mistake.",
+    "focus": "Find a forced value before committing a digit",
+    "explain": "Every row, column and 3×3 box needs the digits one through nine without repeats. Choose a cell and compare all three groups before entering a value. Notes let you record candidates while you reason. They are possibilities, so remove candidates when a neighbouring placement makes them impossible. Filling a cell because its digit is missing from the row alone ignores the column and box constraints.",
+    "exampleTitle": "A single candidate from two missing digits",
+    "example": "Suppose a row is missing only 2 and 7, leaving two empty cells. For one of those cells, its column already contains a 7. That cell must therefore be 2, and the other empty cell in the row must be 7, provided the box constraints agree. The useful step is explaining why one candidate is impossible, rather than trying both and watching the mistake counter.",
+    "practice": [
+      "Start with a row, column or box that is nearly complete and list its missing digits.",
+      "Use Notes on a harder cell, then revisit it after making an entry nearby.",
+      "Before using a Hint, identify which constraint or candidate relationship you could not resolve."
+    ],
+    "watch": "This version allows three hints and ends a round after three wrong entries. Given digits are locked. Hints reveal a correct entry; use them to understand an obstacle rather than comparing a hint-assisted time with a completely unaided run."
+  },
+  {
+    "id": "flappydash",
+    "guide": "flappy-dash-tips.html",
+    "summary": "Read high and low gaps, leave room around the bird and use a three-run timing routine."
+  },
+  {
+    "id": "checkers",
+    "summary": "Read mandatory captures, multi-jumps and the landing square before moving.",
+    "focus": "Inspect where a capture leaves the piece",
+    "explain": "Uncrowned pieces move diagonally forward; kings can move diagonally in either direction. Available captures are mandatory in this version, so a quiet move may be unavailable even when its destination looks empty. After a jump, another capture by that piece must continue if one is available. Inspect the entire chain and its final square before choosing among capturing pieces.",
+    "exampleTitle": "The landing square changes the value of a jump",
+    "example": "Your piece can jump an opposing piece into an empty square beyond it. From that landing square a second enemy piece can also be jumped. The turn continues with the second jump; you cannot stop simply because the first capture looked sufficient. Now inspect the final square: if it is exposed to an opponent’s reply, the number of captures alone does not tell you whether the exchange helps.",
+    "practice": [
+      "At the start of each turn, look for captures before selecting an ordinary diagonal move.",
+      "Follow a possible jump sequence mentally through every landing square.",
+      "Compare a route towards promotion with keeping pieces connected and defended."
+    ],
+    "watch": "Reaching the far row crowns a king, and having no legal move loses the game. Checkers variants differ: use this game’s highlighted legal moves and mandatory-capture behaviour rather than importing flying-king or backward-man rules from another version."
+  },
+  {
+    "id": "whackamole",
+    "summary": "Improve target recognition while protecting points from bomb mistakes.",
+    "focus": "Recognise the target before tapping",
+    "explain": "Watch the whole nine-hole grid and tap only a visible mole. A normal mole adds ten points, a golden mole adds thirty, and a bomb removes twenty with the total kept at zero or above. The run lasts thirty seconds. As targets become quicker, a deliberate missed mole can be less costly than a rushed tap on a bomb. Keep your hand positioned so one corner does not become a blind spot.",
+    "exampleTitle": "A fast tap can reduce a good sequence",
+    "example": "One normal mole and one golden mole give forty points. Tapping a bomb afterwards reduces that total to twenty; skipping the bomb keeps all forty. This is why accuracy can matter more than increasing the number of taps. A bomb appearing next to a valuable target is a recognition problem, not a reason to tap both holes quickly.",
+    "practice": [
+      "Use one run to learn the appearance of normal moles, golden moles and bombs.",
+      "In the next run, prioritise a clean sequence with no bomb taps.",
+      "After the timer ends, compare your own score and the mistakes you remember; avoid attributing every difference to reaction speed because spawns vary."
+    ],
+    "watch": "The game rewards hits, not tapping empty holes repeatedly. Golden moles are worth three normal hits, but reaching for one should not mean hitting an adjacent bomb. Best score is saved on this browser rather than shared between devices."
+  },
+  {
+    "id": "memorymatch",
+    "summary": "Use board locations to turn revealed symbols into reliable pairs.",
+    "focus": "Remember a location together with its symbol",
+    "explain": "Work through the board in a repeatable order, such as one row at a time. After a mismatch, name both symbols and their positions before flipping another pair. Remembering that you saw a star is less useful than remembering where that star was. When you reveal the partner of a card you already know, use that information before exploring two new locations.",
+    "exampleTitle": "Use a known partner instead of starting over",
+    "example": "You remember a moon in row one, column two. Later, your first flip reveals a moon in row three, column four. Use the second flip on the known location in row one, column two. Exploring an unfamiliar card instead wastes the chance to complete a pair and gives you another location to memorise. If you are uncertain about the first moon’s location, keep the two positions separate rather than inventing a memory.",
+    "practice": [
+      "Begin on Easy and name locations by row and column.",
+      "After every mismatch, pause long enough to register both positions before the cards turn back.",
+      "Repeat on the same difficulty and compare moves alongside completion time, rather than racing through forgotten pairs."
+    ],
+    "watch": "The completion timer starts on the first flip. There is no countdown that forces a fast answer. A move is a two-card attempt, and best move counts are stored separately for the different grid sizes. Keyboard users can Tab to cards and use Enter to flip them."
+  },
+  {
+    "id": "airhockey",
+    "summary": "Defend your goal first, then choose deliberate straight and angled shots.",
+    "focus": "Recover after a shot instead of chasing every puck",
+    "explain": "Drag your mallet within your half of the table. Your position should let you block the route towards your goal while still reaching the puck. Rushing to the centre for every attack can leave the goal open behind you. After striking, watch the puck’s direction and bring the mallet back towards a useful defensive position. The first player to seven goals wins.",
+    "exampleTitle": "The opponent changes an easy-looking shot",
+    "example": "A puck is travelling towards your goal near one side of the table. Moving the mallet far forward to hit it hard may let it pass behind you. First put the mallet across the puck’s path in your half, then choose the direction of the return. If the opponent is covering the centre, a wall rebound can change the approach angle, but it still needs a clear route past their mallet.",
+    "practice": [
+      "In a computer match, spend a few exchanges blocking controlled returns rather than swinging across the whole table.",
+      "Try a straight return and an off-centre return, watching how the rebound differs.",
+      "After conceding a goal, identify whether you were out of position or simply missed the interception."
+    ],
+    "watch": "The room creator defends the bottom goal and the joining player defends the top. Keep both tabs open for online play. A restart begins a fresh match; a good local result does not measure connection latency or establish that every network will behave identically."
+  },
+  {
+    "id": "platformjumper",
+    "summary": "Plan the next landing while accounting for moving, crumbling and hazardous platforms.",
+    "focus": "Choose a landing with a useful route above it",
+    "explain": "The character jumps automatically on landing; drag left or right to steer. Watch the platform you can reach on the descent, then look one platform beyond it. Solid platforms give a more predictable route than moving or crumbling ones. A spring produces a larger bounce, which also changes how far ahead you need to plan. A high bounce is helpful only if you can still guide the next landing.",
+    "exampleTitle": "A moving target needs an intercept",
+    "example": "A blue platform is sliding to the right beneath you. Aiming at the place it occupied when you started falling can leave you beside it at landing time. Watch its direction and steer towards where it is moving, adjusting as you approach. If an ordinary platform offers a safer landing below, choosing it can preserve the run even when it gives less immediate height.",
+    "practice": [
+      "Use the early platforms to learn how horizontal dragging affects a landing.",
+      "Before using a spring, identify a reachable landing above it.",
+      "On each failed run, classify the miss as late steering, a moving-platform misread or choosing a hazardous route."
+    ],
+    "watch": "Orange platforms crumble, so do not plan to reuse one after its bounce. Spikes are hazards to avoid. Moving off a side wraps the character to the other side; check what lies there before relying on that route. Falling below the visible board ends the run."
+  },
+  {
+    "id": "typingtest",
+    "guide": "typing-practice.html",
+    "summary": "Read WPM alongside accuracy, practise consistent passages and use the seven-session routine."
+  },
+  {
+    "id": "stacktower",
+    "summary": "Preserve block width with consistent edge alignment and read the score correctly.",
+    "focus": "Protect width before chasing the combo display",
+    "explain": "A moving block must overlap the top of the tower. An imperfect drop trims the overhang, leaving a narrower surface for the next block. A near-perfect drop snaps to the previous width and extends the displayed perfect streak. The score counts successful blocks: the streak indicator is not a separate points multiplier in this version. Keeping width is valuable because it makes later drops less demanding.",
+    "exampleTitle": "A small trim changes the next target",
+    "example": "Imagine a supporting block is one hundred units wide. If the next block overlaps only eighty units, the new top becomes eighty units wide. The lost twenty units do not return on the following drop. A perfect alignment can preserve that eighty-unit width, but it does not restore the original hundred. Use the same visible edge as a reference instead of recalculating the centre during every pass.",
+    "practice": [
+      "Watch one pass to learn the moving block’s pace before dropping.",
+      "Choose a consistent edge to line up and notice whether your usual mistake is early or late timing.",
+      "As the tower narrows or speeds up, aim to preserve the remaining width rather than making rushed recovery taps."
+    ],
+    "watch": "Tap, click or press Space to drop. A complete miss, or overlap too small to support the next block, ends the run. Each successful block adds one score point; a long perfect streak helps by retaining width and displaying your consistency."
+  },
+  {
+    "id": "linedrop",
+    "summary": "Use the next piece and the shape of the stack to choose a reachable landing.",
+    "focus": "Avoid holes that later pieces cannot reach",
+    "explain": "The well is six columns wide. Move with left/right, rotate with Up, use Down for a faster fall and Space for a hard drop; the on-screen controls provide the same main actions. Before dropping, inspect both the spaces a piece fills and the empty cells it will cover. A piece that flattens the surface can still bury a hole, making a later line much harder to complete.",
+    "exampleTitle": "A square piece can clear two rows together",
+    "example": "Suppose the bottom two rows each have an aligned two-cell gap, with a clear vertical path above those gaps. The square O piece can fill both gaps and complete the two rows in one placement. At level one, a two-line clear adds three hundred line-clear points, compared with one hundred for a single line. Hard-drop distance can add separate points, so the total change may be larger.",
+    "practice": [
+      "Use an early run to place pieces without covering an empty cell beneath them.",
+      "Before a hard drop, name the exact columns and rows the shape will occupy.",
+      "Look at the next piece when deciding between two otherwise similar placements."
+    ],
+    "watch": "Every ten cleared lines raises the level and increases falling speed. A four-line clear is valuable, but keeping a deep well open indefinitely can become dangerous when the straight piece does not arrive. The run ends when a new piece cannot enter the top."
+  },
+  {
+    "id": "wordstreak",
+    "summary": "Read repeated-letter feedback carefully and use guesses to test actual possibilities.",
+    "focus": "Keep position information separate from letter information",
+    "explain": "A green tile fixes a letter in that position. Yellow means a matching letter belongs elsewhere. Grey means there is no remaining occurrence available for that tile; it does not always mean the letter is absent everywhere. Build your next guess from these constraints instead of only adding new letters. In Daily mode the word follows your local calendar date, while Practice provides more attempts without changing the daily streak.",
+    "exampleTitle": "Two copies in the guess, one copy in the target",
+    "example": "Use APPLE as an illustrative target and ALLEY as a guess. The A is green. The first L is yellow because the target has an L elsewhere, while the second L is grey because that single occurrence is already accounted for. E is yellow and Y is grey. The lesson is to keep one L as a possibility and move it; the extra grey L does not cancel the yellow evidence.",
+    "practice": [
+      "Start with a five-letter word containing several different letters.",
+      "After each result, state the fixed positions and any letters that must move.",
+      "Use Practice to work through repeated-letter cases; return to Daily when you want that day’s challenge."
+    ],
+    "watch": "This version accepts five-letter combinations without checking a dictionary. Six guesses are available. Daily progress and streaks belong to this browser; clearing storage or using another device can change what is remembered. The worked example above is illustrative and does not disclose the daily answer."
+  },
+  {
+    "id": "rockpaperscissors",
+    "summary": "Understand first-to-three scoring and avoid inventing a pattern in the computer’s choices.",
+    "focus": "Separate a pattern observation from a prediction",
+    "explain": "Rock beats scissors, scissors beats paper, and paper beats rock. Against the computer, each choice is selected randomly, so the previous result does not make a particular next move due. Against a person, you can observe repeated choices, but a few repetitions do not establish what they will play next. Keep your own choices varied rather than automatically repeating a move after every win or changing after every loss.",
+    "exampleTitle": "A draw adds a round without adding a win",
+    "example": "If the score is two wins to two and both players choose rock, neither player reaches the target of three wins. Another round is needed. The match is often described as best of five, but draws mean the number of played rounds can exceed five. Focus on the win counters rather than assuming the fifth reveal must end the match.",
+    "practice": [
+      "Play a computer match and identify the winning relationship before reading the result banner.",
+      "Record a short sequence of your own choices and look for an automatic habit.",
+      "In a local match, give the other player space to choose instead of treating previous choices as a guaranteed prediction."
+    ],
+    "watch": "A tied choice is a draw; first to three round wins takes the match. Local pass-the-device play offers convenience rather than perfect secrecy from someone watching the screen. Online players should keep both tabs open and wait for the round’s result before choosing again."
+  },
+  {
+    "id": "turbodash",
+    "summary": "Read lane openings early and treat coins as a bonus to a safe route.",
+    "focus": "Choose an open lane before the barrier reaches the car",
+    "explain": "The car moves forward automatically through three lanes. Use left/right or A/D on a keyboard, or tap the left/right side of the board, to switch lanes. Read the next barrier pattern rather than watching only the car’s current position. An early decision gives you time to reach the open lane; several last-second changes can put you back into the obstacle you meant to avoid.",
+    "exampleTitle": "Two blocked lanes make the coin irrelevant",
+    "example": "If the next barrier blocks the left and middle lanes, move into the right lane while you still have time. A coin elsewhere does not make those blocked lanes safe. Once the barrier is behind you, read the following pattern before changing lanes again. If reaching a coin requires reversing that safe decision, preserve the run and leave the coin.",
+    "practice": [
+      "Use an early run to learn whether each input changes one lane or reaches the lane you intended.",
+      "Name the next open lane before the barrier reaches the lower part of the board.",
+      "After a crash, identify whether the opening was missed, the input was late or an unnecessary coin chase changed the route."
+    ],
+    "watch": "Score combines survival distance, collected coins and near-miss rewards. A collision ends the run, so accepting a smaller bonus can be better than risking the whole attempt. Speed and barrier combinations become harder over time; a fixed tapping rhythm cannot replace reading the next pattern."
+  },
+  {
+    "id": "mirrorflap",
+    "summary": "Read both independently placed gaps while one input moves the two orbs in opposite directions.",
+    "focus": "Judge both next gaps before making a correction",
+    "explain": "A flap sends the left cyan orb upward and the right gold orb downward. Between flaps their gravity directions are reversed too. Watch the approaching opening on each side before deciding when to tap. The two gaps are generated independently, so steering by the left side alone can be unsafe on the right. Space or individual taps control the same shared action.",
+    "exampleTitle": "A correction can help both sides",
+    "example": "If the cyan orb is below its opening and the gold orb is above its own opening, a flap moves both towards their targets: cyan rises and gold sinks. If cyan is already near the upper edge while gold needs to drop, the same flap is more difficult to time safely. Compare both distances from danger before reacting to only the side that first catches your eye.",
+    "practice": [
+      "During an early run, learn the direction of each orb’s response to one tap.",
+      "Before each pipe pair, identify which edge is the immediate danger on each side.",
+      "After a collision, review the other orb’s position at the moment you made the final correction."
+    ],
+    "watch": "Either orb touching an edge or pipe ends the run. Speed increases and gaps become less forgiving over time. Because the openings vary, there is no single tap sequence guaranteed to pass every pair; use the early space to learn the joint movement."
+  },
+  {
+    "id": "bubbleshooter",
+    "summary": "Choose matches that remove support chains, and use wall rebounds with a clear line of travel.",
+    "focus": "Look for a useful attachment point",
+    "explain": "Drag to aim and release to shoot. A same-colour connected group of at least three pops, including the bubble you fired. Bubbles disconnected from the ceiling then fall for extra points. Before shooting, look at the actual contact point: the nearest bubble along the path can stop a shot before it reaches the cluster you wanted. A wall bank changes the angle, but it cannot pass through another bubble.",
+    "exampleTitle": "A small match can release a larger group",
+    "example": "Suppose two red bubbles form the only connection between the ceiling and a hanging mixed-colour group. Landing a third red to complete that connected match removes the red support. If the hanging group has no other path to the ceiling, it falls too. Check for a second connection before expecting the whole group to drop; removing one support is not enough when another still holds it up.",
+    "practice": [
+      "Choose a visible pair matching the shooter bubble and predict where your shot will attach.",
+      "Inspect what is supported by that pair before releasing.",
+      "Try a side-wall rebound only when you can trace both segments of its route without hitting an intervening bubble."
+    ],
+    "watch": "A connected colour match scores for the bubbles removed, with a separate reward for disconnected bubbles. Clearing the board wins; reaching the lower danger line loses. An attractive colour far behind the front row is useful only if a reachable attachment point exists."
+  },
+  {
+    "id": "fruitslice",
+    "summary": "Trace safe swipe paths through fruit without cutting a nearby bomb.",
+    "focus": "Read the whole swipe path before moving",
+    "explain": "Swipe through fruit with your finger or a held mouse pointer. The path between successive positions is checked, so a bomb between your starting and ending points is dangerous even if the pointer ends on clear space. Look at the path, not just the fruit you intend to hit. A shorter safe cut can be better than a long sweep across a mixed group of fruit and bombs.",
+    "exampleTitle": "Two fruit with a bomb between them",
+    "example": "A fruit rises on the left, another on the right, and a bomb sits between them. A straight sweep joining the fruit crosses the bomb’s area and can end the run. Cut a safe fruit separately, release to reposition, then decide whether the other fruit still has a clear approach. If there is no safe route, missing fruit can be preferable to an immediate bomb collision.",
+    "practice": [
+      "Start by making single-fruit cuts and noticing when the pointer is actively slicing.",
+      "Practise releasing before moving across an unsafe part of the board.",
+      "When several fruit cluster together, predict a clear segment through them before attempting a multi-fruit cut."
+    ],
+    "watch": "Three missed fruit end the run, while slicing a bomb ends it immediately. Cutting several fruit together in one movement can earn extra points. A swipe may contain several movements, so its displayed combo count is not a simple points multiplier. Avoid taking a risky cut just to extend that count."
+  },
+  {
+    "id": "galaxyshooter",
+    "summary": "Keep an escape direction open while automatic shots handle enemies above the ship.",
+    "focus": "Move before the safe corridor closes",
+    "explain": "Drag horizontally to steer the ship; firing is automatic. Watch incoming bullets and enemies as a combined pattern. A position near the middle usually leaves room to move either way, while an edge removes one escape direction. Move only as far as needed to leave a dangerous path, then reassess. A broad sweep across the whole screen can cross several bullets that were not originally aimed at your position.",
+    "exampleTitle": "A pickup is behind an incoming bullet path",
+    "example": "A power-up is falling on the opposite side of the ship while bullets occupy the crossing route. Moving directly towards the pickup may cost a life before you reach it. Compare the time and space available, or let the pickup pass while you remain in a safe corridor. A shield is useful when collected, but a distant shield does not protect the trip towards it.",
+    "practice": [
+      "Play an early run using small horizontal adjustments rather than continuous edge-to-edge sweeps.",
+      "Identify the next incoming bullet path before moving towards a pickup.",
+      "After losing a life, name whether the collision came from an enemy body, a bullet or an unsafe crossing."
+    ],
+    "watch": "There are three lives per run. Rapid fire, multi-shot and shield are temporary effects, so continue reading the board when they expire. Destroying enemies adds score, but preserving an escape route can be more useful than staying under one target until it is defeated."
+  },
+  {
+    "id": "slidingpuzzle",
+    "summary": "Plan moves using the blank square, then preserve solved sections of the board.",
+    "focus": "Move the blank to make the next tile move possible",
+    "explain": "Only a tile directly above, below, left or right of the empty space can slide. Think of each move as relocating the blank as well as the numbered tile. If your target tile cannot move towards its destination yet, first plan where the blank must go. Once a row is placed, avoid disturbing it without a reason; moving one solved tile can create several extra repairs.",
+    "exampleTitle": "A one-move finish on the small board",
+    "example": "Consider rows 1,2,3 / 4,5,6 / 7,blank,8. The 8 is next to the blank, so tapping it completes the ordered board with the blank in the bottom-right corner. A diagonal tile could not make that move. On a less complete board, use the same idea backwards: identify the square you want a tile to enter, then work out how to bring the blank there.",
+    "practice": [
+      "Start with the 3×3 board and name the blank’s destination before each slide.",
+      "Try to finish the top row while leaving a workable route for the remaining tiles.",
+      "After a solution, compare moves on the same board size; a quick solve and an efficient solve are different goals."
+    ],
+    "watch": "Shuffling uses legal moves from a solved board, so a route back exists. This does not mean every random sequence of your own moves makes progress. The two board sizes keep separate best move counts; choose the smaller board to learn positioning before attempting the 4×4."
+  },
+  {
+    "id": "solitaire",
+    "summary": "Expose hidden tableau cards while checking alternating colours and foundation order.",
+    "focus": "Prefer a useful reveal over a move with no follow-up",
+    "explain": "Tableau columns build down in alternating colours, while each foundation builds up by suit from Ace to King. Tap a card or movable sequence, then its destination. Look for a move that exposes a face-down card and creates another option. Moving a card simply because it fits can leave the same hidden cards blocked. An empty tableau column is especially useful when a King or King-led sequence is available to occupy it.",
+    "exampleTitle": "A legal move should improve your options",
+    "example": "A red 9 can be placed on an exposed black 10. If moving that 9 also reveals the face-down card beneath it, the move adds new information and may unlock another sequence. Putting the same 9 into a position that exposes nothing may still help, but you should be able to explain the follow-up. A red 9 cannot go on a red 10, even when their ranks look convenient.",
+    "practice": [
+      "Before drawing again, inspect whether a legal tableau move would reveal a hidden card.",
+      "Track which suit needs the next foundation card rather than moving every available card immediately.",
+      "When the stock is exhausted, recycle the waste and check whether newly opened tableau spaces make previously unusable cards useful."
+    ],
+    "watch": "This version cannot move cards back from foundations. Auto-Complete becomes available when tableau cards are face up, but it only transfers currently playable cards; it does not promise to solve every remaining stock or blocked sequence. Some deals may not lead to a win through your chosen decisions."
+  }
+]

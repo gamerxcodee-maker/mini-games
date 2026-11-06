@@ -30,6 +30,8 @@ When adding a game, update the homepage `GAMES` array, static directory, relevan
 
 ## Checks
 
+`game-guides.html` covers all 25 games. Three existing long guides remain separate pages; the other 22 practical guides are included on their game pages at `#practice-guide`. Edit the original examples and practice text in `content/game-guides.json`, then run `node scripts/build-guides.cjs`. `node scripts/build-guides.cjs --check` validates coverage and generated content without writing files; it is included in the normal check command. Verify guide claims against the actual game code when mechanics change.
+
 Run `node scripts/run-checks.cjs` before publishing, or `npm run check` if npm is available. No dependency installation is needed: the checks use Node's built-in modules. They validate pages, local links, metadata, the sitemap, privacy controls and selected game regressions, including typing timing, word streaks, score records, Turbo Dash bonuses and Memory Match resets. Browser QA is still required for visual layout and interactions. These checks do not claim to exhaustively test every game or online multiplayer.
 
 ## Multiplayer relay

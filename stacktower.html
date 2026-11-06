@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Stack Tower Bright — Free Online Block Stacking Game</title>
-<meta name="description" content="Play Stack Tower Bright, a free online precision stacking game. Tap to drop each block, line up perfect stacks for combo bonuses, and build the tallest tower.">
+<meta name="description" content="Play Stack Tower Bright, a free online precision stacking game. Tap to drop each block, line up perfect stacks to preserve width, and build the tallest tower.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -90,7 +90,7 @@
   .share-btn:active { transform: scale(0.96); }
 </style>
 <link rel="canonical" href="https://brightarcade.in/stacktower.html">
-<meta property="og:type" content="website"><meta property="og:site_name" content="Bright Arcade"><meta property="og:title" content="Stack Tower Bright — Free Online Block Stacking Game"><meta property="og:description" content="Play Stack Tower Bright, a free online precision stacking game. Tap to drop each block, line up perfect stacks for combo bonuses, and build the tallest tower."><meta property="og:url" content="https://brightarcade.in/stacktower.html"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="assets/site.css"><script defer src="assets/site.js"></script>
+<meta property="og:type" content="website"><meta property="og:site_name" content="Bright Arcade"><meta property="og:title" content="Stack Tower Bright — Free Online Block Stacking Game"><meta property="og:description" content="Play Stack Tower Bright, a free online precision stacking game. Tap to drop each block, line up perfect stacks to preserve width, and build the tallest tower."><meta property="og:url" content="https://brightarcade.in/stacktower.html"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="assets/site.css"><script defer src="assets/site.js"></script>
 <meta name="google-adsense-account" content="ca-pub-4926802783588277">
 </head>
 <body>
@@ -114,7 +114,7 @@
     <canvas id="canvas"></canvas>
     <div class="overlay" id="overlay">
       <h2 id="overlayText">Stack Tower</h2>
-      <p id="overlaySub">Tap when the moving block lines up with the one below it. Perfect stacks build a combo bonus.</p>
+      <p id="overlaySub">Tap when the moving block lines up with the one below it. Perfect stacks preserve width and build a streak.</p>
       <button id="overlayBtn">Start</button>
     </div>
   </div>
@@ -171,13 +171,13 @@
 
   <section class="info">
     <h2>Perfect stacks and combos</h2>
-    <p>Drop a block close enough to a perfect line-up and it snaps to the exact width of the one below instead of shrinking, and builds a combo streak worth bonus points. The tower speeds up the higher you go, so a long perfect streak becomes harder to keep alive the further you push it.</p>
+    <p>Drop a block close enough to a perfect line-up and it snaps to the exact width of the one below instead of shrinking, and extends the displayed perfect streak. Each successful block adds one score point. The tower speeds up the higher you go, so a long perfect streak becomes harder to keep alive the further you push it.</p>
   </section>
 
   
   <section class="info">
     <h2>Tips to get better at Stack Tower</h2>
-    <p>Watch the moving block's rhythm for a pass or two before tapping, especially right after the game speeds up. Aim for the same edge of the block below each time rather than trying to guess the exact center. A string of "perfect" stacks is worth far more than several sloppy ones, so it's often better to slow your mental pace and time each drop carefully.</p>
+    <p>Watch the moving block's rhythm for a pass or two before tapping, especially right after the game speeds up. Aim for the same edge of the block below each time rather than trying to guess the exact center. A string of "perfect" stacks preserves more width than several misaligned drops, so it's often better to slow your mental pace and time each drop carefully.</p>
   </section>
 
   <section class="info">
@@ -242,7 +242,7 @@
     bestEl.textContent = best;
     spawnCurrent();
     overlayText.textContent = 'Stack Tower';
-    overlaySub.textContent = 'Tap when the moving block lines up with the one below it. Perfect stacks build a combo bonus.';
+    overlaySub.textContent = 'Tap when the moving block lines up with the one below it. Perfect stacks preserve width and build a streak.';
     overlayBtn.textContent = 'Start';
     overlay.classList.add('show');
   }
@@ -396,6 +396,7 @@
   requestAnimationFrame(frame);
 })();
 </script>
+<section class="ba-practice" id="practice-guide" data-game-guide="stacktower" aria-labelledby="practice-heading"><h2 id="practice-heading">Stack Tower practice guide</h2><h3>Protect width before chasing the combo display</h3><p>A moving block must overlap the top of the tower. An imperfect drop trims the overhang, leaving a narrower surface for the next block. A near-perfect drop snaps to the previous width and extends the displayed perfect streak. The score counts successful blocks: the streak indicator is not a separate points multiplier in this version. Keeping width is valuable because it makes later drops less demanding.</p><h3>A small trim changes the next target</h3><p>Imagine a supporting block is one hundred units wide. If the next block overlaps only eighty units, the new top becomes eighty units wide. The lost twenty units do not return on the following drop. A perfect alignment can preserve that eighty-unit width, but it does not restore the original hundred. Use the same visible edge as a reference instead of recalculating the centre during every pass.</p><h3>A focused practice session</h3><ol><li>Watch one pass to learn the moving block’s pace before dropping.</li><li>Choose a consistent edge to line up and notice whether your usual mistake is early or late timing.</li><li>As the tower narrows or speeds up, aim to preserve the remaining width rather than making rushed recovery taps.</li></ol><h3>What to keep in mind</h3><p>Tap, click or press Space to drop. A complete miss, or overlap too small to support the next block, ends the run. Each successful block adds one score point; a long perfect streak helps by retaining width and displaying your consistency.</p><nav class="ba-guide-directory" aria-label="Game guides"><a href="game-guides.html">All 25 game guides</a><a href="snake.html#practice-guide">Snake guide</a><a href="zombiesiege.html#practice-guide">Zombie Siege guide</a></nav></section>
 <section class="ba-related" aria-label="Related games"><h2>Try another game</h2><div class="ba-cards"><a class="ba-card" href="snake.html"><strong>Snake</strong><span>Play Snake Bright, a free online Snake game with smooth controls, mobile swipe support and a clean colourful design. No download needed.</span></a><a class="ba-card" href="zombiesiege.html"><strong>Zombie Siege</strong><span>Play Zombie Siege Bright, a free online top-down survival shooter. Move to dodge the horde while your character auto-fires at the nearest zombie — survive as long as you can.</span></a><a class="ba-card" href="flappydash.html"><strong>Flappy Dash</strong><span>Play Flappy Dash Bright, a free online flappy-style tap game. Guide the bird through the gaps and beat your best score, on desktop or mobile.</span></a></div><nav class="ba-links" aria-label="Related collections"><a href="action-games.html">Action Games</a></nav></section><footer class="ba-footer"><nav aria-label="Site information"><a href="/">All games</a><a href="about.html">About</a><a href="contact.html">Contact</a><a href="privacy.html">Privacy policy</a><button type="button" data-privacy-open>Privacy choices</button></nav><p>© 2026 Bright Arcade · Free browser games</p></footer>
 <dialog class="ba-privacy" id="ba-privacy" aria-labelledby="ba-privacy-title"><h2 id="ba-privacy-title">Your privacy choices</h2><p>Games work without analytics. Allow optional Google Analytics to help us understand which pages visitors use, or keep it off. You can change this choice here at any time.</p><p id="ba-consent-status"></p><p><a href="privacy.html">Read our privacy policy</a></p><div class="ba-privacy-actions"><button type="button" data-analytics-deny>Keep analytics off</button><button type="button" data-analytics-allow>Allow analytics</button><button type="button" data-privacy-close>Close</button></div></dialog>
 </body>

@@ -31,3 +31,9 @@ When adding a game, update the homepage `GAMES` array, static directory, relevan
 ## Checks
 
 Run `node scripts/run-checks.cjs` before publishing, or `npm run check` if npm is available. No dependency installation is needed: the checks use Node's built-in modules. They validate pages, local links, metadata, the sitemap, privacy controls and selected game regressions, including typing timing, word streaks, score records, Turbo Dash bonuses and Memory Match resets. Browser QA is still required for visual layout and interactions. These checks do not claim to exhaustively test every game or online multiplayer.
+
+## Multiplayer relay
+
+All five friend-mode games use `assets/multiplayer-config.js`. Do not restore the obsolete `openrelay.metered.ca` endpoint. The configured Metered credential is a browser-facing relay credential, not an account secret. Never publish a Metered management secret. The owner chose the no-card TURN TRIAL GLOBAL 500MB plan: relay traffic stops when the quota is reached. Review actual usage before changing plans; do not enable payments automatically.
+
+Direct connections between tabs on one machine do not establish relay availability. Validate with a relay-only data-channel echo test and room creation/join on each game. Cross-device/network confirmation is a separate check. The development relay checker lives outside the published source; do not add it to the sitemap.

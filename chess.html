@@ -100,7 +100,8 @@
 
   footer.credit { text-align:center; color: var(--muted); font-size:12px; margin-top:30px; }
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="assets/multiplayer-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <link rel="canonical" href="https://brightarcade.in/chess.html">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Bright Arcade"><meta property="og:title" content="Chess Bright — Play Online with a Friend or Computer"><meta property="og:description" content="Play Chess Bright free online. Full standard rules including castling, en passant and promotion. Challenge a friend on a different device, play locally, or face the computer."><meta property="og:url" content="https://brightarcade.in/chess.html"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="assets/site.css"><script defer src="assets/site.js"></script>
 <meta name="google-adsense-account" content="ca-pub-4926802783588277">
@@ -208,17 +209,7 @@
 
 <script>
 (function(){
-  const PEER_CONFIG = {
-    config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:openrelay.metered.ca:80' },
-        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-      ]
-    }
-  };
+  const PEER_CONFIG = window.BrightArcadeMultiplayer?.peerOptions || {};
 
   const boardEl = document.getElementById('board');
   const statusText = document.getElementById('statusText');
@@ -679,7 +670,7 @@
     conn = connection;
     setTimeout(() => {
       if (!onlineConnected){
-        onlineStatus.textContent = "Still not connected. This can happen on some WiFi/mobile networks that block direct device connections — try switching one device to mobile data, or a different network.";
+        onlineStatus.textContent = "Still connecting. Keep both game tabs open and check the room code. If this continues, create a new room and try again. Service availability or the relay usage limit can also affect connections.";
       }
     }, 14000);
     conn.on('open', () => {

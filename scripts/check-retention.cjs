@@ -62,3 +62,16 @@ assert.equal(owner.destroyed,true);
 const timeout=[...cpuTimers.values()].at(-1);timeout();assert.match(nodes.get('onlineStatus').textContent,/timed out/);
 delete c.Peer;click('createRoomBtn');assert.match(nodes.get('onlineStatus').textContent,/service could not load/);
 console.log('PASS: Tic Tac Toe leave/mode/pagehide cleanup, stale callbacks, single guest, remote-turn validation, disconnect, room-code normalization, timeout and missing-service fallback.');
+// A same-browser game test can succeed without TURN; guard the configuration
+// separately so an obsolete relay cannot silently return to one of the games.
+const network={window:{}};
+vm.runInNewContext(fs.readFileSync(root+'assets/multiplayer-config.js','utf8'),network);
+assert.equal(network.window.BrightArcadeMultiplayer.peerOptions.secure,true);
+assert(network.window.BrightArcadeMultiplayer.connectionTimeoutMs>=30000);
+for(const file of ['tictactoe.html','chess.html','checkers.html','airhockey.html','rockpaperscissors.html']){
+ const source=fs.readFileSync(root+file,'utf8');
+ assert(!source.includes('openrelay.metered.ca'),'Obsolete relay: '+file);
+ assert(source.includes('window.BrightArcadeMultiplayer?.peerOptions'),'Shared connection config: '+file);
+ assert(source.indexOf('src="assets/multiplayer-config.js"')<source.indexOf('src="https://cdn.jsdelivr.net/npm/peerjs'),'Load config before PeerJS: '+file);
+}
+console.log('PASS: all five friend games share HTTPS/ICE settings and exclude the obsolete relay hostname. Relay functionality still requires the separate forced-relay browser test.');

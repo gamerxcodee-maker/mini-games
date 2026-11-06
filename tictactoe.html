@@ -224,7 +224,8 @@
     background: var(--bg); padding: 10px 20px; border-radius: 12px; color: var(--accent-dark);
   }
 </style>
-  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="assets/multiplayer-config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 <link rel="canonical" href="https://brightarcade.in/tictactoe.html">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Bright Arcade"><meta property="og:title" content="Tic Tac Toe Bright — Play Online with a Friend, 2 Player or vs Computer"><meta property="og:description" content="Play Tic Tac Toe Bright free online. Challenge a friend on a different device with a shareable room code, play locally on the same screen, or test yourself against the computer."><meta property="og:url" content="https://brightarcade.in/tictactoe.html"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="assets/site.css"><script defer src="assets/site.js"></script>
 <meta name="google-adsense-account" content="ca-pub-4926802783588277">
@@ -365,17 +366,7 @@
 
 <script>
 (function(){
-  const PEER_CONFIG = {
-    config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:openrelay.metered.ca:80' },
-        { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
-        { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' }
-      ]
-    }
-  };
+  const PEER_CONFIG = window.BrightArcadeMultiplayer?.peerOptions || {};
 
   const cells = Array.from(document.querySelectorAll('.cell'));
   const boardEl = document.getElementById('board');
@@ -608,7 +599,7 @@
     clearTimeout(connectionTimer);
     connectionTimer = setTimeout(() => {
       if (current() && !onlineConnected) leaveRoom('Connection timed out. Check the code or try another network, then create or join a new room.');
-    }, 14000);
+    }, window.BrightArcadeMultiplayer?.connectionTimeoutMs || 30000);
     connection.on('open', () => {
       if (!current()) return;
       clearTimeout(connectionTimer);
@@ -650,7 +641,7 @@
     leaveRoomBtn.hidden = false;
     connectionTimer = setTimeout(() => {
       if (peer === owner && !onlineConnected) leaveRoom('Connection timed out. Please create or join a new room.');
-    }, 14000);
+    }, window.BrightArcadeMultiplayer?.connectionTimeoutMs || 30000);
     owner.on('error', () => {
       if (peer === owner) leaveRoom("Couldn't connect. Check the code and try creating or joining a new room.");
     });

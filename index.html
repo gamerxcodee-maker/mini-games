@@ -79,6 +79,9 @@ footer a:hover{color:var(--ink)}
 
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,20px);background:#1B1F3B;color:#fff;font-weight:800;padding:12px 18px;border-radius:14px;opacity:0;transition:.2s;pointer-events:none;max-width:90%;text-align:center}
 .toast.show{opacity:1;transform:translate(-50%,0)}
+.daily-challenge{display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;background:var(--tile);border:2px solid #18A874;border-radius:24px;padding:22px;margin:8px 0 24px;box-shadow:var(--shadow)}
+.daily-challenge h2{margin:6px 0 10px}.daily-challenge p{max-width:60ch;line-height:1.5;margin:6px 0}.daily-label{font-size:13px;font-weight:800;color:var(--muted)}
+.daily-play{display:inline-block;border-radius:12px;background:#137448;color:#fff;text-decoration:none;font-weight:800;padding:14px 20px}.daily-play:hover{background:#0c5b37}.daily-play:focus-visible{outline:3px solid var(--ink);outline-offset:4px}
 
 @media (max-width:560px){
   .logo-text{display:none}
@@ -90,6 +93,7 @@ footer a:hover{color:var(--ink)}
 <link rel="canonical" href="https://brightarcade.in/">
 <meta property="og:type" content="website"><meta property="og:site_name" content="Bright Arcade"><meta property="og:title" content="Bright Arcade — Free Online Games, No Download"><meta property="og:description" content="Play free online games on Bright Arcade: puzzle, 2 player, action, brain and board games. No download, no login — works on phone and PC."><meta property="og:url" content="https://brightarcade.in/"><meta name="twitter:card" content="summary"><link rel="stylesheet" href="assets/site.css"><script defer src="assets/site.js"></script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"Bright Arcade","url":"https://brightarcade.in/"}</script><meta name="google-adsense-account" content="ca-pub-4926802783588277">
+<script defer src="assets/daily-challenge.js"></script>
 </head>
 <body>
 
@@ -108,6 +112,10 @@ footer a:hover{color:var(--ink)}
 </header>
 
 <main id="games">
+  <section class="daily-challenge" aria-labelledby="daily-heading">
+    <div><span class="daily-label">A fresh puzzle every local day</span><h2 id="daily-heading">Today's Word Streak</h2><p>Find the five-letter word in six guesses. Your completed guesses stay on this browser.</p><p id="daily-progress" role="status">One daily word, plus unlimited practice rounds.</p></div>
+    <a class="daily-play" id="daily-play" href="wordstreak.html">Play today's word</a>
+  </section>
   <section id="recentWrap" hidden>
     <h2>Recently played</h2>
     <div class="row" id="recent"></div>

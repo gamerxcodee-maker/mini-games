@@ -343,7 +343,7 @@
 
   <section class="info">
     <h2>How the online room works</h2>
-    <p>The room connects your two browsers directly to each other using a technology called WebRTC — no account or sign-up needed. This works reliably on most home and mobile networks. If a connection doesn't go through on the first try, it's usually a restrictive network (like some office or school Wi-Fi) — refreshing and trying again, or switching to mobile data, usually fixes it.</p>
+    <p>The room uses WebRTC to connect your two browsers, with a public signalling service to help them find each other. No account is needed. Keep both game tabs open. Connections can fail because of a service outage, browser settings or network restrictions; check the room code, try again, or try a different network.</p>
   </section>
 
   
@@ -354,8 +354,8 @@
 
   <section class="info">
     <h2>Frequently asked questions</h2>
-    <p><strong>Can Tic Tac Toe always end in a draw?</strong> Yes — with perfect play from both sides, every game ends in a draw. Beating the computer opponent takes a mistake on its part, since it plays to avoid losing.</p>
-    <p><strong>Is there a way to never lose?</strong> Always take the center or a corner first, and always block your opponent's two-in-a-row before extending your own.</p>
+    <p><strong>Can Tic Tac Toe always end in a draw?</strong> Perfect play from both sides leads to a draw. This computer uses a simple strategy: take an immediate win, block an immediate loss, then prefer the centre and corners. It can miss forks and is beatable.</p>
+    <p><strong>How can I avoid losing?</strong> Look for your own winning move first, then block an immediate threat. Watch for forks that create two winning lines at once; a centre or corner opening alone does not guarantee a draw.</p>
     <p><strong>Does the online score reset between rounds?</strong> No — scores persist across rounds until you refresh the page or switch modes.</p>
   </section>
 
@@ -408,12 +408,14 @@
     [0,4,8],[2,4,6]
   ];
 
-  let board, turn, over, vsCpu = false;
+  let board, turn, over, vsCpu = false, cpuTimer = null;
   let scores = { x: 0, o: 0, draw: 0 };
 
   let onlineMode = false, peer = null, conn = null, myRole = null, onlineConnected = false;
 
   function newRound(){
+    clearTimeout(cpuTimer);
+    cpuTimer = null;
     board = Array(9).fill(null);
     turn = 'x';
     over = false;
@@ -470,7 +472,7 @@
   }
 
   function handleMove(i){
-    if (over || board[i]) return;
+    if (!Number.isInteger(i) || i < 0 || i > 8 || over || board[i]) return;
     place(i, turn);
     const result = checkWin();
     if (result){
@@ -480,12 +482,13 @@
     turn = turn === 'x' ? 'o' : 'x';
     updateStatus();
     if (vsCpu && turn === 'o' && !over){
-      setTimeout(cpuMove, 380);
+      cpuTimer = setTimeout(cpuMove, 380);
     }
   }
 
   function cpuMove(){
-    if (over) return;
+    cpuTimer = null;
+    if (over || !vsCpu || onlineMode || turn !== 'o') return;
     const empty = board.map((v,i)=>v===null?i:null).filter(v=>v!==null);
 
     for (const i of empty){
@@ -553,6 +556,8 @@
     newRound();
   });
   modeOnline.addEventListener('click', () => {
+    clearTimeout(cpuTimer);
+    cpuTimer = null;
     vsCpu = false; onlineMode = true;
     setActiveMode(modeOnline);
     onlinePanel.style.display = 'block';

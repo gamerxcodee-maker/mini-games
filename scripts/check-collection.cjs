@@ -7,7 +7,7 @@ for(let seed=1;seed<=100;seed++){
  const p=R.pipes(seed);ok(R.pipeWater(p.solved).has(24),'Pipe solution');
  const h=R.hashi(seed);ok(R.hashiSolved(h,h.solution),'Hashi connected solution');const empty=Array(12).fill(0);ok(!R.hashiSolved(h,empty),'Hashi incomplete rejection');
  const k=R.kakuro(seed);ok(R.kakuroSolved(k.board,k),'Kakuro valid construction');ok(!R.kakuroSolved(Array(9).fill(2),k),'Kakuro repeat rejection');
- const w=R.wordSearch(seed);ok(w.placements.length===5,'Five placed words');for(const p of w.placements)ok(p.cells.map(i=>w.board[i]).join('')===p.word,'Word placement matches letters');
+ const w=R.wordSearch(seed);ok(w.placements.length===5,'Five placed words');for(const p of w.placements){ok(p.cells.map(i=>w.board[i]).join('')===p.word,'Word placement matches letters');ok(R.wordSearchMatch(w,[],p.cells[0],p.cells.at(-1)),'Word endpoints accepted');ok(R.wordSearchMatch(w,[],p.cells.at(-1),p.cells[0]),'Reversed endpoints accepted');}
  const f=R.fleet(seed);ok(f.filter(Boolean).length===7,'Fleet cells');[3,2,2].forEach((n,i)=>ok(f.filter(v=>v===i+1).length===n,'Fleet ship length'));
  const m=R.mancalaNew(),random=R.rng(seed);for(let step=0;step<500&&!m.over;step++){const legal=m.pits.map((v,i)=>v&&((m.turn===1&&i<6)||(m.turn===2&&i>=7&&i<13))?i:-1).filter(i=>i>=0);ok(legal.length>0,'Mancala legal move');R.mancalaMove(m,legal[Math.floor(random()*legal.length)]);ok(m.pits.reduce((a,b)=>a+b,0)===48,'Mancala seed conservation');}ok(m.over,'Mancala terminates');
 }
@@ -38,5 +38,6 @@ let pin=A.pinball();A.launchPin(pin);pin.ball={x:150,y:522,vx:0,vy:200};pin.left
 ok(A.bowlHits(Array(10).fill(true),0,80).length>0,'Bowling line hits');ok(A.bowlHits(Array(10).fill(true),130,80).length===0,'Bowling gutter');ok(A.bowlHits(Array(10).fill(false),0,80).length===0,'No repeated pin score');
 let fish=A.fish();fish.wait=.1;A.fishStep(fish,.05);A.fishStep(fish,.05);ok(fish.phase==='bite','Fishing bite');fish.phase='reeling';fish.elapsed=0;for(let i=0;i<1000&&fish.phase==='reeling';i++){fish.reel=fish.tension<55;A.fishStep(fish,.02);}ok(fish.phase==='caught','Fishing can be landed');fish=A.fish();fish.phase='reeling';fish.reel=true;for(let i=0;i<200;i++)A.fishStep(fish,.02);ok(fish.phase==='lost','Fishing high tension fails');
 for(const f of ['collection-rules.js','collection-board.js','collection-action-rules.js','collection-action.js'])new(require('node:vm').Script)(fs.readFileSync(__dirname+'/../assets/'+f,'utf8'),{filename:f});
+const duplicateWord={board:Array(64).fill('X'),placements:[{word:'CAT',cells:[0,1,2]}]};[0,1,2,8,9,10].forEach((i,k)=>duplicateWord.board[i]='CAT'[k%3]);ok(R.wordSearchMatch(duplicateWord,[],8,10),'Accidental valid copy accepted');ok(!R.wordSearchMatch(duplicateWord,[],0,10),'Bent endpoint rejected');
 console.log('PASS: '+assertions+' collection assertions; 100 seeded maze/puzzle/fleet/Mancala cases; board wins/captures/turns; five Sokoban solutions; scoring and action collisions.');
 console.log('Sokoban verified:',JSON.stringify(sokobanSolutions));

@@ -40,7 +40,7 @@ check(!sitemap.includes('/404.html'),'Error page excluded from sitemap');
 for(const file of indexable)check(sitemap.includes('https://brightarcade.in/'+(file==='index.html'?'':file)+'</loc>'),'Missing sitemap URL: '+file);
 const homepage=fs.readFileSync(path.join(root,'index.html'),'utf8');
 const games=vm.runInNewContext(homepage.match(/const GAMES = (\[[\s\S]*?\n\]);/)[1]);
-check(games.length===25,'Game count');
+check(games.length===JSON.parse(fs.readFileSync(path.join(root,'content/game-guides.json'),'utf8')).length,'Game/guide count');
 for(const game of games)check(homepage.split('<script>')[0].includes('href="'+game.url+'"'),'Game missing static link: '+game.id);
 new vm.Script(fs.readFileSync(path.join(root,'assets/site.js'),'utf8'));
 // Execute analytics controls in a small browser model: no network by default,

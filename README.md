@@ -4,7 +4,7 @@ Free browser games at https://brightarcade.in/. Buildless HTML, CSS and JavaScri
 
 ## Site structure
 
-- `index.html`: searchable game grid and static directory for all 25 games.
+- `index.html`: searchable game grid and static directory for all 28 games.
 - `*-games.html`: six browseable category collections.
 - `2048-strategy.html`, `typing-practice.html`, `flappy-dash-tips.html`: worked examples and practice guides linked from the relevant games and collections.
 - `assets/site.css`, `assets/site.js`: shared discovery styles, privacy controls and opt-in Google Analytics.
@@ -30,7 +30,7 @@ When adding a game, update the homepage `GAMES` array, static directory, relevan
 
 ## Checks
 
-`game-guides.html` covers all 25 games. Three existing long guides remain separate pages; the other 22 practical guides are included on their game pages at `#practice-guide`. Edit the original examples and practice text in `content/game-guides.json`, then run `node scripts/build-guides.cjs`. `node scripts/build-guides.cjs --check` validates coverage and generated content without writing files; it is included in the normal check command. Verify guide claims against the actual game code when mechanics change.
+`game-guides.html` covers all 28 games. Three existing long guides remain separate pages; the other 25 practical guides are included on their game pages at `#practice-guide`. Edit the original examples and practice text in `content/game-guides.json`, then run `node scripts/build-guides.cjs`. `node scripts/build-guides.cjs --check` validates coverage and generated content without writing files; it is included in the normal check command. Verify guide claims against the actual game code when mechanics change.
 
 Run `node scripts/run-checks.cjs` before publishing, or `npm run check` if npm is available. No dependency installation is needed: the checks use Node's built-in modules. They validate pages, local links, metadata, the sitemap, privacy controls and selected game regressions, including typing timing, word streaks, score records, Turbo Dash bonuses and Memory Match resets. Browser QA is still required for visual layout and interactions. These checks do not claim to exhaustively test every game or online multiplayer.
 
@@ -41,3 +41,7 @@ All five friend-mode games use `assets/multiplayer-config.js`. Do not restore th
 Direct connections between tabs on one machine do not establish relay availability. Validate with a relay-only data-channel echo test and room creation/join on each game. Cross-device/network confirmation is a separate check. The development relay checker lives outside the published source; do not add it to the sitemap.
 
 Homepage tiles and categories are prerendered so the layout does not depend on the enhancement script. After changing GAMES, CATS or the tile art in index.html, run `node scripts/prerender-home.cjs`, then `node scripts/prerender-home.cjs --check` and the normal checks. The homepage uses optional web fonts to avoid a late typeface swap on slow loads; the system fallback can remain for that visit.
+
+## New game batch
+
+Neon Brick Breaker, Color Sort Puzzle and Mini Golf use assets/arcade-models.js for deterministic rules and assets/new-games.js for input, rendering and browser records. Run node scripts/check-new-games.cjs for puzzle reversibility and ball/rule regression tests. Add an entry to the homepage directory and guide manifest when introducing another game; coverage follows the directory count.

@@ -10,5 +10,5 @@ const grid='<div class="grid" id="grid">'+GAMES.map(g=>tileHTML(g)).join('')+'</
 const result=source.replace(/<nav class="chips" id="chips" aria-label="Categories">[\s\S]*?<\/nav>/,chips).replace(/<div class="grid" id="grid">[\s\S]*?<\/div>/,grid);
 if(process.argv.includes('--check')){
  if(result!==source)throw Error('Homepage static tiles/categories are stale. Run node scripts/prerender-home.cjs');
- console.log('PASS: all25 homepage tiles and category controls are present before JavaScript and match the game definitions.');
+ console.log('PASS: homepage tiles and category controls are present before JavaScript and match the game definitions.');
 }else{fs.writeFileSync(file,result);console.log('Prerendered homepage tiles and categories.');}

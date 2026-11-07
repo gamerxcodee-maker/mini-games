@@ -54,10 +54,12 @@ if(!home.includes('data-guide-hub')){
  const marker='<section class="ba-related" aria-label="Game guides"><h2>Learn as you play</h2><div class="ba-cards">';
  if(!home.includes(marker))throw Error('Homepage guide section missing');
  home=home.replace(marker,marker+hubCard);
-}
+}else home=home.replace(/<a class="ba-card" href="game-guides.html" data-guide-hub>[\s\S]*?<\/a>/,hubCard);
+home=home.replace(/All \d+ games, with instructions/,`All ${games.length} games, with instructions`);
 pending.set('index.html',home);
 for(const file of ['2-player-games.html','puzzle-games.html','action-games.html','brain-games.html','board-games.html','classic-games.html']){
  let category=read(file);if(!category.includes('href="game-guides.html"'))category=category.replace('<h2>Try another collection</h2>',nav([['game-guides.html',`Rules, examples and practice for all ${games.length} games`]])+'<h2>Try another collection</h2>');
+ category=category.replace(/Rules, examples and practice for all\s*\d+ games/,`Rules, examples and practice for all ${games.length} games`);
  pending.set(file,category);
 }
 let sitemap=read('sitemap.xml');if(!sitemap.includes('<loc>'+canonical+'</loc>'))sitemap=sitemap.replace('</urlset>','  <url><loc>'+canonical+'</loc></url>\n</urlset>');pending.set('sitemap.xml',sitemap);

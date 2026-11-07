@@ -363,5 +363,355 @@
       "On later holes, plan a safe landing area around each barrier before trying to improve your course total."
     ],
     "watch": "The cup catches a sufficiently slow ball; a fast pass can miss. Each hole has a 12-stroke cap, and a capped hole scores 12. Best score uses all six holes. Reload resumes after completed holes and replays the current unfinished hole."
+  },
+  {
+    "id": "maze",
+    "summary": "Read junctions, recognise dead ends and replay the daily route with fewer unnecessary steps.",
+    "focus": "Remember the last junction",
+    "explain": "When a corridor branches, keep track of the junction you just left. A dead end is useful information: return to that junction and try an unexplored branch rather than wandering through the same corridor again. The small grid makes it possible to plan several turns ahead without moving. Follow open edges between squares; two cells that look close can still be separated by a wall.",
+    "exampleTitle": "A branch closes after two turns",
+    "example": "You leave a three-way junction, turn right, then discover a closed corridor. Walk back to the original junction and take its other open route. Turning randomly at every intermediate corner adds steps without revealing new territory. On a second attempt at the daily maze, use what you learned about that branch to skip it.",
+    "practice": [
+      "Pause at every junction and identify the route you arrived from.",
+      "Complete today’s maze once, then restart the same daily layout.",
+      "Compare your second route with the first, counting avoidable returns."
+    ],
+    "watch": "Random layouts have different route lengths. A lower raw step count on a different maze does not prove a better route. The daily layout follows the date on this device."
+  },
+  {
+    "id": "nonogram",
+    "summary": "Use complete rows and forced overlap before making a speculative fill.",
+    "focus": "Start with what the clue forces",
+    "explain": "A five-cell row with clue 5 is fully filled. A row with clue 0 stays empty. Those rows immediately give information to the crossing columns. For a shorter run, compare its possible positions: a run of four in five cells must cover the central three cells. Mark only cells that every possible placement shares, then revisit the row after learning from columns.",
+    "exampleTitle": "Two single groups need a gap",
+    "example": "A five-cell row with clues 1, 3 needs one filled cell, a gap, then three filled cells. The groups and their required gap use all five spaces, so the row is fully determined. Filling four consecutive cells would have the right total count but the wrong group structure. Read runs, not just the number of filled cells.",
+    "practice": [
+      "Find rows or columns whose groups and minimum gaps fill their whole length.",
+      "Use X marks to make confirmed gaps easier to read.",
+      "After every forced row, inspect the columns it crosses."
+    ],
+    "watch": "The puzzle checks clue agreement rather than a hidden picture. Some generated clue sets have more than one valid picture, and every clue-valid completion is accepted."
+  },
+  {
+    "id": "dotsboxes",
+    "summary": "Notice third sides, complete available boxes and account for the extra move.",
+    "focus": "A third side creates an opportunity for the other player",
+    "explain": "An empty box with two drawn edges is usually safe to inspect, but drawing its third side lets the next player complete it. Before adding a line, examine both boxes touching that line. A move that looks harmless on one side can create a fourth-edge opportunity on the other. Once a chain of nearly completed boxes exists, turns can contain several captures in a row.",
+    "exampleTitle": "One line completes two boxes",
+    "example": "Two neighbouring boxes are each missing the same shared edge. Drawing that edge claims both boxes together and keeps your turn. Count two points, then inspect the remaining board before making the next move. Treating each click as an automatic turn change would make you miss this continuation.",
+    "practice": [
+      "For each candidate line, count existing sides of its adjacent boxes.",
+      "Look for a line that finishes two boxes at once.",
+      "Try a same-screen round and explain why each capture grants another move."
+    ],
+    "watch": "The computer prioritises immediately available boxes and uses a simple fallback otherwise. It is a practice opponent, not a claim of perfect chain strategy. Local friend mode uses one device."
+  },
+  {
+    "id": "reaction",
+    "summary": "React to the visible signal instead of guessing when the delay will finish.",
+    "focus": "Keep the response simple",
+    "explain": "Choose a comfortable finger or mouse position before starting. Watch the pad and respond to the colour and text change, rather than counting a fixed rhythm. The waiting delay varies, so guessing can produce a false start. A consistent input method is more useful for comparisons than switching between touch, trackpad and mouse after every result.",
+    "exampleTitle": "A very quick attempt follows a false start",
+    "example": "You tap early, then record a fast valid response on the next attempt. The early tap remains a false start and does not enter the five-attempt average. Read the final average alongside the false-start count. One lucky anticipation is less informative than several responses made after the signal.",
+    "practice": [
+      "Complete five attempts with the same input device.",
+      "Rest briefly, then repeat without trying to predict the delay.",
+      "Compare whole-test averages and false starts, not only your fastest tap."
+    ],
+    "watch": "Display refresh rate, device input delay and browser scheduling affect the result. A lower time on a different device may reflect hardware differences. Hidden-tab attempts are cancelled rather than scored."
+  },
+  {
+    "id": "neonrunner",
+    "summary": "Read obstacle height early and land before preparing the next action.",
+    "focus": "Choose the action from the obstacle’s gap",
+    "explain": "A low block occupies the floor, so moving above it is useful. An overhead bar leaves its safe space below, so sliding is the natural response. Look beyond the character to identify the next shape early. Jumping at every obstacle removes the distinction and can put the character into a bar that was safely passable at floor level.",
+    "exampleTitle": "A low block is followed by an overhead bar",
+    "example": "Jump over the block, then let the character return to the floor. Hold Slide as the overhead bar approaches. Pressing Jump again in midair does not create a second jump, and holding Slide while airborne does not make a low tunnel safe until you land. Prepare the transition rather than reacting only at contact.",
+    "practice": [
+      "Try a short run focused only on identifying block versus bar.",
+      "On the next run, release Slide as soon as the bar has passed.",
+      "Collect coins when their height fits your safe route rather than sacrificing the run."
+    ],
+    "watch": "This runner has one jump at a time and grounded sliding. It is a side-scrolling obstacle game, separate from Turbo Dash’s lane switching. Records combine distance and coin points."
+  },
+  {
+    "id": "connectfour",
+    "summary": "Check immediate winning columns and remember that every counter needs support.",
+    "focus": "Threats depend on the landing square",
+    "explain": "A promising line only matters if a dropped counter can actually land in its missing square. Empty spaces above other empty spaces are not immediately playable. Inspect the bottom available slot of each column before naming a threat. First take a winning move, then block a one-move loss, and only afterwards build a longer plan.",
+    "exampleTitle": "An apparent diagonal gap is too high",
+    "example": "Your diagonal is missing a square near the top of a column, but two empty cells lie below it. Dropping there now lands beneath the diagonal. That move may still prepare support, but it is not an immediate win. Compare it with a playable fourth counter in another column before committing.",
+    "practice": [
+      "Name the landing row of each column before your move.",
+      "Check all four line directions for an immediate win or loss.",
+      "Use a local round to explore how one move can create two playable threats."
+    ],
+    "watch": "Computer play uses a limited heuristic and can miss deeper tactics. A win against it does not establish perfect strategy. Friend mode is local on the same screen, with no room code."
+  },
+  {
+    "id": "reversi",
+    "summary": "Value stable corners and future legal moves instead of only counting this turn’s flips.",
+    "focus": "A large flip is not always a safe move",
+    "explain": "Flipping many discs looks rewarding, but discs near open edges may be flipped back. Corners are especially valuable because they cannot be bracketed from beyond the board. Read how a move changes the opponent’s legal squares. A modest flip that avoids giving away a corner can be more useful than a large sweep beside that corner.",
+    "exampleTitle": "A move beside an empty corner",
+    "example": "An edge-adjacent square offers four flips, while a central move offers only one. Before taking four, check whether your edge disc lets the opponent bracket into the empty corner next turn. The one-flip move may preserve a safer board even though the immediate disc count looks worse.",
+    "practice": [
+      "Identify the legal moves without relying on dots, then verify them.",
+      "Before playing beside a corner, inspect the opponent’s reply.",
+      "Watch a forced pass and confirm that play continues until both sides lack moves."
+    ],
+    "watch": "The computer combines corner preference with immediate flip count. It does not perform a deep search. Winning is decided by final disc count, not the largest temporary lead."
+  },
+  {
+    "id": "battleship",
+    "summary": "Use misses to narrow the search and follow a hit along possible ship directions.",
+    "focus": "A hit creates a local search problem",
+    "explain": "Before finding a ship, spread shots across untested areas. After a hit, inspect adjacent cells that could continue a straight ship. A miss at one end rules out that extension, while a second hit can reveal the ship’s direction. Keep the visible shot history in mind instead of firing again at a marked cell.",
+    "exampleTitle": "Two hits form a horizontal line",
+    "example": "You hit two side-by-side cells. Try extending that line at an untested end before guessing a distant square. If the extension misses, the ship may already be complete or extend from its other end. Touching ships are allowed here, so adjacent hits are evidence of a possible line rather than proof they belong to one ship.",
+    "practice": [
+      "Search widely until your first hit.",
+      "After a hit, compare the four neighbouring directions.",
+      "Use marked misses to avoid repeating an already ruled-out extension."
+    ],
+    "watch": "Fleets are automatically placed and contain exactly seven occupied cells. The computer chooses unfired cells without a sophisticated targeting strategy. This version is solo versus computer, not an online room game."
+  },
+  {
+    "id": "ludolite",
+    "summary": "Compare token safety with the distance needed for an exact home finish.",
+    "focus": "A roll can have more than one useful destination",
+    "explain": "Moving the leading token is not automatically best. A second token may need to leave a vulnerable shared cell, while a token in the private home stretch is safe from capture. Read every legal option before choosing. Safe start cells protect tokens from capture, but they do not remove the need for an exact final roll.",
+    "exampleTitle": "One token needs two to finish",
+    "example": "Your first token is at progress 26 and the second remains on the shared track. A roll of 4 cannot finish the first token because it would overshoot 28. Move the second token if its move is legal. A later roll of 2 can finish the first. Treat the private stretch as an exact-distance problem.",
+    "practice": [
+      "Read both highlighted token options before moving.",
+      "Identify safe shared cells 1 and 13 on the track.",
+      "Near the finish, calculate the exact roll each token needs."
+    ],
+    "watch": "Ludo Lite uses two tokens, a 24-cell shared track and four home steps per player. It is a deliberately smaller local variant, not a full tournament-rule implementation. Dice outcomes are not predictions of real-world luck."
+  },
+  {
+    "id": "mancala",
+    "summary": "Count the last seed’s destination before choosing a pit.",
+    "focus": "The final seed changes the value of a move",
+    "explain": "A sowing move changes many pits, but the final seed determines whether you gain another turn or a capture. Count around the board, remembering to include your own store and skip the opponent’s. A pit that looks small can be useful if its seeds land exactly in your store. An empty pit on your own side may also be a capture target rather than wasted space.",
+    "exampleTitle": "Four seeds can earn an extra turn",
+    "example": "On Yellow’s opening row, the third pit from the left contains four seeds. Sowing visits the next three pits and then Yellow’s store. The last seed lands in the store, so Yellow chooses again. Starting from a neighbouring pit changes that final landing, even though both pits initially contain four seeds.",
+    "practice": [
+      "Count the landing place before selecting each pit.",
+      "Look for a store landing that preserves your turn.",
+      "Before emptying a side, compare both stores and the remaining sweep."
+    ],
+    "watch": "This is a local two-player Kalah-style ruleset. Other Mancala families use different sowing and capture rules. The store counts, including the end-of-game sweep, determine the winner."
+  },
+  {
+    "id": "pegsolitaire",
+    "summary": "Preserve connections between regions so that isolated pegs do not become stranded.",
+    "focus": "Keep a route for the last pegs",
+    "explain": "Removing the nearest available peg can leave a lone peg at the tip of an arm with no neighbouring partner. Before a jump, look at the shape left behind. A useful move opens space while keeping nearby pegs connected by future jumps. The four arms matter together: clearing one completely too early can remove a bridge needed by another.",
+    "exampleTitle": "A peg is stranded at an arm’s tip",
+    "example": "Only one peg remains in the outer end of an arm and the adjacent hole is empty. That peg cannot jump without a middle peg. A previous move may need to be undone so a partner can approach it. The board’s Undo control lets you inspect this consequence without losing the entire attempt.",
+    "practice": [
+      "After each jump, check whether any remaining peg has become isolated.",
+      "Use Undo to compare two different ways of clearing one arm.",
+      "Near the end, plan two jumps together instead of choosing only the next capture."
+    ],
+    "watch": "The win condition is one remaining peg anywhere, not specifically in the centre. The game reports a stalled board but does not claim that every sequence can still be solved."
+  },
+  {
+    "id": "lightsout",
+    "summary": "Understand toggle cancellation and try a systematic row-by-row approach.",
+    "focus": "Pressing twice cancels itself",
+    "explain": "A light changes state whenever an affected square is pressed. Pressing the same square twice therefore restores every affected light to its previous state. Order does not change the final result of a chosen set of presses. That makes deliberate patterns more useful than chasing each bright square independently.",
+    "exampleTitle": "Two presses overlap one light",
+    "example": "Two neighbouring chosen squares both affect the light between them. That shared light toggles twice and ends where it began, while other affected lights may change once. Before pressing a second square, inspect which lights overlap the first cross. A move can be useful even when it briefly turns some dark lights on.",
+    "practice": [
+      "Press one square twice on a fresh board and observe the cancellation.",
+      "Try clearing the top row by pressing appropriate squares in the row beneath it.",
+      "Review the bottom row before restarting; a systematic failure teaches more than random toggles."
+    ],
+    "watch": "Generated boards are solvable, but the game does not promise a particular minimum solution length. Best press count combines different layouts, so replay comparisons are most meaningful on the same arrangement."
+  },
+  {
+    "id": "pipeconnect",
+    "summary": "Follow the connected blue network and align both sides of each gap.",
+    "focus": "A connection needs two matching openings",
+    "explain": "A pipe pointing right does not connect to its neighbour unless that neighbour also points left. Trace from the source one square at a time and identify the first broken connection. Work on that local mismatch before rotating unrelated pieces. The blue network updates after each move, making it a useful check of your reading.",
+    "exampleTitle": "Two elbows face away from each other",
+    "example": "The source network ends at an elbow opening downward, but the pipe below only opens left and right. Rotate the lower piece until it accepts water from above and sends it towards a useful next square. Then check whether the blue region extends. Changing only the source-side elbow can break the route you already built.",
+    "practice": [
+      "Trace every opening of the first three connected pipes.",
+      "Fix the first mismatch and watch which pieces turn blue.",
+      "Near the exit, plan its incoming direction before rotating its neighbours."
+    ],
+    "watch": "The objective is source-to-exit reachability, not using every pipe or creating a leak-free network. Generated layouts include a valid route; other valid routes are accepted too."
+  },
+  {
+    "id": "sokoban",
+    "summary": "Protect access to the pushing side and avoid corners without goals.",
+    "focus": "Plan where you must stand before pushing",
+    "explain": "A box route is not enough: the player must reach the square behind the box for every push. Moving a box beside a wall can remove access to that side. A non-goal corner is especially dangerous because neither of its blocked directions can be used to push the box back out. Walk around a box first when that preserves more options.",
+    "exampleTitle": "A goal is above the box",
+    "example": "A box has a green goal directly above it. To push upward, the player must stand directly below the box. Approaching from the top and pushing down moves it away from the goal. Before taking that downward push, check whether you can walk around to the lower square instead.",
+    "practice": [
+      "Before each push, identify the player’s required standing square.",
+      "Avoid pushing a box into a wall corner unless that corner is a goal.",
+      "Use Undo to recover a blocked route and compare a different approach."
+    ],
+    "watch": "Step count and push count measure different things. Walking extra steps to reach the correct pushing side can save an otherwise impossible position. The five supplied layouts are checked for a solution."
+  },
+  {
+    "id": "hashi",
+    "summary": "Count remaining bridge capacity and keep separate groups connected.",
+    "focus": "Matching numbers is only part of the goal",
+    "explain": "Each bridge consumes capacity at both endpoints. Before adding a second bridge, compare what both islands still need. A local group can satisfy its numbers while remaining disconnected from the rest of the puzzle; that is not a finished network. Keep at least one possible connection between developing groups as you approach the final clues.",
+    "exampleTitle": "A corner needs four bridges",
+    "example": "A corner island has only two neighbouring islands. If its clue is 4, both links must be double bridges because each pair allows at most two. Add those bridges, then subtract their contributions from the neighbours’ remaining needs. A forced corner can determine several later choices.",
+    "practice": [
+      "Look for corner clues that force one or two double links.",
+      "After adding a bridge, recalculate both endpoint totals.",
+      "When every island is green, check whether the whole network is connected."
+    ],
+    "watch": "Some generated clues can admit several valid networks. Any clue-matching connected network is accepted. The 3×3 lattice is a compact introduction rather than a full irregular-island generator."
+  },
+  {
+    "id": "kakuro",
+    "summary": "Use candidate digit combinations and crossing sums instead of guessing full rows.",
+    "focus": "A sum is a set of possible combinations",
+    "explain": "For a three-cell run, list distinct-digit combinations that reach its target. Then compare them with crossing constraints. A digit can appear somewhere in a row without belonging in every square of that row. Keep the no-repeat rule separate from the arithmetic: reaching the total with repeated digits is still invalid.",
+    "exampleTitle": "A three-cell run totals six",
+    "example": "Three distinct positive digits from 1 to 9 that total 6 must be 1, 2 and 3 in some order. The crossing column sums determine where each belongs. A row containing 2, 2 and 2 reaches the same total but breaks the distinct-digit rule, so it cannot be accepted.",
+    "practice": [
+      "Identify a low or high sum with few possible digit combinations.",
+      "Use a crossing sum to decide one cell before completing its whole row.",
+      "Check each run for repeated digits before pressing Check sums."
+    ],
+    "watch": "Kakuro Mini uses one 3×3 white block rather than a large grid of intersecting black-cell runs. Clues are generated from a valid arrangement, but uniqueness is not claimed."
+  },
+  {
+    "id": "codebreaker",
+    "summary": "Read duplicate-aware feedback and change guesses to answer a specific question.",
+    "focus": "Treat every result as a constraint",
+    "explain": "Feedback reports totals rather than identifying individual slots. A guess with one exact match does not tell you which letter is exact. Compare several guesses to narrow the possibilities. Repeated letters need care: the game counts each occurrence only once, so guessing four copies of a letter does not multiply a single occurrence in the secret.",
+    "exampleTitle": "A repeated letter is present only once",
+    "example": "Suppose the secret is A, B, C, D and your guess is A, A, E, F. The first A is exact. The second A does not earn an Other place match because the secret has no unused second A. The result is one exact and zero elsewhere. Use that distinction when deciding whether to repeat a letter.",
+    "practice": [
+      "Start with a guess that tests several letters.",
+      "Before submitting again, state which possibility the new guess will distinguish.",
+      "Review the whole feedback table before assuming a slot is solved."
+    ],
+    "watch": "Secrets use six letters, four slots and repeated letters. The browser record is the fewest submitted guesses for a solved code; different secrets can require different amounts of deduction."
+  },
+  {
+    "id": "hangman",
+    "summary": "Use the clue and revealed positions to narrow likely letters.",
+    "focus": "Let the pattern guide the next guess",
+    "explain": "A familiar vowel can reveal useful structure, but repeatedly guessing common letters without reading the clue wastes opportunities. After every correct guess, look at the revealed positions and the total length. Consider words that fit both the pattern and the meaning before choosing the next letter. Repeated letters are revealed automatically, so one correct choice can fill several gaps.",
+    "exampleTitle": "The clue describes a writing tool",
+    "example": "A six-letter word has clue A writing tool with a graphite core. You reveal E in its second position and I in its fifth. Read the complete clue alongside the pattern before guessing another unrelated consonant. A specific meaning can reduce the choices more effectively than letter frequency alone.",
+    "practice": [
+      "Read the clue and word length before the first guess.",
+      "After a reveal, name one plausible complete word.",
+      "Near the mistake limit, check used wrong letters before choosing."
+    ],
+    "watch": "The word bank contains everyday English nouns with clues. This is a relaxed vocabulary game; it does not claim to measure language ability. A new round may select a word seen before."
+  },
+  {
+    "id": "wordsearch",
+    "summary": "Scan for a distinctive letter pair and follow a straight line to confirm the whole word.",
+    "focus": "Use the next letter to reduce the search",
+    "explain": "Instead of reading the whole board repeatedly, choose one target and locate its first letter. Inspect the eight neighbouring directions for its second letter. Only continue along a direction that matches, and keep that direction fixed until the final letter. The same grid can contain many distractions, but a straight-line check quickly rules them out.",
+    "exampleTitle": "A diagonal target shares a letter",
+    "example": "You find the first two letters of a target on a downward diagonal. A highlighted letter from an already found word lies farther along that line. It can belong to both words, so continue checking rather than assuming the path is unavailable. Once the whole target matches, tap its two endpoints.",
+    "practice": [
+      "Search for the longest listed target first.",
+      "At a possible start, check the second letter in every direction.",
+      "Before tapping endpoints, read the complete line forwards or backwards."
+    ],
+    "watch": "Highlights can overlap because words may share letters. The interface uses two taps instead of a drag, which also works with focused grid buttons. The game has no countdown."
+  },
+  {
+    "id": "anagrams",
+    "summary": "Combine the clue with likely letter groups rather than trying random permutations.",
+    "focus": "Separate a possible ending from the remaining letters",
+    "explain": "A scramble becomes easier to read when you identify a familiar group such as a likely ending or a pair that commonly appears together. The clue tells you which kind of word you need. Check repeated letters carefully: a plausible answer is not valid if it uses a letter more times than the scramble supplies.",
+    "exampleTitle": "A vehicle with pedals",
+    "example": "The clue describes a two-wheeled vehicle with pedals. Before trying random arrangements, use that meaning to suggest a candidate, then compare every letter with the scramble. If the candidate fits the meaning and uses all letters, submit it. The first-letter hint is available if you need a starting anchor.",
+    "practice": [
+      "Read the clue before moving letters mentally.",
+      "Check a candidate’s repeated letters against the scramble.",
+      "Solve several words without rushing and compare your visit total."
+    ],
+    "watch": "The clue identifies the intended word when a scramble could form another word. This version accepts the clue’s target, not a general dictionary of every possible anagram. Hint use does not reduce the solved count."
+  },
+  {
+    "id": "mathsprint",
+    "summary": "Preserve accuracy while using simple mental decompositions.",
+    "focus": "Break a multiplication into two easier parts",
+    "explain": "A fast answer is useful only when it is correct. For an awkward product, split one factor into familiar pieces and add the results. Addition can often be grouped to make a round number, while subtraction can be checked by adding the difference back. Use the same difficulty when comparing sessions because Hard draws from a wider number range.",
+    "exampleTitle": "Calculate twelve times seven",
+    "example": "For 12 × 7, think of 10 × 7 plus 2 × 7: 70 plus 14 gives 84. This replaces one less-familiar fact with two smaller ones. Enter the whole result rather than an expression; the answer field expects a number, not arithmetic notation.",
+    "practice": [
+      "Complete an Easy sprint focused on correct answers.",
+      "Review whether multiplication or subtraction caused more errors.",
+      "Repeat at the same setting and compare accuracy as well as points."
+    ],
+    "watch": "The timer counts active play and pauses when the tab is hidden. Scores are a casual game record, not an assessment of intelligence or school performance. Easy and Hard share one saved best, so compare like settings manually."
+  },
+  {
+    "id": "darts",
+    "summary": "Plan a finish that fits the remaining score and leave room for aim drift.",
+    "focus": "Choose the target from your remaining total",
+    "explain": "A high-scoring region is useful early in the leg, but it can be risky near zero. Look at the remaining score before throwing. The moving crosshair means the actual scoring point can differ from your chosen centre. A larger single sector may be safer than a narrow multiplier when either would leave a manageable finish.",
+    "exampleTitle": "You have twenty remaining",
+    "example": "A single 20 finishes a straight-out leg immediately. A triple 20 would overshoot, causing a bust and restoring the score from the start of that turn. Aim within the wider single region and time the throw, rather than keeping the same triple target used earlier.",
+    "practice": [
+      "Try several throws at a broad single sector to learn the drift.",
+      "Identify the single, double and triple rings before chasing high scores.",
+      "Before each finishing turn, choose a route that totals exactly the remainder."
+    ],
+    "watch": "This version uses straight-out scoring and a drifting aim marker. It does not require double-out tournament finishes. Busts restore the entire current turn, while thrown darts still count towards the completed-leg record."
+  },
+  {
+    "id": "bowling",
+    "summary": "Use the first roll’s pin pattern to plan a different line for the second.",
+    "focus": "Read what remains after the first ball",
+    "explain": "The first roll aims at a full rack. The second must account for the actual pins still standing. Sending the ball down exactly the same cleared lane can miss a remaining side pin. Use the visible rack to move your line, and remember that lower power reduces the chain of pins that can knock one another down.",
+    "exampleTitle": "A side pin survives the centre shot",
+    "example": "Your first roll clears the central group but leaves a pin to the left. Move Aim towards that pin before the second roll. Repeating the centre line may pass through empty space. A spare is valuable because the next roll is added as a bonus, so reading the remaining rack matters beyond the immediate pin count.",
+    "practice": [
+      "Roll at medium and high power from the same line to compare the chain effect.",
+      "After every first roll, identify which pins remain.",
+      "Finish a full ten-frame game and inspect how bonus rolls affect the final score."
+    ],
+    "watch": "Pin action is a compact deterministic arcade approximation rather than a full three-dimensional simulation. Scorekeeping follows ten-pin bonus rules; a strike’s final contribution may remain pending until later rolls."
+  },
+  {
+    "id": "pinball",
+    "summary": "Watch the return path and activate the flipper that can actually reach it.",
+    "focus": "The approach matters more than constant button presses",
+    "explain": "Flippers help only when the ball reaches their lower zones. Watch whether the ball is approaching the left or right side, then activate that flipper before contact. The middle gap remains dangerous because neither flipper covers its centre. Bumpers alter the return direction, so follow the new path after each hit rather than expecting a repeated trajectory.",
+    "exampleTitle": "A ball falls towards the right zone",
+    "example": "The ball leaves the centre bumper moving down and right. Hold the right flipper before it reaches the yellow bar area. Pressing only the left flipper cannot affect a ball outside that side’s reach. After the rebound, release and watch its next return rather than assuming the same side will be needed again.",
+    "practice": [
+      "Use one ball to observe where each flipper’s active zone begins.",
+      "On the next ball, follow the path after every bumper contact.",
+      "Compare points over all three balls rather than judging a run by one lucky bounce."
+    ],
+    "watch": "This is a small original arcade table with simplified flipper and bumper physics. It has no gambling, prizes or real-money play. Points come from bumper contacts; keeping a ball alive alone does not add score."
+  },
+  {
+    "id": "fishing",
+    "summary": "Alternate holding and releasing so tension stays within the productive band.",
+    "focus": "Reeling continuously is not the goal",
+    "explain": "Holding Reel raises the tension meter, while releasing lets it fall. Landing progress grows only within the target band. Long holds can break the line, and leaving it released too long lets the fish escape. Watch the direction in which the meter is moving and change your input before reaching an extreme.",
+    "exampleTitle": "Tension rises through seventy percent",
+    "example": "You are holding Reel and tension passes 70%. Release before the meter reaches its upper danger region. As tension falls towards the middle of the band, prepare a shorter hold to keep progress moving. Waiting for 100% before reacting is too late; small adjustments preserve both line and progress.",
+    "practice": [
+      "Concentrate on hooking only after the BITE signal.",
+      "During a catch, try short holds and releases around the middle of the band.",
+      "After a lost fish, identify whether timing, high tension or low tension caused the failure."
+    ],
+    "watch": "Fish, weights and points are entirely virtual. This is a timing-and-meter game, not real fishing advice or a prize game. Pausing stops active play; resume explicitly after leaving the tab."
   }
 ]

@@ -63,7 +63,8 @@ for(const file of ['2-player-games.html','puzzle-games.html','action-games.html'
  pending.set(file,category);
 }
 let sitemap=read('sitemap.xml');if(!sitemap.includes('<loc>'+canonical+'</loc>'))sitemap=sitemap.replace('</urlset>','  <url><loc>'+canonical+'</loc></url>\n</urlset>');pending.set('sitemap.xml',sitemap);
-for(const [file,html]of pending){
+for(const [file,baseHTML]of pending){
+ const html=require('./build-seo.cjs').decorate(file,baseHTML);
  if(checkOnly){if(!fs.existsSync(path.join(root,file))||read(file).replaceAll('\r\n','\n')!==html.replaceAll('\r\n','\n'))throw Error('Guide output stale: '+file+'; run node scripts/build-guides.cjs');}
  else fs.writeFileSync(path.join(root,file),html);
 }

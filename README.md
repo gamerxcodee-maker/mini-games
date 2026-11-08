@@ -55,3 +55,9 @@ assets/collection-rules.js and collection-action-rules.js contain tested puzzle/
 node scripts/check-collection.cjs checks 100 seeded puzzle/fleet cases, seed conservation, captures/turns, five Sokoban solutions, bowling bonus scores, dart regions and action interactions. Actual browser input, reset, privacy and responsive checks remain required. No test suite certifies every possible play sequence.
 
 Homepage ordering: CLASSIC_FIRST and orderedGames() in index.html pin 2048, Sudoku and familiar classics above other games. Any additional classic-category games follow the pinned favourites; other games follow those. Both prerendered tiles and client-side filters use this ordering, so prepending a new GAMES entry cannot displace the classics. Do not replace renderGrid with raw GAMES order.
+
+## SEO and sharing
+
+Run node scripts/build-seo.cjs to refresh page-specific social images, favicon links, visible breadcrumbs, matching BreadcrumbList JSON-LD and user-initiated share/copy controls. The page/guide generators call the same decorator, so rebuilding content preserves these features. Both build-seo --check and check-seo are included in the normal suite; check-seo validates canonical coverage, image formats/dimensions, breadcrumb destinations, reachability and clipboard fallbacks.
+
+assets/social contains54original JPEG cards(53games+brand),each1200x630,created from the existing vector tile designs. When adding a new game, add its matching card and rerun the SEO builder/checks. The separate rendering helper is development tooling, outside the published checkout. Images are share previews, not a promise of search results or rich snippets. Do not add ratings, reviews, invented authorship, keyword-stuffed text or copied guides.

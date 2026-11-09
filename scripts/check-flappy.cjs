@@ -12,4 +12,27 @@ for(const [dialog,control,repeat,expectedFlaps,expectedPrevent] of [[false,false
  c.handle({code:'Space',repeat,target:{closest(){return control}},preventDefault(){prevented++}});
  assert.equal(flaps,expectedFlaps);assert.equal(prevented,expectedPrevent);
 }
-console.log('PASS: Flappy best-score ties, new records, input/dialog keyboard isolation and held-Space scroll prevention.');
+// Run the actual controller with a small DOM, not a second version of its rules.
+const engine=[...s.matchAll(/<script>([\s\S]*?)<\/script>/g)].map(m=>m[1]).find(code=>code.includes('function spawnPipe'));
+function controller(saved,blocked=false){
+ const nodes=new Map(),events={}; let modal=false;
+ const element=()=>({textContent:'',classList:{add(){},remove(){}},addEventListener(){},getBoundingClientRect:()=>({width:390,height:520}),getContext:()=>({setTransform(){}})});
+ const document={hidden:false,getElementById(id){if(!nodes.has(id))nodes.set(id,element());return nodes.get(id)},querySelector(){return modal?{}:null},addEventListener(k,f){(events[k]??=[]).push(f)}};
+ const c={document,window:{devicePixelRatio:1,addEventListener(){}},localStorage:{getItem(){if(blocked)throw Error('blocked');return saved},setItem(){}},requestAnimationFrame(){}};
+ const instrumented=engine.replace(/requestAnimationFrame\(frame\);\s*\}\)\(\);\s*$/, 'requestAnimationFrame(frame); globalThis.api={flap,update,snapshot:()=>({state,score,best,bird:{...bird}})};})();');
+ assert.notEqual(instrumented,engine);vm.runInNewContext(instrumented,c);
+ return {api:c.api,document,nodes,modal(value){modal=value},emit(k,e){for(const f of events[k]||[])f(e)}};
+}
+for(const [saved,expected] of [[null,0],['9',9],['0',0],['NaN',0],['12points',0],['-3',0],['2.5',0],['Infinity',0],['9007199254740992',0]]){
+ const game=controller(saved);assert.equal(game.api.snapshot().best,expected);assert.equal(game.nodes.get('best').textContent,expected);
+}
+assert.equal(controller('9',true).api.snapshot().best,0);
+const game=controller('4');game.api.flap();assert.equal(game.api.snapshot().state,'playing');
+game.document.hidden=true;game.emit('visibilitychange');assert.equal(game.api.snapshot().state,'paused');
+const birdBefore=JSON.stringify(game.api.snapshot().bird);game.api.update(5);assert.equal(JSON.stringify(game.api.snapshot().bird),birdBefore);assert.equal(game.api.snapshot().score,0);
+game.api.flap();assert.equal(game.api.snapshot().state,'paused');
+game.document.hidden=false;game.emit('visibilitychange');assert.equal(game.api.snapshot().state,'paused');
+game.api.flap();assert.equal(game.api.snapshot().state,'playing');assert.equal(game.api.snapshot().bird.vy,-420);
+game.modal(true);game.emit('click',{target:{closest:()=>({})}});assert.equal(game.api.snapshot().state,'paused');
+game.api.flap();assert.equal(game.api.snapshot().state,'paused');game.modal(false);game.api.flap();assert.equal(game.api.snapshot().state,'playing');
+console.log('PASS: Flappy records/storage recovery, input isolation and actual controller hidden-tab/privacy pause, frozen physics and explicit resume.');

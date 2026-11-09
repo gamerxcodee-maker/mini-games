@@ -119,7 +119,7 @@
     </div>
   </header>
 
-  <div class="hint-row" id="hint">Tap the board, click, or press Space to start and flap.</div>
+  <div class="hint-row" id="hint">Tap the board, click, or press Space to start and flap. Switching tabs or opening privacy choices pauses your run; resume when ready.</div>
 
   <div class="board-shell" id="board" tabindex="0" role="region" aria-label="Flappy Dash play area" aria-describedby="hint">
     <canvas id="canvas"></canvas>
@@ -240,7 +240,10 @@
   let bird, pipes, score, best, state, lastTime, spawnTimer, groundOffset;
 
   function loadBest(){
-    try { const b = localStorage.getItem('brightflappy_best'); return b ? parseInt(b,10) : 0; } catch(e){ return 0; }
+    try {
+      const value = Number(localStorage.getItem('brightflappy_best'));
+      return Number.isSafeInteger(value) && value >= 0 ? value : 0;
+    } catch(e){ return 0; }
   }
   function saveBest(v){ try { localStorage.setItem('brightflappy_best', String(v)); } catch(e){} }
 
@@ -259,6 +262,12 @@
   }
 
   function flap(){
+    if (document.hidden || document.querySelector('dialog[open]')) return;
+    if (state === 'paused'){
+      state = 'playing';
+      lastTime = undefined;
+      overlay.classList.remove('show');
+    }
     if (state === 'ready'){
       state = 'playing';
       overlay.classList.remove('show');
@@ -270,6 +279,21 @@
       reset();
     }
   }
+
+  function pauseGame(){
+    if (state !== 'playing') return;
+    state = 'paused';
+    overlayText.textContent = 'Paused';
+    overlaySub.textContent = 'Your run is safe. Tap Resume or press Space to continue with a flap.';
+    overlayBtn.textContent = 'Resume';
+    overlay.classList.add('show');
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pauseGame();
+  });
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-privacy-open]')) pauseGame();
+  });
 
   function spawnPipe(){
     const gapH = H * PIPE_GAP;

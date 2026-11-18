@@ -198,6 +198,7 @@
     <p><strong>Why does my tap seem to help one orb and hurt the other?</strong> That's intentional — the cyan orb rises on a tap while the gold orb sinks, so every tap is a trade-off between the two.</p>
     <p><strong>Is there a way to make it easier?</strong> Yes — the game starts at a gentle speed and gap size, and difficulty ramps up slowly the longer you survive.</p>
     <p><strong>Does my score reset if I crash?</strong> Yes — the run ends immediately, but your best score is always saved for next time.</p>
+    <p><strong>What happens if I switch tabs?</strong> An active run pauses when this tab is hidden or you open Privacy choices. After returning or closing the dialog, tap Resume or press Space to continue with a flap. Both orbs and the score stay frozen until you resume. Reloading the page starts a new run.</p>
   </section>
 
   <footer class="credit">Original concept and build · gameplay runs in your browser · best score saved only on this device</footer>
@@ -233,7 +234,7 @@
   let pipeGapRatio = 0.42;
   let speed = 105;
 
-  let ballA, ballB, pipes, score, best, over, started, spawnTimer, spawnInterval, elapsed, particles, localFixedX;
+  let ballA, ballB, pipes, score, best, over, started, paused, spawnTimer, spawnInterval, elapsed, particles, localFixedX;
 
   let runBestAtStart = 0;
 
@@ -250,6 +251,7 @@
     score = 0;
     over = false;
     started = false;
+    paused = false;
     speed = 105;
     pipeGapRatio = 0.42;
     spawnTimer = 0;
@@ -265,11 +267,32 @@
   }
 
   function flap(){
+    if (document.hidden || document.querySelector('dialog[open]')) return;
     if (over) return;
+    if (paused){
+      paused = false;
+      frame.last = undefined;
+      overlay.classList.remove('show');
+    }
     if (!started){ started = true; overlay.classList.remove('show'); }
     ballA.vy = -FLAP;
     ballB.vy = FLAP;
   }
+
+  function pauseGame(){
+    if (!started || over || paused) return;
+    paused = true;
+    overlayText.textContent = 'Paused';
+    overlaySub.textContent = 'Your run is safe. Tap Resume or press Space to continue with a flap.';
+    overlayBtn.textContent = 'Resume';
+    overlay.classList.add('show');
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) pauseGame();
+  });
+  document.addEventListener('click', (e) => {
+    if (e.target.closest('[data-privacy-open]')) pauseGame();
+  });
 
   function spawnPipe(){
     const gapH = H * pipeGapRatio;
@@ -288,6 +311,8 @@
   }
 
   function update(dt){
+    if (document.hidden || document.querySelector('dialog[open]')) pauseGame();
+    if (paused) return;
     if (!started){ return; }
     if (over){
       particles.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.life-=dt;});
@@ -425,7 +450,7 @@
   });
   overlayBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    if (over){ newGame(); } else { started = true; overlay.classList.remove('show'); }
+    if (over){ newGame(); } else if (paused){ flap(); } else { started = true; overlay.classList.remove('show'); }
   });
 
   resize();
